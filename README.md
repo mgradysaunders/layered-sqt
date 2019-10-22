@@ -1,3 +1,3 @@
 # Layered-SQT
 
-Microfacet layers to SQT-format BSDF.
+Layered assembly to SQT-format BSDF.
