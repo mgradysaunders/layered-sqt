@@ -1051,7 +1051,8 @@ public:
 
         Float f = 0;
         Float tau = 1;
-        for (;;) {
+        for (int bounce = 0;
+                 bounce < MAX_BOUNCES; bounce++) {
 
             Vec3<Float> wo = -ray.dir;
 
