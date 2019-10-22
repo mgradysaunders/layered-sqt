@@ -144,7 +144,9 @@ public:
 };
 
 /**
- * @brief Isotropic homogeneous medium.
+ * @brief Medium.
+ *
+ * TODO
  */
 class Medium
 {
@@ -681,6 +683,8 @@ public:
 
 /**
  * @brief Assembly.
+ *
+ * TODO
  */
 class Assembly
 {
@@ -706,6 +710,8 @@ public:
 
     /**
      * @brief Load from input stream.
+     *
+     * TODO
      */
     void load(std::istream& istr)
     {
@@ -1138,11 +1144,12 @@ public:
 
 int main(int arg, char** argv)
 {
+    // TODO Option parser
+#if 0
     Assembly assembly;
-    {
-        std::ifstream ifs("example.layers");
-        assembly.load(ifs);
-        ifs.close();
-    }
+    std::ifstream ifs("example.layers");
+    assembly.load(ifs);
+    ifs.close();
+#endif
     return 0;
 }
