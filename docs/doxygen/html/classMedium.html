@@ -108,13 +108,13 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a4167f1cdb938f9ad29f893c7eb126c66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Henyey-Greenstein parameter \( g \in (-1, 1) \).  <a href="#a4167f1cdb938f9ad29f893c7eb126c66">More...</a><br /></td></tr>
 <tr class="separator:a4167f1cdb938f9ad29f893c7eb126c66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4bed27da505a92e404ba716a6afd6f72"><td class="memItemLeft" align="right" valign="top">Float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMedium.html#a4bed27da505a92e404ba716a6afd6f72">mua</a> = 0</td></tr>
-<tr class="memdesc:a4bed27da505a92e404ba716a6afd6f72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Absorption coefficient \( \mu_a \).  <a href="#a4bed27da505a92e404ba716a6afd6f72">More...</a><br /></td></tr>
+<tr class="memdesc:a4bed27da505a92e404ba716a6afd6f72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Volume absorption coefficient \( \mu_a \).  <a href="#a4bed27da505a92e404ba716a6afd6f72">More...</a><br /></td></tr>
 <tr class="separator:a4bed27da505a92e404ba716a6afd6f72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25c579a12bc9063bd3f5dbb12db46f09"><td class="memItemLeft" align="right" valign="top">Float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMedium.html#a25c579a12bc9063bd3f5dbb12db46f09">mus</a> = 0</td></tr>
-<tr class="memdesc:a25c579a12bc9063bd3f5dbb12db46f09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scattering coefficient \( \mu_s \).  <a href="#a25c579a12bc9063bd3f5dbb12db46f09">More...</a><br /></td></tr>
+<tr class="memdesc:a25c579a12bc9063bd3f5dbb12db46f09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Volume scattering coefficient \( \mu_s \).  <a href="#a25c579a12bc9063bd3f5dbb12db46f09">More...</a><br /></td></tr>
 <tr class="separator:a25c579a12bc9063bd3f5dbb12db46f09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9508e327a4bb07d06bc8c04e6725677"><td class="memItemLeft" align="right" valign="top">Float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMedium.html#af9508e327a4bb07d06bc8c04e6725677">mu</a> = 0</td></tr>
-<tr class="memdesc:af9508e327a4bb07d06bc8c04e6725677"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extinction coefficient \( \mu = \mu_a + \mu_s \).  <a href="#af9508e327a4bb07d06bc8c04e6725677">More...</a><br /></td></tr>
+<tr class="memdesc:af9508e327a4bb07d06bc8c04e6725677"><td class="mdescLeft">&#160;</td><td class="mdescRight">Volume extinction coefficient \( \mu = \mu_a + \mu_s \).  <a href="#af9508e327a4bb07d06bc8c04e6725677">More...</a><br /></td></tr>
 <tr class="separator:af9508e327a4bb07d06bc8c04e6725677"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb5714f0401b703c5026ed9cd661437b"><td class="memItemLeft" align="right" valign="top">Float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMedium.html#abb5714f0401b703c5026ed9cd661437b">eta</a> = 1</td></tr>
 <tr class="memdesc:abb5714f0401b703c5026ed9cd661437b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Refractive index \( \eta \).  <a href="#abb5714f0401b703c5026ed9cd661437b">More...</a><br /></td></tr>
@@ -197,6 +197,27 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Constructor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">g</td><td>Henyey-Greenstein parameter \( g \).</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mua</td><td>Volume absorption coefficient \( \mu_a \).</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mus</td><td>Volume scattering coefficient \( \mu_s \).</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">eta</td><td>Refractive index \( \eta \).</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>If<ul>
+<li><code>g</code> is outside <code>(-1, 1)</code>,</li>
+<li><code>mua</code> is less than <code>0</code>,</li>
+<li><code>mus</code> is less than <code>0</code>, or</li>
+<li><code>eta</code> is less than <code>1</code>. </li>
+</ul>
+</td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -447,7 +468,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Absorption coefficient \( \mu_a \). </p>
+<p>Volume absorption coefficient \( \mu_a \). </p>
 
 </div>
 </div>
@@ -463,7 +484,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Scattering coefficient \( \mu_s \). </p>
+<p>Volume scattering coefficient \( \mu_s \). </p>
 
 </div>
 </div>
@@ -479,7 +500,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Extinction coefficient \( \mu = \mu_a + \mu_s \). </p>
+<p>Volume extinction coefficient \( \mu = \mu_a + \mu_s \). </p>
 
 </div>
 </div>
