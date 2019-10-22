@@ -157,6 +157,25 @@ public:
 
     /**
      * @brief Constructor.
+     *
+     * @param[in] g
+     * Henyey-Greenstein parameter @f$ g @f$.
+     *
+     * @param[in] mua
+     * Volume absorption coefficient @f$ \mu_a @f$.
+     *
+     * @param[in] mus
+     * Volume scattering coefficient @f$ \mu_s @f$.
+     *
+     * @param[in] eta
+     * Refractive index @f$ \eta @f$.
+     *
+     * @throw std::invalid_argument
+     * If
+     * - `g` is outside `(-1, 1)`,
+     * - `mua` is less than `0`,
+     * - `mus` is less than `0`, or
+     * - `eta` is less than `1`.
      */
     Medium(Float g, Float mua, Float mus, Float eta) :
             g(g),
@@ -206,17 +225,17 @@ public:
     Float g = 0;
 
     /**
-     * @brief Absorption coefficient @f$ \mu_a @f$.
+     * @brief Volume absorption coefficient @f$ \mu_a @f$.
      */
     Float mua = 0;
 
     /**
-     * @brief Scattering coefficient @f$ \mu_s @f$.
+     * @brief Volume scattering coefficient @f$ \mu_s @f$.
      */
     Float mus = 0;
 
     /**
-     * @brief Extinction coefficient @f$ \mu = \mu_a + \mu_s @f$.
+     * @brief Volume extinction coefficient @f$ \mu = \mu_a + \mu_s @f$.
      */
     Float mu = 0;
 
