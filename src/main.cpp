@@ -470,7 +470,7 @@ public:
      * If
      * - `fR` is outside `[0, 1]`,
      * - `fT` is outside `[0, 1]`, or
-     * - `fR` plus `fT` is greater than 1.
+     * - `fR` plus `fT` is greater than `1`.
      */
     LambertianLayer(Float fR, Float fT) : 
             fR(fR), 
