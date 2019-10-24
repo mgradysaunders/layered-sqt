@@ -32,12 +32,12 @@
 #include <string>
 #include <vector>
 #include <preform/random.hpp>
-#include <preform/float_interval.hpp>
 #include <preform/multi.hpp>
 #include <preform/multi_math.hpp>
 #include <preform/multi_random.hpp>
 #include <preform/microsurface.hpp>
 #include <preform/option_parser.hpp>
+#include <preform/bash_format.hpp>
 
 #ifndef DIELECTRIC_FM_ITERATIONS
 #define DIELECTRIC_FM_ITERATIONS 8
@@ -1142,12 +1142,293 @@ public:
     }
 };
 
-int main(int arg, char** argv)
+enum class Mode
 {
-    // TODO Option parser
+    Brdf,
+    Bsdf
+};
+
+int main(int argc, char** argv)
+{
+    pr::option_parser opt_parser("[OPTIONS] filename");
+
+    int seed = 0;
+    Mode mode = Mode::Brdf;
+    int niters = 16384;
+    int nsamps_wo = 32;
+    int nsamps_wi = 128;
+    std::string ifs_fname = "";
+    std::string ofs_fname = "output.raw";
+
+    // -s/--seed
+    opt_parser.on_option(
+    "-s", "--seed", 1,
+    [&](char** argv) {
+        try {
+            seed = std::stoi(argv[0]);
+        }
+        catch (const std::exception&) {
+            throw 
+                std::runtime_error(
+                std::string("-s/--seed expects 1 integer")
+                    .append("(can't parse ").append(argv[0])
+                    .append(")"));
+        }
+    })
+    << "Specify seed. By default, 0.\n";
+
+    // -m/--mode
+    // 'H' => BRDF/hemispherical
+    // 'S' => BSDF/spherical
+    opt_parser.on_option(
+    "-m", "--mode", 1,
+    [&](char** argv) {
+        if (argv[0][0] == 'H' &&
+            argv[0][1] == '\0') {
+            mode = Mode::Brdf;
+        }
+        else if (argv[0][0] == 'S' &&
+                 argv[0][1] == '\0') {
+            mode = Mode::Bsdf;
+        }
+        else {
+            throw 
+                std::runtime_error(
+                std::string("-m/--mode expects either 'H' or 'S' ")
+                    .append("(can't parse ").append(argv[0])
+                    .append(")"));
+        }
+    })
+    << "Specify mode. By default, 'H'.\n"
+       "Expects 1 character, 'H' for hemispherical (BRDF)\n"
+       "or 'S' for spherical (BSDF).\n";
+
+    // --num-iters
+    opt_parser.on_option(
+    nullptr, "--num-iters", 1,
+    [&](char** argv) {
+        try {
+            niters = std::stoi(argv[0]);
+            if (!(niters > 0)) {
+                throw std::exception();
+            }
+        }
+        catch (const std::exception&) {
+            throw
+                std::runtime_error(
+                std::string("--num-iters expects 1 positive integer ")
+                    .append("(can't parse ").append(argv[0])
+                    .append(")"));
+        }
+    })
+    << "Specify number of iterations per sample. By default, 16384.\n";
+
+    // --num-samps-wo
+    opt_parser.on_option(nullptr, "--num-samps-wo", 1,
+    [&](char** argv) {
+        try {
+            nsamps_wo = std::stoi(argv[0]);
+            if (!(nsamps_wo >= 8)) {
+                throw std::exception();
+            }
+        }
+        catch (const std::exception&) {
+            throw
+                std::runtime_error(
+                std::string("--num-samps-wo expects 1 integer >= 8 ")
+                    .append("(can't parse ").append(argv[0])
+                    .append(")"));
+        }
+    })
+    << "Specify number of outgoing directions. By default, 32.\n"
+       "This is the number of outgoing directions in the upper hemisphere,\n"
+       "uniformly distributed in zenith. As the emergent BRDF/BSDF must be\n"
+       "isotropic, the implementation does not sample in azimuth.\n";
+
+    // --num-samps-wi
+    opt_parser.on_option(nullptr, "--num-samps-wi", 1,
+    [&](char** argv) {
+        try {
+            nsamps_wi = std::stoi(argv[0]);
+            if (!(nsamps_wi >= 16)) {
+                throw std::exception();
+            }
+        }
+        catch (const std::exception&) {
+            throw
+                std::runtime_error(
+                std::string("--num-samps-wi expects 1 integer >= 16 ")
+                    .append("(can't parse ").append(argv[0])
+                    .append(")"));
+        }
+    })
+    << "Specify number of incident directions. By default, 128.\n"
+       "This is the number of incident directions per hemisphere, cosine\n"
+       "distributed by feeding low-discrepancy points into a concentric\n"
+       "disk mapping and projecting onto the hemisphere.\n";
+
+    // -o/--output
+    opt_parser.on_option("-o", "--output", 1,
+    [&](char** argv) {
+        ofs_fname = argv[0];
+    })
+    << "Specify ASCII-format RAW output filename. By default, output.raw.\n";
+
+    // -h/--help
+    opt_parser.on_option("-h", "--help", 0,
+    [&](char**) {
+        std::cout << opt_parser << std::endl;
+        std::exit(EXIT_SUCCESS);
+    })
+    << "Display this help and exit.\n";
+
+    // Positional.
+    opt_parser.on_positional(
+    [&](char* argv) {
+        ifs_fname = argv;
+    });
+
+    try {
+        // Parse args.
+        opt_parser.parse(argc, argv);
+    }
+    catch (const std::exception& exception) {
+        std::cerr << "Unhandled exception in command line arguments!\n";
+        std::cerr << "exception.what(): " << exception.what() << "\n";
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Initialize permuted-congruential generator.
+    Pcg32 pcg(seed);
+
+    // Allocate.
+    if (mode == Mode::Bsdf) {
+        nsamps_wi *= 2;
+    }
+    std::vector<Float> thetao(nsamps_wo);
+    std::vector<Vec3<Float>> wo(nsamps_wo);
+    std::vector<Vec3<Float>> wi(nsamps_wi);
+    std::vector<Float> value(nsamps_wo * nsamps_wi);
+
+    // Initialize outgoing directions.
+    for (int samp = 0; samp < nsamps_wo; samp++) {
+        thetao[samp] = samp / Float(nsamps_wo) * 
+                pr::numeric_constants<Float>::M_pi_2();
+        wo[samp] = {
+            0, 
+            0, 
+            pr::cos(thetao[samp])
+        };
+    }
+
+    // Initialize incident directions.
+    {
+        // Gray-code matrices.
+        static
+        std::uint32_t code0[32] = {
+            0x80000000, 0x40000000, 0x20000000, 0x10000000, 
+            0x08000000, 0x04000000, 0x02000000, 0x01000000, 
+            0x00800000, 0x00400000, 0x00200000, 0x00100000, 
+            0x00080000, 0x00040000, 0x00020000, 0x00010000, 
+            0x00008000, 0x00004000, 0x00002000, 0x00001000, 
+            0x00000800, 0x00000400, 0x00000200, 0x00000100, 
+            0x00000080, 0x00000040, 0x00000020, 0x00000010, 
+            0x00000008, 0x00000004, 0x00000002, 0x00000001
+        };
+        static
+        std::uint32_t code1[32] = {
+            0x80000000, 0xc0000000, 0xa0000000, 0xf0000000, 
+            0x88000000, 0xcc000000, 0xaa000000, 0xff000000, 
+            0x80800000, 0xc0c00000, 0xa0a00000, 0xf0f00000,
+            0x88880000, 0xcccc0000, 0xaaaa0000, 0xffff0000, 
+            0x80008000, 0xc000c000, 0xa000a000, 0xf000f000, 
+            0x88008800, 0xcc00cc00, 0xaa00aa00, 0xff00ff00,
+            0x80808080, 0xc0c0c0c0, 0xa0a0a0a0, 0xf0f0f0f0, 
+            0x88888888, 0xcccccccc, 0xaaaaaaaa, 0xffffffff
+        };
+
+        // Low-discrepancy cosine-weighted directions.
+        std::uint32_t gray0 = pcg();
+        std::uint32_t gray1 = pcg();
+        for (int samp = 0; 
+                 samp < nsamps_wi; samp++) {
+            Float u0 = Float(0x1p-32) * gray0;
+            Float u1 = Float(0x1p-32) * gray1;
+            u0 = pr::min(u0, 1 - pr::numeric_limits<Float>::machine_epsilon());
+            u1 = pr::min(u1, 1 - pr::numeric_limits<Float>::machine_epsilon());
+            wi[samp] = Vec3<Float>::cosine_hemisphere_pdf_sample({u0, u1});
+            if (mode == Mode::Bsdf &&
+                samp >= nsamps_wi / 2) {
+                wi[samp][2] = -wi[samp][2];
+            }
+
+            // Advance.
+            gray0 ^= code0[pr::first1(samp + 1)];
+            gray1 ^= code1[pr::first1(samp + 1)];
+        }
+    }
+
+    {
+        std::ifstream ifs(ifs_fname);
+        Assembly assembly;
+        assembly.load(ifs);
+        ifs.close();
+
+        std::cout << std::endl;
+        int samp = 0;
+        for (int samp_wo = 0;
+                 samp_wo < nsamps_wo; samp_wo++) {
+            for (int samp_wi = 0;
+                     samp_wi < nsamps_wi; samp_wi++) {
+                const Vec3<Float>& wo0 = wo[samp_wo];
+                const Vec3<Float>& wi0 = wi[samp_wi];
+                Float& value0 = value[samp_wo * nsamps_wi + samp_wi];
+                for (int iter = 0; 
+                         iter < niters; iter++) {
+                    value0 += assembly.value(pcg, wo0, wi0);
+                }
+                value0 /= niters;
+                value0 /= wi0[2];
+                samp++;
+                std::cout << '\r';
+                std::cout << pr::terminal_progress_bar{
+                    double(samp) / 
+                    double(nsamps_wo * nsamps_wi)};
+                std::cout.flush();
+            }
+        }
+    }
+
+    {
+        // Output filestream.
+        std::ofstream ofs(ofs_fname);
+        if (!ofs) {
+            throw std::runtime_error("");
+        }
+        ofs << "RAWB" << (mode == Mode::Brdf ? 'H' : 'S');
+        ofs << "10A Layered-SQT\n";
+        ofs << "1 0.5\n";
+        ofs << nsamps_wo;
+        for (Float thetao0 : thetao) {
+            ofs << ' ';
+            ofs << thetao0;
+        }
+        ofs << '\n';
+        for (int samp_wo = 0;
+                 samp_wo < nsamps_wo; samp_wo++) {
+            for (int samp_wi = 0;
+                     samp_wi < nsamps_wi; samp_wi++) {
+                ofs << samp_wo << ' ';
+                ofs << wi[samp_wi][0] << ' ';
+                ofs << wi[samp_wi][1] << ' ';
+                ofs << wi[samp_wi][2] << ' ';
+                ofs << value[samp_wo * nsamps_wi + samp_wi] << '\n';
+            }
+        }
+    }
+
 #if 0
     Assembly assembly;
-    std::ifstream ifs("example.layers");
     assembly.load(ifs);
     ifs.close();
 #endif
