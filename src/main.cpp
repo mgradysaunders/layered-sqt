@@ -36,6 +36,7 @@
 #include <preform/multi_math.hpp>
 #include <preform/multi_random.hpp>
 #include <preform/microsurface.hpp>
+#include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
 #include <preform/bash_format.hpp>
 
@@ -1298,9 +1299,6 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    // Initialize permuted-congruential generator.
-    Pcg32 pcg(seed);
-
     // Allocate.
     if (mode == Mode::Bsdf) {
         nsamps_wi *= 2;
@@ -1348,6 +1346,7 @@ int main(int argc, char** argv)
         };
 
         // Low-discrepancy cosine-weighted directions.
+        Pcg32 pcg(seed);
         std::uint32_t gray0 = pcg();
         std::uint32_t gray1 = pcg();
         for (int samp = 0; 
@@ -1374,28 +1373,44 @@ int main(int argc, char** argv)
         assembly.load(ifs);
         ifs.close();
 
-        std::cout << std::endl;
+        std::cout << '\n';
+        std::cout.flush();
+        std::mutex cout_mutex;
+        std::vector<std::future<void>> wait;
+        wait.reserve(nsamps_wo);
         int samp = 0;
+        pr::thread_pool pool;
         for (int samp_wo = 0;
                  samp_wo < nsamps_wo; samp_wo++) {
-            for (int samp_wi = 0;
-                     samp_wi < nsamps_wi; samp_wi++) {
-                const Vec3<Float>& wo0 = wo[samp_wo];
-                const Vec3<Float>& wi0 = wi[samp_wi];
-                Float& value0 = value[samp_wo * nsamps_wi + samp_wi];
-                for (int iter = 0; 
-                         iter < niters; iter++) {
-                    value0 += assembly.value(pcg, wo0, wi0);
+            wait.emplace_back(
+            pool.submit([&](int samp_wo_copy) {
+                Pcg32 pcg(seed + 1, samp_wo_copy);
+                for (int samp_wi = 0;
+                         samp_wi < nsamps_wi; samp_wi++) {
+                    const Vec3<Float>& wo0 = wo[samp_wo_copy];
+                    const Vec3<Float>& wi0 = wi[samp_wi];
+                    Float& value0 = value[samp_wo_copy * nsamps_wi + samp_wi];
+                    for (int iter = 0; 
+                             iter < niters; iter++) {
+                        value0 += assembly.value(pcg, wo0, wi0);
+                    }
+                    value0 /= niters;
+                    value0 /= wi0[2];
+                    {
+                        std::unique_lock<std::mutex> lock(cout_mutex);
+                        std::cout << '\r';
+                        std::cout << 
+                        pr::terminal_progress_bar{
+                            double(samp++) / 
+                            double(nsamps_wo * nsamps_wi)};
+                        std::cout.flush();
+                    }
                 }
-                value0 /= niters;
-                value0 /= wi0[2];
-                samp++;
-                std::cout << '\r';
-                std::cout << pr::terminal_progress_bar{
-                    double(samp) / 
-                    double(nsamps_wo * nsamps_wi)};
-                std::cout.flush();
-            }
+            }, samp_wo));
+        }
+        for (int samp_wo = 0; 
+                 samp_wo < nsamps_wo; samp_wo++) {
+            wait[samp_wo].wait();
         }
     }
 
