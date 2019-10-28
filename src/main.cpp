@@ -36,6 +36,7 @@
 #include <preform/multi_math.hpp>
 #include <preform/multi_random.hpp>
 #include <preform/microsurface.hpp>
+#include <preform/kdtree.hpp>
 #include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
 #include <preform/bash_format.hpp>
@@ -99,6 +100,189 @@ Vec3<Float> generateCanonical3(Pcg32& pcg)
 {
     return pr::generate_canonical<Float, 3>(pcg);
 }
+
+/**
+ * @brief Redundancy-reduced sample set.
+ */
+struct Rrss
+{
+public:
+
+    /**
+     * @brief Sample.
+     */
+    struct Sample
+    {
+    public:
+
+        /**
+         * @brief Direction.
+         */
+        Vec3<Float> dir;
+        
+        /**
+         * @brief Direction probability density function.
+         */
+        Float dir_pdf = 0;
+
+        /**
+         * @brief Redundancy.
+         */
+        mutable Float redundancy = 1;
+
+        /**
+         * @brief Is enabled?
+         */
+        mutable bool is_enabled = true;
+
+    public:
+
+        /**
+         * @brief Default constructor.
+         */
+        Sample() = default;
+
+        /**
+         * @brief Constructor.
+         *
+         * @param[in] dir
+         * Direction.
+         *
+         * @param[in] dir_pdf
+         * Direction probability density function.
+         */
+        Sample(const Vec3<Float>& dir, Float dir_pdf) :
+            dir(dir),
+            dir_pdf(dir_pdf)
+        {
+        }
+    };
+
+public:
+
+    /**
+     * @brief Constructor.
+     */
+    Rrss(const std::vector<Sample>& samples) : 
+            samples_(samples),
+            samples_remaining_(samples.size())
+    {
+        for (Sample& sample : samples_) {
+            sample.redundancy = 1;
+            sample.is_enabled = true;
+        }
+
+        sample_tree_.init(
+        samples_.begin(), 
+        samples_.end(),
+        [&](const Sample& sample) -> 
+            std::pair<Vec3<Float>, std::size_t> {
+            return {
+                sample.dir,
+                std::size_t(&sample - &samples_[0])
+            };
+        });
+    }
+
+    /**
+     * @brief Samples.
+     */
+    const std::vector<Sample>& samples() const
+    {
+        return samples_;
+    }
+
+public:
+
+    /**
+     * @brief Disable most redundant sample.
+     */
+    bool disableMostRedundant()
+    {
+        Sample* most_redundant = nullptr;
+        for (Sample& sample : samples_) {
+
+            // Is enabled?
+            if (sample.is_enabled) {
+
+                int num_enabled = 0;
+                int num = 0;
+                Float dir_pdf_sum = 0;
+
+                // Visit samples in region.
+                sample_tree_.nearby(
+                sample.dir, 
+                pr::sqrt(
+                pr::numeric_constants<Float>::M_1_pi() /
+                (sample.dir_pdf * samples_remaining_)),
+                [&](auto node) {
+                    Sample& node_sample = 
+                    samples_[node->value.second];
+                    if (node_sample.is_enabled) {
+                        num_enabled++;
+                    }
+                    num++;
+                    dir_pdf_sum += node_sample.dir_pdf;
+                    return true;
+                });
+
+                // Update redundancy.
+                sample.redundancy = 
+                    num_enabled * 
+                    num * (sample.dir_pdf / dir_pdf_sum);
+
+                // Update most redundant sample.
+                if (most_redundant == nullptr ||
+                    most_redundant->redundancy < sample.redundancy) {
+                    most_redundant = &sample;
+                }
+            }
+        }
+
+        if (most_redundant) {
+            most_redundant->is_enabled = false;
+            samples_remaining_--;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * @brief Disable most redundant samples.
+     *
+     * @param[in] num
+     * Number of samples to disable.
+     */
+    bool disableMostRedundant(int num)
+    {
+        while (num-- > 0) {
+            if (!disableMostRedundant()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+private:
+
+
+    /**
+     * @brief Samples.
+     */
+    std::vector<Sample> samples_;
+
+    /**
+     * @brief Samples remaining (i.e., still enabled).
+     */
+    std::size_t samples_remaining_ = 0;
+
+    /**
+     * @brief Sample tree.
+     */
+    pr::kdtree<Float, 3, std::size_t> sample_tree_;
+};
 
 #if !DOXYGEN
 
@@ -283,7 +467,7 @@ public:
     Float transmittanceSample(
             Pcg32& pcg, 
             Float& tau,
-            Float dmax) const
+            Float dmax) const // Float* dpdf = nullptr
     {
         if (mu != 0) {
 
@@ -420,7 +604,7 @@ public:
     Vec3<Float> bsdfSample(
             Pcg32& pcg, 
             Float& tau,
-            const Vec3<Float>& wo) const = 0;
+            const Vec3<Float>& wo) const = 0; // Float* wpdf
 
     /**
      * @brief Intersect.
@@ -626,14 +810,14 @@ public:
         pr::microsurface_dielectric_bsdf<
             Float,
             pr::microsurface_trowbridge_reitz_slope,
-            pr::microsurface_uniform_height> model(
+            pr::microsurface_uniform_height> surf(
                     kR, kT, 
                     this->medium_above->eta /
                     this->medium_below->eta,
                     Vec2<Float>{alpha, alpha});
 
         return 
-            model.fm(
+            surf.fm(
             [&pcg]() -> Float {
                 return generateCanonical(pcg);
             },
@@ -652,7 +836,7 @@ public:
         pr::microsurface_dielectric_bsdf<
             Float,
             pr::microsurface_trowbridge_reitz_slope,
-            pr::microsurface_uniform_height> model(
+            pr::microsurface_uniform_height> surf(
                     kR, kT, 
                     this->medium_above->eta /
                     this->medium_below->eta,
@@ -660,7 +844,7 @@ public:
 
         int k; 
         Vec3<Float> wi = 
-            model.fm_pdf_sample(
+            surf.fm_pdf_sample(
             [&pcg]() -> Float {
                 return generateCanonical(pcg);
             },
@@ -669,7 +853,7 @@ public:
               kT == 1)) {
             Float fm_pdf;
             Float fm = 
-                model.fm(
+                surf.fm(
                 [&pcg]() -> Float {
                     return generateCanonical(pcg);
                 },
@@ -1049,7 +1233,7 @@ public:
      * @param[in] wi0
      * Incident direction @f$ \omega_{i,0} @f$.
      */
-    Float value(
+    Float bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo0,
             const Vec3<Float>& wi0) 
@@ -1141,6 +1325,12 @@ public:
         }
         return f;
     }
+
+    Vec3<Float> bsdfSample(
+            Pcg32& pcg,
+            const Vec3<Float>& wo0) const
+    {
+    }
 };
 
 enum class Mode
@@ -1151,6 +1341,7 @@ enum class Mode
 
 int main(int argc, char** argv)
 {
+#if 0
     pr::option_parser opt_parser("[OPTIONS] filename");
 
     int seed = 0;
@@ -1441,11 +1632,46 @@ int main(int argc, char** argv)
             }
         }
     }
+#endif
 
 #if 0
-    Assembly assembly;
-    assembly.load(ifs);
-    ifs.close();
+    std::vector<Rrss::Sample> samples;
+    Vec3<Float> wo = {1, 0, 1};
+    wo = pr::normalize(wo);
+    pr::microsurface_dielectric_bsdf<
+        Float,
+        pr::microsurface_trowbridge_reitz_slope,
+        pr::microsurface_uniform_height> model(
+                1, 0, 1 / Float(1.5),
+                Vec2<Float>{0.3, 0.3});
+    Pcg32 pcg;
+    int n = 128;
+    for (int j = 0; j < 4 * n; j++) {
+        int k;
+        Vec3<Float> wi = 
+        model.fm_pdf_sample(
+            [&pcg]() -> Float {
+                return generateCanonical(pcg);
+            },
+            wo, k);
+        Float wi_pdf = 
+        model.fm_pdf(
+            [&pcg]() -> Float {
+                return generateCanonical(pcg);
+            },
+            wo, wi, 0, 512);
+        samples.push_back({wi, wi_pdf});
+    }
+    Rrss rrss(samples);
+    rrss.disableMostRedundant(3 * n);
+    for (const Rrss::Sample& sample : rrss.samples()) {
+        if (sample.is_enabled) {
+            std::cout << sample.dir[0] << ' ';
+            std::cout << sample.dir[1] << ' ';
+            std::cout << sample.dir[2] << std::endl;
+        }
+    }
 #endif
+
     return 0;
 }
