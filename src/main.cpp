@@ -1386,6 +1386,7 @@ public:
                 if ((layer == layers.front() && wi[2] > 0) ||
                     (layer == layers.back()  && wi[2] < 0)) {
                     f += tau * layer->bsdf(pcg, wk, wi);
+                /*  fpdf += layer->bsdfPdf(pcg, wk, wi);  */
                 }
 
                 // Update ray.
@@ -1423,7 +1424,8 @@ public:
     Float bsdfPdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
-            const Vec3<Float>& wi) const
+            const Vec3<Float>& wi,
+            Float* f = nullptr) const
     {
         // Initial layer.
         const Layer* layer;
@@ -1444,6 +1446,10 @@ public:
             layer = layers.back();
             ray.pos[2] = layer->zheight - 1;
             ray.medium = layer->medium_below;
+        }
+
+        if (f) {
+            *f = 0;
         }
 
         Float fpdf = 0;
@@ -1494,6 +1500,9 @@ public:
                 // if at bottom and wi is lower hemisphere, add to result.
                 if ((layer == layers.front() && wi[2] > 0) ||
                     (layer == layers.back()  && wi[2] < 0)) {
+                    if (f) {
+                        *f += tau * layer->bsdf(pcg, wk, wi);
+                    }
                     // We're exactly sampling the BSDF-PDFs we're integrating,
                     // so the throughput is implicitly 1.
                     fpdf += layer->bsdfPdf(pcg, wk, wi);
@@ -1643,38 +1652,6 @@ public:
         }
         return true;
     }
-
-#if 0
-    std::vector<Vec3<Float>> bsdfSampleDirections(
-            Pcg32& pcg, 
-            const Vec3<Float>& wo0, int num_wi0)
-    {
-        std::vector<Vec3<Float>> wi0_samps;
-        wi0_samp.resize(wi0_samp_size);
-
-        std::size_t wi0_rrss_size = 4 * wi0_samp_size;
-        std::vector<Rrss::Sample> wi0_rrss;
-        wi0_rrss.resize(wi0_rrss_size);
-        for (std::size_t samp = 0;
-                         samp < wi0_rrss_size;) {
-
-            Vec3<Float> wi0 = bsdfPdfSample(pcg, wo0);
-            if ((wi0 == 0).all()) {
-                continue;
-            }
-            Float wi0_pdf = 0;
-            for (int iter = 0; iter < 512; k++) {
-                wi0_pdf += bsdfPdf(pcg, wo0, wi0) * 
-                    (Float(1) / Float(512));
-            }
-            if (!(wi0_pdf > 0)) {
-                continue;
-            }
-        samples.push_back({wi, wi_pdf});
-        j++;
-    }
-    }
-#endif
 };
 
 int main(int argc, char** argv)
@@ -1682,9 +1659,9 @@ int main(int argc, char** argv)
     pr::option_parser opt_parser("[OPTIONS] filename");
 
     int seed = 0;
-    int num_iters = 8192;
-    int num_wo = 32;
-    int num_wi = 128;
+    int num_iters = 16384;
+    int num_wo = 16;
+    int num_wi = 80;
     int num_threads = 0;
     std::string ifs_fname = "";
     std::string ofs_fname = "output.raw";
@@ -1724,26 +1701,26 @@ int main(int argc, char** argv)
                     .append(")"));
         }
     })
-    << "Specify number of iterations per sample. By default, 8192.\n";
+    << "Specify number of iterations per sample. By default, 16384.\n";
 
     // --num-wo
     opt_parser.on_option(nullptr, "--num-wo", 1,
     [&](char** argv) {
         try {
             num_wo = std::stoi(argv[0]);
-            if (!(num_wo >= 8)) {
+            if (!(num_wo >= 4)) {
                 throw std::exception();
             }
         }
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--num-wo expects 1 integer >= 8 ")
+                std::string("--num-wo expects 1 integer >= 4 ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
     })
-    << "Specify number of outgoing directions. By default, 32.\n"
+    << "Specify number of outgoing directions. By default, 16.\n"
        "This is the number of outgoing directions in the upper hemisphere,\n"
        "uniformly distributed in zenith. As the emergent BRDF/BSDF must be\n"
        "isotropic, the implementation does not sample in azimuth.\n";
@@ -1765,7 +1742,7 @@ int main(int argc, char** argv)
                     .append(")"));
         }
     })
-    << "Specify number of incident directions. By default, 128.\n";
+    << "Specify number of incident directions. By default, 80.\n";
 
     // -o/--output
     opt_parser.on_option("-o", "--output", 1,
@@ -1796,6 +1773,11 @@ int main(int argc, char** argv)
         std::cerr << "Unhandled exception in command line arguments!\n";
         std::cerr << "exception.what(): " << exception.what() << "\n";
         std::exit(EXIT_FAILURE);
+    }
+
+    if (ifs_fname == "") {
+        std::cout << opt_parser << std::endl;
+        std::exit(EXIT_SUCCESS);
     }
 
     std::vector<Float> thetao_array(num_wo);
@@ -1834,6 +1816,7 @@ int main(int argc, char** argv)
             const Vec3<Float>& wo = wo_array[wo_index];
             {
                 std::vector<Rrss::Sample> wi_input;
+                Float wi_ffac = 0;
                 wi_input.reserve(4 * num_wi);
                 for (int wi_index = 0; 
                          wi_index < 4 * num_wi;) {
@@ -1841,17 +1824,27 @@ int main(int argc, char** argv)
                     if ((wi == 0).all()) {
                         continue;
                     }
-                    Float wi_pdf = 0;
+                    Float wi_f = 0;
+                    Float wi_fpdf = 0;
                     for (int iter = 0; 
                              iter < 512; iter++) {
-                        wi_pdf += 
-                            assembly.bsdfPdf(pcg, wo, wi) *
+                        Float f = 0;
+                        Float fpdf = assembly.bsdfPdf(pcg, wo, wi, &f);
+                        wi_f += f * 
+                            (Float(1) / Float(512));
+                        wi_fpdf += fpdf *
                             (Float(1) / Float(512));
                     }
-                    if (wi_pdf > 0) {
-                        wi_input.push_back({wi, wi_pdf});
+                    if (wi_f > 0 && 
+                        wi_fpdf > 0) {
+                        wi_ffac += wi_f / wi_fpdf;
+                        wi_input.push_back({wi, wi_f});
                         wi_index++;
                     }
+                }
+                wi_ffac /= 4 * num_wi;
+                for (Rrss::Sample& wi_sample : wi_input) {
+                    wi_sample.dir_pdf /= wi_ffac;
                 }
 
                 int wi_index = 0;
@@ -1929,5 +1922,6 @@ int main(int argc, char** argv)
         }
     }
 
+    std::exit(EXIT_SUCCESS);
     return 0;
 }
