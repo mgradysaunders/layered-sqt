@@ -586,7 +586,25 @@ public:
             const Vec3<Float>& wi) const = 0;
 
     /**
-     * @brief BSDF sample.
+     * @brief BSDF probability density function.
+     *
+     * @param[inout] pcg 
+     * Generator.
+     *
+     * @param[in] wo
+     * Outgoing direction.
+     *
+     * @param[in] wi
+     * Incident direction.
+     */
+    virtual
+    Float bsdfPdf(
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const = 0;
+
+    /**
+     * @brief BSDF probability density function sample.
      *
      * @param[inout] pcg 
      * Generator.
@@ -601,10 +619,15 @@ public:
      * Incident direction.
      */
     virtual 
-    Vec3<Float> bsdfSample(
+    Vec3<Float> bsdfPdfSample(
             Pcg32& pcg, 
             Float& tau,
-            const Vec3<Float>& wo) const = 0; // Float* wpdf
+            const Vec3<Float>& wo) const = 0;
+
+    /**
+     * @brief Is transmissive?
+     */
+    virtual bool isTransmissive() const = 0;
 
     /**
      * @brief Intersect.
@@ -626,7 +649,7 @@ public:
         hit.pos = {
             ray.pos[0] + ray.dir[0] * t,
             ray.pos[1] + ray.dir[1] * t,
-            zheight
+            zheight // Set exact.
         };
         return true;
     }
@@ -708,9 +731,22 @@ public:
     }
 
     /**
-     * @copydoc Layer::bsdfSample()
+     * @copydoc Layer::bsdfPdf()
      */
-    Vec3<Float> bsdfSample(
+    Float bsdfPdf(
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const
+    {
+        (void) pcg;
+        return Vec3<Float>::cosine_hemisphere_pdf(pr::abs(wi[2])) *
+              (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT) / (fR + fT);
+    }
+
+    /**
+     * @copydoc Layer::bsdfPdfSample()
+     */
+    Vec3<Float> bsdfPdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
@@ -725,6 +761,14 @@ public:
             wi[2] = pr::copysign(wi[2], -wo[2]);
         }
         return wi;
+    }
+
+    /**
+     * @copydoc Layer::isTransmissive()
+     */
+    bool isTransmissive() const
+    {
+        return fT > 0;
     }
 };
 
@@ -826,9 +870,35 @@ public:
     }
 
     /**
-     * @copydoc Layer::bsdfSample()
+     * @copydoc Layer::bsdfPdf()
      */
-    Vec3<Float> bsdfSample(
+    Float bsdfPdf(
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const
+    {
+        pr::microsurface_dielectric_bsdf<
+            Float,
+            pr::microsurface_trowbridge_reitz_slope,
+            pr::microsurface_uniform_height> surf(
+                    kR, kT, 
+                    this->medium_above->eta /
+                    this->medium_below->eta,
+                    Vec2<Float>{alpha, alpha});
+
+        return 
+            surf.fm_pdf(
+            [&pcg]() -> Float {
+                return generateCanonical(pcg);
+            },
+            wo, wi, 0,
+            DIELECTRIC_FM_ITERATIONS);
+    }
+
+    /**
+     * @copydoc Layer::bsdfPdfSample()
+     */
+    Vec3<Float> bsdfPdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
@@ -863,6 +933,14 @@ public:
             tau *= fm / fm_pdf;
         }
         return wi;
+    }
+
+    /**
+     * @copydoc Layer::isTransmissive()
+     */
+    bool isTransmissive() const
+    {
+        return kT > 0;
     }
 };
 
@@ -1222,39 +1300,39 @@ public:
     }
 
     /**
-     * @brief Value.
+     * @brief BSDF.
      * 
      * @param[inout] pcg
      * Generator.
      *
-     * @param[in] wo0
-     * Outgoing direction @f$ \omega_{o,0} @f$.
+     * @param[in] wo
+     * Outgoing direction.
      *
-     * @param[in] wi0
-     * Incident direction @f$ \omega_{i,0} @f$.
+     * @param[in] wi
+     * Incident direction.
      */
     Float bsdf(
             Pcg32& pcg,
-            const Vec3<Float>& wo0,
-            const Vec3<Float>& wi0) 
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const 
     {
         // Initial layer.
         const Layer* layer;
 
         // Initial ray.
         Ray ray;
-        ray.dir = -wo0;
+        ray.dir = -wo;
 
         // Upper hemisphere?
-        if (wo0[2] > 0) {
-            layer = layers.front();
+        if (wo[2] > 0) {
             // Move above top layer.
+            layer = layers.front();
             ray.pos[2] = layer->zheight + 1;
             ray.medium = layer->medium_above;
         }
         else {
-            layer = layers.back();
             // Move below bottom layer.
+            layer = layers.back();
             ray.pos[2] = layer->zheight - 1;
             ray.medium = layer->medium_below;
         }
@@ -1264,7 +1342,7 @@ public:
         for (int bounce = 0;
                  bounce < MAX_BOUNCES; bounce++) {
 
-            Vec3<Float> wo = -ray.dir;
+            Vec3<Float> wk = -ray.dir;
 
             // Determine neighboring layers.
             const Layer* layer_above;
@@ -1299,26 +1377,30 @@ public:
     
                 // Update ray.
                 ray.pos = ray.pos + ray.dir * d;
-                ray.dir = ray.medium->phaseSample(pcg, tau, wo);
+                ray.dir = ray.medium->phaseSample(pcg, tau, wk);
             }
             else {
 
-                // If at top and wi0 is upper hemisphere OR
-                // if at bottom and wi0 is lower hemisphere, add to result.
-                if ((layer == layers.front() && wi0[2] > 0) ||
-                    (layer == layers.back()  && wi0[2] < 0)) {
-                    f += tau * layer->bsdf(pcg, wo, wi0);
+                // If at top and wi is upper hemisphere OR
+                // if at bottom and wi is lower hemisphere, add to result.
+                if ((layer == layers.front() && wi[2] > 0) ||
+                    (layer == layers.back()  && wi[2] < 0)) {
+                    f += tau * layer->bsdf(pcg, wk, wi);
                 }
 
                 // Update ray.
                 ray.pos = hit.pos;
-                ray.dir = layer->bsdfSample(pcg, tau, wo);
+                ray.dir = layer->bsdfPdfSample(pcg, tau, wk);
                 ray.medium = 
                     ray.dir[2] > 0 
                     ? layer->medium_above 
                     : layer->medium_below;
             }
 
+            // Throughput non-positive?
+            // This test passes if throughput is zero, in which case
+            // path is absorbed, but also if throughput is NaN. This shouldn't
+            // happen, but we want to terminate if it does.
             if (!(tau > 0)) {
                 break;
             }
@@ -1326,29 +1408,284 @@ public:
         return f;
     }
 
-    Vec3<Float> bsdfSample(
+    /**
+     * @brief BSDF probability density function.
+     * 
+     * @param[inout] pcg
+     * Generator.
+     *
+     * @param[in] wo
+     * Outgoing direction.
+     *
+     * @param[in] wi
+     * Incident direction.
+     */
+    Float bsdfPdf(
             Pcg32& pcg,
-            const Vec3<Float>& wo0) const
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const
     {
-    }
-};
+        // Initial layer.
+        const Layer* layer;
 
-enum class Mode
-{
-    Brdf,
-    Bsdf
+        // Initial ray.
+        Ray ray;
+        ray.dir = -wo;
+
+        // Upper hemisphere?
+        if (wo[2] > 0) {
+            // Move above top layer.
+            layer = layers.front();
+            ray.pos[2] = layer->zheight + 1;
+            ray.medium = layer->medium_above;
+        }
+        else {
+            // Move below bottom layer.
+            layer = layers.back();
+            ray.pos[2] = layer->zheight - 1;
+            ray.medium = layer->medium_below;
+        }
+
+        Float fpdf = 0;
+        Float tau = 1;
+        for (int bounce = 0;
+                 bounce < MAX_BOUNCES; bounce++) {
+
+            Vec3<Float> wk = -ray.dir;
+
+            // Determine neighboring layers.
+            const Layer* layer_above;
+            const Layer* layer_below;
+            // Ray exactly on layer?
+            if (ray.pos[2] == layer->zheight) {
+                layer_above = layer->medium_above->layer_above;
+                layer_below = layer->medium_below->layer_below;
+            }
+            else {
+                layer_above = ray.medium->layer_above;
+                layer_below = ray.medium->layer_below;
+            }
+            assert(!layer_above || ray.pos[2] < layer_above->zheight);
+            assert(!layer_below || ray.pos[2] > layer_below->zheight);
+
+            // Intersect relevant layer.
+            Hit hit;
+            const Layer* layer_next = ray.dir[2] > 0 
+                ? layer_above 
+                : layer_below;
+            if (!layer_next ||
+                !layer_next->intersect(ray, hit)) {
+                break;
+            }
+            layer = layer_next;
+
+            // Sample medium.
+            Float dmax = pr::length(hit.pos - ray.pos);
+            Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
+            if (!(d == dmax)) {
+    
+                // Update ray.
+                ray.pos = ray.pos + ray.dir * d;
+                ray.dir = ray.medium->phaseSample(pcg, tau, wk);
+            }
+            else {
+
+                // If at top and wi is upper hemisphere OR
+                // if at bottom and wi is lower hemisphere, add to result.
+                if ((layer == layers.front() && wi[2] > 0) ||
+                    (layer == layers.back()  && wi[2] < 0)) {
+                    // We're exactly sampling the BSDF-PDFs we're integrating,
+                    // so the throughput is implicitly 1.
+                    fpdf += layer->bsdfPdf(pcg, wk, wi);
+                }
+
+                // Update ray.
+                ray.pos = hit.pos;
+                ray.dir = layer->bsdfPdfSample(pcg, tau, wk);
+                ray.medium = 
+                    ray.dir[2] > 0 
+                    ? layer->medium_above 
+                    : layer->medium_below;
+            }
+
+            // Throughput non-positive?
+            // This test passes if throughput is zero, in which case
+            // path is absorbed, but also if throughput is NaN. This shouldn't
+            // happen, but we want to terminate if it does.
+            if (!(tau > 0)) {
+                // Terminate.
+                break;
+            }
+        }
+        return fpdf;
+    }
+
+    /**
+     * @brief BSDF probability density function sample.
+     *
+     * @param[inout] pcg
+     * Generator.
+     *
+     * @param[in] wo
+     * Outgoing direction.
+     *
+     * @returns
+     * Incident direction.
+     */
+    Vec3<Float> bsdfPdfSample(
+            Pcg32& pcg,
+            const Vec3<Float>& wo) const
+    {
+        // Initial layer.
+        const Layer* layer;
+
+        // Initial ray.
+        Ray ray;
+        ray.dir = -wo;
+
+        // Upper hemisphere?
+        if (wo[2] > 0) {
+            // Move above top layer.
+            layer = layers.front();
+            ray.pos[2] = layer->zheight + 1;
+            ray.medium = layer->medium_above;
+        }
+        else {
+            // Move below bottom layer.
+            layer = layers.back();
+            ray.pos[2] = layer->zheight - 1;
+            ray.medium = layer->medium_below;
+        }
+
+        Float tau = 1;
+        for (int bounce = 0;
+                 bounce < MAX_BOUNCES; bounce++) {
+
+            Vec3<Float> wk = -ray.dir;
+
+            // Determine neighboring layers.
+            const Layer* layer_above;
+            const Layer* layer_below;
+            // Ray exactly on layer?
+            if (ray.pos[2] == layer->zheight) {
+                layer_above = layer->medium_above->layer_above;
+                layer_below = layer->medium_below->layer_below;
+            }
+            else {
+                layer_above = ray.medium->layer_above;
+                layer_below = ray.medium->layer_below;
+            }
+            assert(!layer_above || ray.pos[2] < layer_above->zheight);
+            assert(!layer_below || ray.pos[2] > layer_below->zheight);
+
+            // Intersect relevant layer.
+            Hit hit;
+            const Layer* layer_next = ray.dir[2] > 0 
+                ? layer_above 
+                : layer_below;
+            if (!layer_next) {
+                // Exit.
+                return ray.dir;
+            }
+            if (!layer_next->intersect(ray, hit)) {
+                // Terminate.
+                return Vec3<Float>{};
+            }
+            layer = layer_next;
+
+            // Sample medium.
+            Float dmax = pr::length(hit.pos - ray.pos);
+            Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
+            if (!(d == dmax)) {
+    
+                // Update ray.
+                ray.pos = ray.pos + ray.dir * d;
+                ray.dir = ray.medium->phaseSample(pcg, tau, wk);
+            }
+            else {
+
+                // Update ray.
+                ray.pos = hit.pos;
+                ray.dir = layer->bsdfPdfSample(pcg, tau, wk);
+                ray.medium = 
+                    ray.dir[2] > 0 
+                    ? layer->medium_above 
+                    : layer->medium_below;
+            }
+
+            // Throughput non-positive?
+            // This test passes if throughput is zero, in which case
+            // path is absorbed, but also if throughput is NaN. This shouldn't
+            // happen, but we want to terminate if it does.
+            if (!(tau > 0)) {
+                // Terminate.
+                return Vec3<Float>{};
+            }
+        }
+
+        // Terminate.
+        return Vec3<Float>{};
+    }
+
+    /**
+     * @brief Is transmissive?
+     *
+     * If every layer is transmissive, then the assembly is transmissive. 
+     * Alternatively, if even a single layer is not transmissive, then the
+     * assembly is not transmissive.
+     */
+    bool isTransmissive() const
+    {
+        for (const Layer* layer : layers) {
+            if (!layer->isTransmissive()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+#if 0
+    std::vector<Vec3<Float>> bsdfSampleDirections(
+            Pcg32& pcg, 
+            const Vec3<Float>& wo0, int num_wi0)
+    {
+        std::vector<Vec3<Float>> wi0_samps;
+        wi0_samp.resize(wi0_samp_size);
+
+        std::size_t wi0_rrss_size = 4 * wi0_samp_size;
+        std::vector<Rrss::Sample> wi0_rrss;
+        wi0_rrss.resize(wi0_rrss_size);
+        for (std::size_t samp = 0;
+                         samp < wi0_rrss_size;) {
+
+            Vec3<Float> wi0 = bsdfPdfSample(pcg, wo0);
+            if ((wi0 == 0).all()) {
+                continue;
+            }
+            Float wi0_pdf = 0;
+            for (int iter = 0; iter < 512; k++) {
+                wi0_pdf += bsdfPdf(pcg, wo0, wi0) * 
+                    (Float(1) / Float(512));
+            }
+            if (!(wi0_pdf > 0)) {
+                continue;
+            }
+        samples.push_back({wi, wi_pdf});
+        j++;
+    }
+    }
+#endif
 };
 
 int main(int argc, char** argv)
 {
-#if 0
     pr::option_parser opt_parser("[OPTIONS] filename");
 
     int seed = 0;
-    Mode mode = Mode::Brdf;
-    int niters = 16384;
-    int nsamps_wo = 32;
-    int nsamps_wi = 128;
+    int num_iters = 8192;
+    int num_wo = 32;
+    int num_wi = 128;
+    int num_threads = 0;
     std::string ifs_fname = "";
     std::string ofs_fname = "output.raw";
 
@@ -1369,39 +1706,13 @@ int main(int argc, char** argv)
     })
     << "Specify seed. By default, 0.\n";
 
-    // -m/--mode
-    // 'H' => BRDF/hemispherical
-    // 'S' => BSDF/spherical
-    opt_parser.on_option(
-    "-m", "--mode", 1,
-    [&](char** argv) {
-        if (argv[0][0] == 'H' &&
-            argv[0][1] == '\0') {
-            mode = Mode::Brdf;
-        }
-        else if (argv[0][0] == 'S' &&
-                 argv[0][1] == '\0') {
-            mode = Mode::Bsdf;
-        }
-        else {
-            throw 
-                std::runtime_error(
-                std::string("-m/--mode expects either 'H' or 'S' ")
-                    .append("(can't parse ").append(argv[0])
-                    .append(")"));
-        }
-    })
-    << "Specify mode. By default, 'H'.\n"
-       "Expects 1 character, 'H' for hemispherical (BRDF)\n"
-       "or 'S' for spherical (BSDF).\n";
-
     // --num-iters
     opt_parser.on_option(
     nullptr, "--num-iters", 1,
     [&](char** argv) {
         try {
-            niters = std::stoi(argv[0]);
-            if (!(niters > 0)) {
+            num_iters = std::stoi(argv[0]);
+            if (!(num_iters > 0)) {
                 throw std::exception();
             }
         }
@@ -1413,21 +1724,21 @@ int main(int argc, char** argv)
                     .append(")"));
         }
     })
-    << "Specify number of iterations per sample. By default, 16384.\n";
+    << "Specify number of iterations per sample. By default, 8192.\n";
 
-    // --num-samps-wo
-    opt_parser.on_option(nullptr, "--num-samps-wo", 1,
+    // --num-wo
+    opt_parser.on_option(nullptr, "--num-wo", 1,
     [&](char** argv) {
         try {
-            nsamps_wo = std::stoi(argv[0]);
-            if (!(nsamps_wo >= 8)) {
+            num_wo = std::stoi(argv[0]);
+            if (!(num_wo >= 8)) {
                 throw std::exception();
             }
         }
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--num-samps-wo expects 1 integer >= 8 ")
+                std::string("--num-wo expects 1 integer >= 8 ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
@@ -1437,27 +1748,24 @@ int main(int argc, char** argv)
        "uniformly distributed in zenith. As the emergent BRDF/BSDF must be\n"
        "isotropic, the implementation does not sample in azimuth.\n";
 
-    // --num-samps-wi
-    opt_parser.on_option(nullptr, "--num-samps-wi", 1,
+    // --num-wi
+    opt_parser.on_option(nullptr, "--num-wi", 1,
     [&](char** argv) {
         try {
-            nsamps_wi = std::stoi(argv[0]);
-            if (!(nsamps_wi >= 16)) {
+            num_wi = std::stoi(argv[0]);
+            if (!(num_wi >= 16)) {
                 throw std::exception();
             }
         }
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--num-samps-wi expects 1 integer >= 16 ")
+                std::string("--num-wi expects 1 integer >= 16 ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
     })
-    << "Specify number of incident directions. By default, 128.\n"
-       "This is the number of incident directions per hemisphere, cosine\n"
-       "distributed by feeding low-discrepancy points into a concentric\n"
-       "disk mapping and projecting onto the hemisphere.\n";
+    << "Specify number of incident directions. By default, 128.\n";
 
     // -o/--output
     opt_parser.on_option("-o", "--output", 1,
@@ -1490,72 +1798,24 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    // Allocate.
-    if (mode == Mode::Bsdf) {
-        nsamps_wi *= 2;
-    }
-    std::vector<Float> thetao(nsamps_wo);
-    std::vector<Vec3<Float>> wo(nsamps_wo);
-    std::vector<Vec3<Float>> wi(nsamps_wi);
-    std::vector<Float> value(nsamps_wo * nsamps_wi);
+    std::vector<Float> thetao_array(num_wo);
+    std::vector<Vec3<Float>> wo_array(num_wo);
+    std::vector<Vec3<Float>> wi_array(num_wo * num_wi);
+    std::vector<Float> f_array(num_wo * num_wi);
 
-    // Initialize outgoing directions.
-    for (int samp = 0; samp < nsamps_wo; samp++) {
-        thetao[samp] = samp / Float(nsamps_wo) * 
-                pr::numeric_constants<Float>::M_pi_2();
-        wo[samp] = {
-            0, 
-            0, 
-            pr::cos(thetao[samp])
+    for (int wo_index = 0; 
+             wo_index < num_wo; wo_index++) {
+        
+        // Initialize outgoing angle.
+        thetao_array[wo_index] = 
+            wo_index / Float(num_wo) * 
+            pr::numeric_constants<Float>::M_pi_2();
+
+        // Initialize outgoing direction.
+        wo_array[wo_index] = {
+            pr::sin(thetao_array[wo_index]), 0, 
+            pr::cos(thetao_array[wo_index])
         };
-    }
-
-    // Initialize incident directions.
-    {
-        // Gray-code matrices.
-        static
-        std::uint32_t code0[32] = {
-            0x80000000, 0x40000000, 0x20000000, 0x10000000, 
-            0x08000000, 0x04000000, 0x02000000, 0x01000000, 
-            0x00800000, 0x00400000, 0x00200000, 0x00100000, 
-            0x00080000, 0x00040000, 0x00020000, 0x00010000, 
-            0x00008000, 0x00004000, 0x00002000, 0x00001000, 
-            0x00000800, 0x00000400, 0x00000200, 0x00000100, 
-            0x00000080, 0x00000040, 0x00000020, 0x00000010, 
-            0x00000008, 0x00000004, 0x00000002, 0x00000001
-        };
-        static
-        std::uint32_t code1[32] = {
-            0x80000000, 0xc0000000, 0xa0000000, 0xf0000000, 
-            0x88000000, 0xcc000000, 0xaa000000, 0xff000000, 
-            0x80800000, 0xc0c00000, 0xa0a00000, 0xf0f00000,
-            0x88880000, 0xcccc0000, 0xaaaa0000, 0xffff0000, 
-            0x80008000, 0xc000c000, 0xa000a000, 0xf000f000, 
-            0x88008800, 0xcc00cc00, 0xaa00aa00, 0xff00ff00,
-            0x80808080, 0xc0c0c0c0, 0xa0a0a0a0, 0xf0f0f0f0, 
-            0x88888888, 0xcccccccc, 0xaaaaaaaa, 0xffffffff
-        };
-
-        // Low-discrepancy cosine-weighted directions.
-        Pcg32 pcg(seed);
-        std::uint32_t gray0 = pcg();
-        std::uint32_t gray1 = pcg();
-        for (int samp = 0; 
-                 samp < nsamps_wi; samp++) {
-            Float u0 = Float(0x1p-32) * gray0;
-            Float u1 = Float(0x1p-32) * gray1;
-            u0 = pr::min(u0, 1 - pr::numeric_limits<Float>::machine_epsilon());
-            u1 = pr::min(u1, 1 - pr::numeric_limits<Float>::machine_epsilon());
-            wi[samp] = Vec3<Float>::cosine_hemisphere_pdf_sample({u0, u1});
-            if (mode == Mode::Bsdf &&
-                samp >= nsamps_wi / 2) {
-                wi[samp][2] = -wi[samp][2];
-            }
-
-            // Advance.
-            gray0 ^= code0[pr::first1(samp + 1)];
-            gray1 ^= code1[pr::first1(samp + 1)];
-        }
     }
 
     {
@@ -1567,42 +1827,78 @@ int main(int argc, char** argv)
         std::cout << '\n';
         std::cout.flush();
         std::mutex cout_mutex;
-        std::vector<std::future<void>> wait;
-        wait.reserve(nsamps_wo);
-        int samp = 0;
-        pr::thread_pool pool;
-        for (int samp_wo = 0;
-                 samp_wo < nsamps_wo; samp_wo++) {
-            wait.emplace_back(
-            pool.submit([&](int samp_wo_copy) {
-                Pcg32 pcg(seed + 1, samp_wo_copy);
-                for (int samp_wi = 0;
-                         samp_wi < nsamps_wi; samp_wi++) {
-                    const Vec3<Float>& wo0 = wo[samp_wo_copy];
-                    const Vec3<Float>& wi0 = wi[samp_wi];
-                    Float& value0 = value[samp_wo_copy * nsamps_wi + samp_wi];
-                    for (int iter = 0; 
-                             iter < niters; iter++) {
-                        value0 += assembly.value(pcg, wo0, wi0);
+        int num_complete = 0;
+
+        auto job = [&](int wo_index) {
+            Pcg32 pcg = Pcg32(seed, wo_index);
+            const Vec3<Float>& wo = wo_array[wo_index];
+            {
+                std::vector<Rrss::Sample> wi_input;
+                wi_input.reserve(4 * num_wi);
+                for (int wi_index = 0; 
+                         wi_index < 4 * num_wi;) {
+                    Vec3<Float> wi = assembly.bsdfPdfSample(pcg, wo);
+                    if ((wi == 0).all()) {
+                        continue;
                     }
-                    value0 /= niters;
-                    value0 /= wi0[2];
-                    {
-                        std::unique_lock<std::mutex> lock(cout_mutex);
-                        std::cout << '\r';
-                        std::cout << 
-                        pr::terminal_progress_bar{
-                            double(samp++) / 
-                            double(nsamps_wo * nsamps_wi)};
-                        std::cout.flush();
+                    Float wi_pdf = 0;
+                    for (int iter = 0; 
+                             iter < 512; iter++) {
+                        wi_pdf += 
+                            assembly.bsdfPdf(pcg, wo, wi) *
+                            (Float(1) / Float(512));
+                    }
+                    if (wi_pdf > 0) {
+                        wi_input.push_back({wi, wi_pdf});
+                        wi_index++;
                     }
                 }
-            }, samp_wo));
+
+                int wi_index = 0;
+                Rrss rrss(wi_input);
+                rrss.disableMostRedundant(3 * num_wi);
+                for (const Rrss::Sample& wi_sample : rrss.samples()) {
+                    if (wi_sample.is_enabled) {
+                        wi_array[wo_index * num_wi + wi_index] = wi_sample.dir;
+                        wi_index++;
+                    }
+                }
+            }
+            for (int wi_index = 0;
+                     wi_index < num_wi; wi_index++) {
+                const Vec3<Float>& wi = wi_array[wo_index * num_wi + wi_index];
+                Float& f = f_array[wo_index * num_wi + wi_index];
+                f = 0;
+                for (int iter = 0; 
+                         iter < num_iters; iter++) {
+                    f += assembly.bsdf(pcg, wo, wi);
+                }
+                f /= num_iters;
+                f /= pr::abs(wi[2]);
+                {
+                    std::unique_lock<std::mutex> lock(cout_mutex);
+                    num_complete++;
+                    std::cout << '\r';
+                    std::cout << 
+                    pr::terminal_progress_bar{
+                        double(num_complete) / 
+                        double(num_wo * num_wi)};
+                    std::cout.flush();
+                }
+            }
+        };
+    
+        std::vector<std::future<void>> wait;
+        wait.reserve(num_wo);
+        pr::thread_pool pool;
+        for (int wo_index = 0;
+                 wo_index < num_wo; wo_index++) {
+            wait.emplace_back(pool.submit(job, wo_index));
         }
-        for (int samp_wo = 0; 
-                 samp_wo < nsamps_wo; samp_wo++) {
-            wait[samp_wo].wait();
-        }
+        for (int wo_index = 0;
+                 wo_index < num_wo; wo_index++) {
+            wait[wo_index].wait();
+        }   
     }
 
     {
@@ -1611,67 +1907,27 @@ int main(int argc, char** argv)
         if (!ofs) {
             throw std::runtime_error("");
         }
-        ofs << "RAWB" << (mode == Mode::Brdf ? 'H' : 'S');
+        ofs << "RAWBH";
         ofs << "10A Layered-SQT\n";
         ofs << "1 0.5\n";
-        ofs << nsamps_wo;
-        for (Float thetao0 : thetao) {
+        ofs << num_wo;
+        for (Float thetao : thetao_array) {
             ofs << ' ';
-            ofs << thetao0;
+            ofs << thetao;
         }
         ofs << '\n';
-        for (int samp_wo = 0;
-                 samp_wo < nsamps_wo; samp_wo++) {
-            for (int samp_wi = 0;
-                     samp_wi < nsamps_wi; samp_wi++) {
-                ofs << samp_wo << ' ';
-                ofs << wi[samp_wi][0] << ' ';
-                ofs << wi[samp_wi][1] << ' ';
-                ofs << wi[samp_wi][2] << ' ';
-                ofs << value[samp_wo * nsamps_wi + samp_wi] << '\n';
+        for (int wo_index = 0;
+                 wo_index < num_wo; wo_index++) {
+            for (int wi_index = 0;
+                     wi_index < num_wi; wi_index++) {
+                ofs << wo_index << ' ';
+                ofs << wi_array[wo_index * num_wi + wi_index][0] << ' ';
+                ofs << wi_array[wo_index * num_wi + wi_index][1] << ' ';
+                ofs << wi_array[wo_index * num_wi + wi_index][2] << ' ';
+                ofs << f_array[wo_index * num_wi + wi_index] << '\n';
             }
         }
     }
-#endif
-
-#if 0
-    std::vector<Rrss::Sample> samples;
-    Vec3<Float> wo = {1, 0, 1};
-    wo = pr::normalize(wo);
-    pr::microsurface_dielectric_bsdf<
-        Float,
-        pr::microsurface_trowbridge_reitz_slope,
-        pr::microsurface_uniform_height> model(
-                1, 0, 1 / Float(1.5),
-                Vec2<Float>{0.3, 0.3});
-    Pcg32 pcg;
-    int n = 128;
-    for (int j = 0; j < 4 * n; j++) {
-        int k;
-        Vec3<Float> wi = 
-        model.fm_pdf_sample(
-            [&pcg]() -> Float {
-                return generateCanonical(pcg);
-            },
-            wo, k);
-        Float wi_pdf = 
-        model.fm_pdf(
-            [&pcg]() -> Float {
-                return generateCanonical(pcg);
-            },
-            wo, wi, 0, 512);
-        samples.push_back({wi, wi_pdf});
-    }
-    Rrss rrss(samples);
-    rrss.disableMostRedundant(3 * n);
-    for (const Rrss::Sample& sample : rrss.samples()) {
-        if (sample.is_enabled) {
-            std::cout << sample.dir[0] << ' ';
-            std::cout << sample.dir[1] << ' ';
-            std::cout << sample.dir[2] << std::endl;
-        }
-    }
-#endif
 
     return 0;
 }
