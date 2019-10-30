@@ -46,7 +46,7 @@
 #endif // #ifndef DIELECTRIC_FM_ITERATIONS
 
 #ifndef MAX_BOUNCES
-#define MAX_BOUNCES 32
+#define MAX_BOUNCES 64
 #endif // #ifndef MAX_BOUNCES
 
 /**
@@ -1409,6 +1409,117 @@ public:
         return f;
     }
 
+    void bsdf(
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>* wi, int num_wi,
+            Float* f) const 
+    {
+        // Initial layer.
+        const Layer* layer;
+
+        // Initial ray.
+        Ray ray;
+        ray.dir = -wo;
+
+        // Upper hemisphere?
+        if (wo[2] > 0) {
+            // Move above top layer.
+            layer = layers.front();
+            ray.pos[2] = layer->zheight + 1;
+            ray.medium = layer->medium_above;
+        }
+        else {
+            // Move below bottom layer.
+            layer = layers.back();
+            ray.pos[2] = layer->zheight - 1;
+            ray.medium = layer->medium_below;
+        }
+
+        for (int j = 0; j < num_wi; j++) {
+            f[j] = 0;
+        }
+
+        Float tau = 1;
+        for (int bounce = 0;
+                 bounce < MAX_BOUNCES; bounce++) {
+
+            Vec3<Float> wk = -ray.dir;
+
+            // Determine neighboring layers.
+            const Layer* layer_above;
+            const Layer* layer_below;
+            // Ray exactly on layer?
+            if (ray.pos[2] == layer->zheight) {
+                layer_above = layer->medium_above->layer_above;
+                layer_below = layer->medium_below->layer_below;
+            }
+            else {
+                layer_above = ray.medium->layer_above;
+                layer_below = ray.medium->layer_below;
+            }
+            assert(!layer_above || ray.pos[2] < layer_above->zheight);
+            assert(!layer_below || ray.pos[2] > layer_below->zheight);
+
+            // Intersect relevant layer.
+            Hit hit;
+            const Layer* layer_next = ray.dir[2] > 0 
+                ? layer_above 
+                : layer_below;
+            if (!layer_next ||
+                !layer_next->intersect(ray, hit)) {
+                break;
+            }
+            layer = layer_next;
+
+            // Sample medium.
+            Float dmax = pr::length(hit.pos - ray.pos);
+            Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
+            if (!(d == dmax)) {
+    
+                // Update ray.
+                ray.pos = ray.pos + ray.dir * d;
+                ray.dir = ray.medium->phaseSample(pcg, tau, wk);
+            }
+            else {
+
+                // If at top and wi is upper hemisphere OR
+                // if at bottom and wi is lower hemisphere, add to result.
+                if (layer == layers.front()) {
+                    for (int j = 0; j < num_wi; j++) {
+                        if (wi[j][2] > 0) {
+                            f[j] += tau * layer->bsdf(pcg, wk, wi[j]);
+                        }
+                    }
+                }
+                else 
+                if (layer == layers.back()) {
+                    for (int j = 0; j < num_wi; j++) {
+                        if (wi[j][2] < 0) {
+                            f[j] += tau * layer->bsdf(pcg, wk, wi[j]);
+                        }
+                    }
+                }
+
+                // Update ray.
+                ray.pos = hit.pos;
+                ray.dir = layer->bsdfPdfSample(pcg, tau, wk);
+                ray.medium = 
+                    ray.dir[2] > 0 
+                    ? layer->medium_above 
+                    : layer->medium_below;
+            }
+
+            // Throughput non-positive?
+            // This test passes if throughput is zero, in which case
+            // path is absorbed, but also if throughput is NaN. This shouldn't
+            // happen, but we want to terminate if it does.
+            if (!(tau > 0)) {
+                break;
+            }
+        }
+    }
+
     /**
      * @brief BSDF probability density function.
      * 
@@ -1830,19 +1941,23 @@ int main(int argc, char** argv)
                              iter < 512; iter++) {
                         Float f = 0;
                         Float fpdf = assembly.bsdfPdf(pcg, wo, wi, &f);
-                        wi_f += f * 
+                    /*  wi_f += f * 
                             (Float(1) / Float(512));
                         wi_fpdf += fpdf *
-                            (Float(1) / Float(512));
+                            (Float(1) / Float(512));  */
+                        wi_f = wi_f + (f - wi_f) / (iter + 1);
+                        wi_fpdf = wi_fpdf + (fpdf - wi_fpdf) / (iter + 1);
                     }
                     if (wi_f > 0 && 
                         wi_fpdf > 0) {
-                        wi_ffac += wi_f / wi_fpdf;
+                    /*  wi_ffac += wi_f / wi_fpdf;  */
+                        wi_ffac = wi_ffac + 
+                                 (wi_f / wi_fpdf - wi_ffac) / (wi_index + 1);
                         wi_input.push_back({wi, wi_f});
                         wi_index++;
                     }
                 }
-                wi_ffac /= 4 * num_wi;
+            /*  wi_ffac /= 4 * num_wi;  */
                 for (Rrss::Sample& wi_sample : wi_input) {
                     wi_sample.dir_pdf /= wi_ffac;
                 }
@@ -1857,6 +1972,35 @@ int main(int argc, char** argv)
                     }
                 }
             }
+            const Vec3<Float>* wi = &wi_array[wo_index * num_wi];
+            Float* f = &f_array[wo_index * num_wi];
+            std::vector<Float> f0tmp(num_wi);
+            std::vector<Float> f1tmp(num_wi);
+            std::vector<Float> f0(num_wi);
+            std::vector<Float> f1(num_wi);
+            for (int iter = 0; iter < num_iters / 2; iter++) {
+                assembly.bsdf(pcg, wo, wi, num_wi, &f0tmp[0]);
+                assembly.bsdf(pcg, wo, wi, num_wi, &f1tmp[0]);
+                for (int j = 0; j < num_wi; j++) {
+                    f0[j] = f0[j] + (f0tmp[j] - f0[j]) / (iter + 1);
+                    f1[j] = f1[j] + (f1tmp[j] - f1[j]) / (iter + 1);
+                }
+                {
+                    std::unique_lock<std::mutex> lock(cout_mutex);
+                    num_complete += 2;
+                    std::cout << '\r';
+                    std::cout << 
+                    pr::terminal_progress_bar{
+                        double(num_complete) / 
+                        double(num_wo * num_iters)};
+                    std::cout.flush();
+                }
+            }
+            for (int wi_index = 0; wi_index < num_wi; wi_index++) {
+                f[wi_index] = (f0[wi_index] + f1[wi_index]) * Float(0.5);
+                f[wi_index] /= pr::abs(wi[wi_index][2]);
+            }
+#if 0
             for (int wi_index = 0;
                      wi_index < num_wi; wi_index++) {
                 const Vec3<Float>& wi = wi_array[wo_index * num_wi + wi_index];
@@ -1864,9 +2008,10 @@ int main(int argc, char** argv)
                 f = 0;
                 for (int iter = 0; 
                          iter < num_iters; iter++) {
-                    f += assembly.bsdf(pcg, wo, wi);
+                /*  f += assembly.bsdf(pcg, wo, wi);  */
+                    f = f + (assembly.bsdf(pcg, wo, wi) - f) / (iter + 1);
                 }
-                f /= num_iters;
+            /*  f /= num_iters;  */
                 f /= pr::abs(wi[2]);
                 {
                     std::unique_lock<std::mutex> lock(cout_mutex);
@@ -1879,6 +2024,7 @@ int main(int argc, char** argv)
                     std::cout.flush();
                 }
             }
+#endif
         };
     
         std::vector<std::future<void>> wait;
