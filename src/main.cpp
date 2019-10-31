@@ -26,6 +26,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
+#include <fstream>
+#include <layered-sqt/common.hpp>
+#include <layered-sqt/medium.hpp>
+#include <layered-sqt/layer.hpp>
+#include <layered-sqt/layered_assembly.hpp>
+#include <layered-sqt/rrss.hpp>
+
+int main()
+{
+    return 0;
+}
+
+#if 0
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -44,11 +57,13 @@
 #ifndef DIELECTRIC_FM_ITERATIONS
 #define DIELECTRIC_FM_ITERATIONS 8
 #endif // #ifndef DIELECTRIC_FM_ITERATIONS
+#endif
 
 #ifndef MAX_BOUNCES
 #define MAX_BOUNCES 64
 #endif // #ifndef MAX_BOUNCES
 
+#if 0
 /**
  * @brief Floating point type.
  */
@@ -943,7 +958,9 @@ public:
         return kT > 0;
     }
 };
+#endif
 
+#if 0
 /**
  * @brief Assembly.
  *
@@ -2071,3 +2088,4 @@ int main(int argc, char** argv)
     std::exit(EXIT_SUCCESS);
     return 0;
 }
+#endif
