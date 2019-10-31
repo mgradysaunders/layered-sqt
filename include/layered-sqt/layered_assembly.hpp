@@ -83,7 +83,7 @@ public:
      * @param[in] wi
      * Incident directions.
      *
-     * @param[in] n
+     * @param[in] wi_count
      * Incident direction count.
      *
      * @param[out] f
@@ -95,9 +95,19 @@ public:
     void compute(
             Pcg32& pcg,
             const Vec3<Float>& wo,
-            const Vec3<Float>* wi, int n,
+            const Vec3<Float>* wi, int wi_count,
             Float* f,
             Float* fpdf) const;
+
+    // TODO
+    /*
+    void computeAverage(
+            int iter_count,
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi, int wi_count,
+            Float* f,
+            Float* fpdf) const;  */
 
     /**
      * @brief Random scatter direction.

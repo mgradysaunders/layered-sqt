@@ -177,12 +177,12 @@ void LayeredAssembly::clear()
 void LayeredAssembly::compute(
             Pcg32& pcg,
             const Vec3<Float>& wo,
-            const Vec3<Float>* wi, int n,
+            const Vec3<Float>* wi, int wi_count,
             Float* f,
             Float* fpdf) const 
 {
-    assert(n && wi);
-    assert(f || fpdf);
+    assert(wi_count > 0);
+    assert(wi && (f || fpdf));
 
     // Initial layer.
     const Layer* layer;
@@ -205,7 +205,7 @@ void LayeredAssembly::compute(
         ray.medium = layer->medium_below;
     }
 
-    for (int j = 0; j < n; j++) {
+    for (int j = 0; j < wi_count; j++) {
         // Zero-initialize BSDF.
         if (f) {
             f[j] = 0;
@@ -262,7 +262,7 @@ void LayeredAssembly::compute(
             // If at top and wi is upper hemisphere OR
             // if at bottom and wi is lower hemisphere, add to result.
             if (layer == layers_.front()) {
-                for (int j = 0; j < n; j++) {
+                for (int j = 0; j < wi_count; j++) {
                     if (wi[j][2] > 0) {
 
                         // Update BSDF.
@@ -279,7 +279,7 @@ void LayeredAssembly::compute(
             }
             else 
             if (layer == layers_.back()) {
-                for (int j = 0; j < n; j++) {
+                for (int j = 0; j < wi_count; j++) {
                     if (wi[j][2] < 0) {
 
                         // Update BSDF.
