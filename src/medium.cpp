@@ -96,13 +96,13 @@ Vec3<Float> Medium::phaseSample(
                                 generateCanonical2(pcg)));
 }
 
-// Load.
-void Medium::load(const std::string& strln)
+// Initialize from argument string.
+void Medium::init(const std::string& arg)
 {
-    std::stringstream isstr(strln);
+    std::stringstream iss(arg);
     std::string str;
 
-    if (!(isstr >> str) || 
+    if (!(iss >> str) || 
         !(str == "Vacuum" || str == "Medium")) {
         // Runtime error,
         // keyword neither 'Vacuum' nor 'Medium'.
@@ -128,7 +128,7 @@ void Medium::load(const std::string& strln)
         try {
             // Read parameters.
             // Note std::stod() throws if string is invalid.
-            while (isstr >> str) {
+            while (iss >> str) {
                 if (!str.compare(0, 2, "g=", 2)) {
                     g = std::stod(str.substr(2));
                 }
@@ -178,7 +178,7 @@ void Medium::load(const std::string& strln)
         // Error?
         if (error_message) {
             throw 
-                std::invalid_argument(
+                std::runtime_error(
                 std::string(__PRETTY_FUNCTION__).append(error_message));
         }
         

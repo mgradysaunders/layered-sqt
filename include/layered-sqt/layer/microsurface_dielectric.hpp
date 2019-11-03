@@ -27,49 +27,56 @@
  */
 /*+-+*/
 #pragma once
-#ifndef LAYERED_SQT_LAYER_HPP
-#define LAYERED_SQT_LAYER_HPP
+#ifndef LAYERED_SQT_LAYER_MICROSURFACE_DIELECTRIC_HPP
+#define LAYERED_SQT_LAYER_MICROSURFACE_DIELECTRIC_HPP
 
-#include <layered-sqt/common.hpp>
-#include <layered-sqt/medium.hpp>
+#include <layered-sqt/layer.hpp>
 
 namespace ls {
 
 /**
- * @defgroup layer_interface Layer interface
+ * @addtogroup layers Layers
  *
- * `<layered-sqt/layer.hpp>`
+ * `<layered-sqt/layer/microsurface_dielectric.hpp>`
  */
 /**@{*/
 
 /**
- * @brief Layer interface.
+ * @brief Microsurface dielectric BSDF layer.
  */
-class Layer
+class MicrosurfaceDielectricBsdfLayer final : public Layer
 {
 public:
 
     /**
-     * @brief Destructor.
+     * @brief Default constructor.
      */
-    virtual ~Layer()
-    {
-    }
+    MicrosurfaceDielectricBsdfLayer() = default;
 
     /**
-     * @brief Z-height.
+     * @brief BRDF coefficient @f$ k_R @f$.
      */
-    Float zheight = 0;
+    Float kR = 1;
 
     /**
-     * @brief Medium above.
+     * @brief BTDF coefficient @f$ k_T @f$.
      */
-    const Medium* medium_above = nullptr;
+    Float kT = 1;
 
     /**
-     * @brief Medium below.
+     * @brief Roughness @f$ \alpha @f$.
      */
-    const Medium* medium_below = nullptr;
+    Float alpha = 0.5;
+
+    /**
+     * @brief Use multiple scattering?
+     */
+    bool use_multiple_scattering = true;
+
+    /**
+     * @brief Number of stochastic process iterations.
+     */
+    int iter_count = 8;
 
 public:
 
@@ -79,95 +86,59 @@ public:
     /**@{*/
 
     /**
-     * @brief Initialize from argument string.
+     * @copydoc Layer::init()
      *
-     * @param[in] arg
-     * Argument.
+     * Accepts arguments
+     * - `kR=`(float),
+     * - `kT=`(float),
+     * - `alpha=`(float),
+     * - `use_multiple_scattering=`(bool),
+     * - `iter_count=`(int).
+     *
+     * @throw std::runtime_error
+     * If
+     * - invalid argument,
+     * - `kR` is outside `[0, 1]`,
+     * - `kT` is outside `[0, 1]`,
+     * - `alpha` is non-positive, or
+     * - `iter_count` is non-positive.
      */
-    virtual
-    void init(const std::string& arg) = 0;
+    void init(const std::string& arg);
 
     /**
-     * @brief BSDF.
-     *
-     * @param[inout] pcg 
-     * Generator.
-     *
-     * @param[in] wo
-     * Outgoing direction.
-     *
-     * @param[in] wi
-     * Incident direction.
+     * @copydoc Layer::bsdf()
      */
-    virtual 
     Float bsdf(
             Pcg32& pcg,
-            const Vec3<Float>& wo, 
-            const Vec3<Float>& wi) const = 0;
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const;
 
     /**
-     * @brief BSDF probability density function.
-     *
-     * @param[inout] pcg 
-     * Generator.
-     *
-     * @param[in] wo
-     * Outgoing direction.
-     *
-     * @param[in] wi
-     * Incident direction.
+     * @copydoc Layer::bsdfPdf()
      */
-    virtual
     Float bsdfPdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
-            const Vec3<Float>& wi) const = 0;
+            const Vec3<Float>& wi) const;
 
     /**
-     * @brief BSDF probability density function sample.
-     *
-     * @param[inout] pcg 
-     * Generator.
-     *
-     * @param[inout] tau
-     * Path throughput.
-     *
-     * @param[in] wo
-     * Outgoing direction.
-     *
-     * @returns
-     * Incident direction.
+     * @copydoc Layer::bsdfPdfSample()
      */
-    virtual 
     Vec3<Float> bsdfPdfSample(
             Pcg32& pcg, 
             Float& tau,
-            const Vec3<Float>& wo) const = 0;
+            const Vec3<Float>& wo) const;
 
     /**
-     * @brief Is transmissive?
+     * @copydoc Layer::isTransmissive()
      */
-    virtual 
-    bool isTransmissive() const = 0;
+    bool isTransmissive() const;
 
     /**@}*/
-
-public:
-
-    /**
-     * @brief Intersect.
-     *
-     * @param[in] ray
-     * Ray.
-     *
-     * @param[out] hit
-     * Hit.
-     */
-    bool intersect(const Ray& ray, Hit& hit) const;
 };
 
 /**@}*/
 
 } // namespace ls
 
-#endif // #ifndef LAYERED_SQT_LAYER_HPP
+#endif // #ifndef LAYERED_SQT_LAYER_MICROSURFACE_DIELECTRIC_HPP

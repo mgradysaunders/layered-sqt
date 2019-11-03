@@ -27,8 +27,8 @@
  */
 /*+-+*/
 #pragma once
-#ifndef LAYERED_SQT_LAYER_DIELECTRIC_MICROSURFACE_HPP
-#define LAYERED_SQT_LAYER_DIELECTRIC_MICROSURFACE_HPP
+#ifndef LAYERED_SQT_LAYER_MICROSURFACE_LAMBERTIAN_HPP
+#define LAYERED_SQT_LAYER_MICROSURFACE_LAMBERTIAN_HPP
 
 #include <layered-sqt/layer.hpp>
 
@@ -37,31 +37,33 @@ namespace ls {
 /**
  * @addtogroup layers Layers
  *
- * `<layered-sqt/layer/dielectric_microsurface.hpp>`
+ * `<layered-sqt/layer/microsurface_lambertian.hpp>`
  */
 /**@{*/
 
 /**
- * @brief Dielectric microsurface BSDF layer.
+ * @brief Microsurface Lambertian BRDF layer.
  */
-class DielectricMicrosurfaceBsdfLayer final : public Layer
+class MicrosurfaceLambertianBrdfLayer final : public Layer
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    DielectricMicrosurfaceBsdfLayer() = default;
+    MicrosurfaceLambertianBrdfLayer() = default;
 
     /**
-     * @brief BRDF coefficient @f$ k_R @f$.
+     * @brief BRDF coefficient @f$ f_R @f$.
      */
-    Float kR = 1;
+    Float fR = 1;
 
+#if 0
     /**
-     * @brief BTDF coefficient @f$ k_T @f$.
+     * @brief BTDF coefficient @f$ f_T @f$.
      */
-    Float kT = 1;
+    Float fT = 0;
+#endif
 
     /**
      * @brief Roughness @f$ \alpha @f$.
@@ -69,12 +71,14 @@ public:
     Float alpha = 0.5;
 
     /**
-     * @brief Number of multiple scattering iterations.
-     *
-     * @note
-     * If non-positive, implementation uses single scattering term only.
+     * @brief Use multiple scattering?
      */
-    int fm_iters = 8;
+    bool use_multiple_scattering = true;
+
+    /**
+     * @brief Number of stochastic process iterations.
+     */
+    int iter_count = 4;
 
 public:
 
@@ -84,16 +88,22 @@ public:
     /**@{*/
 
     /**
-     * @copydoc Layer::load()
+     * @copydoc Layer::init()
+     *
+     * Accepts arguments
+     * - `fR=`(float),
+     * - `alpha=`(float),
+     * - `use_multiple_scattering=`(bool),
+     * - `iter_count=`(int).
      *
      * @throw std::runtime_error
      * If
-     * - invalid parameter,
-     * - `kR` is outside `[0, 1]`,
-     * - `kT` is outside `[0, 1]`, or
-     * - `alpha` is non-positive.
+     * - invalid argument,
+     * - `fR` is outside `[0, 1]`,
+     * - `alpha` is non-positive, or
+     * - `iter_count` is non-positive.
      */
-    void load(const std::string& strln);
+    void init(const std::string& arg);
 
     /**
      * @copydoc Layer::bsdf()
@@ -131,4 +141,4 @@ public:
 
 } // namespace ls
 
-#endif // #ifndef LAYERED_SQT_LAYER_DIELECTRIC_MICROSURFACE_HPP
+#endif // #ifndef LAYERED_SQT_LAYER_MICROSURFACE_LAMBERTIAN_HPP

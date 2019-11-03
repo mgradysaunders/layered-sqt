@@ -62,9 +62,12 @@ public:
     }
 
     /**
-     * @brief Load.
+     * @brief Initialize from input stream.
+     *
+     * @param[inout] is
+     * Input stream.
      */
-    void load(std::istream& is);
+    void init(std::istream& is);
 
     /**
      * @brief Clear.
@@ -89,7 +92,7 @@ public:
      * @param[out] f
      * BSDFs per incident direction.
      *
-     * @param[out] fpdf
+     * @param[out] f_pdf
      * BSDF-PDFs per incident direction.
      */
     void compute(
@@ -97,17 +100,7 @@ public:
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,
             Float* f,
-            Float* fpdf) const;
-
-    // TODO
-    /*
-    void computeAverage(
-            int iter_count,
-            Pcg32& pcg,
-            const Vec3<Float>& wo,
-            const Vec3<Float>& wi, int wi_count,
-            Float* f,
-            Float* fpdf) const;  */
+            Float* f_pdf) const;
 
     /**
      * @brief Random scatter direction.
@@ -121,6 +114,23 @@ public:
     Vec3<Float> randomScatterDirection(
             Pcg32& pcg, 
             const Vec3<Float>& wo) const;
+
+    /**
+     * @brief Is transmissive?
+     *
+     * If every layer is transmissive, then the assembly is transmissive. 
+     * Alternatively, if even a single layer is not transmissive, then the
+     * assembly is not transmissive.
+     */
+    bool isTransmissive() const
+    {
+        for (const Layer* layer : layers_) {
+            if (!layer->isTransmissive()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 private:
 

@@ -91,9 +91,12 @@ public:
 public:
 
     /**
-     * @brief Load.
+     * @brief Initialize from argument string.
+     *
+     * @param[in] arg
+     * Argument.
      */
-    void load(const std::string& strln);
+    void init(const std::string& arg);
 
     /**
      * @brief Transmittance.

@@ -29,12 +29,13 @@
 #include <sstream>
 #include <layered-sqt/layered_assembly.hpp>
 #include <layered-sqt/layer/lambertian.hpp>
-#include <layered-sqt/layer/dielectric_microsurface.hpp>
+#include <layered-sqt/layer/microsurface_lambertian.hpp>
+#include <layered-sqt/layer/microsurface_dielectric.hpp>
 
 namespace ls {
 
-// Load.
-void LayeredAssembly::load(std::istream& is)
+// Initialize from input stream.
+void LayeredAssembly::init(std::istream& is)
 {
     clear();
 
@@ -45,10 +46,10 @@ void LayeredAssembly::load(std::istream& is)
         try {
             if (expect_medium) {
                 mediums_.push_back(new Medium());
-                mediums_.back()->load(strln);
+                mediums_.back()->init(strln);
             }
             else {
-                std::stringstream iss(strln);
+                std::istringstream iss(strln);
                 std::string str;
 
                 // No 'Layer'?
@@ -97,22 +98,25 @@ void LayeredAssembly::load(std::istream& is)
                     layers_.push_back(new LambertianBsdfLayer());
                 }
                 else
-                if (str == "DielectricMicrosurfaceBsdf") {
-                    layers_.push_back(new DielectricMicrosurfaceBsdfLayer());
+                if (str == "MicrosurfaceLambertianBrdf") {
+                    layers_.push_back(new MicrosurfaceLambertianBrdfLayer());
+                }
+                else
+                if (str == "MicrosurfaceDielectricBsdf") {
+                    layers_.push_back(new MicrosurfaceDielectricBsdfLayer());
                 }
                 else {
                     // Runtime error.
                     throw 
                         std::runtime_error(
                         std::string(__PRETTY_FUNCTION__)
-                            .append(": expected "
-                                    "'LambertianBsdf' or "
-                                    "'DielectricMicrosurfaceBsdf'"));
+                            .append(": expected layer identifier"));
                 }
 
                 // Delegate.
-                std::getline(iss, strln);
-                layers_.back()->load(strln);
+                std::string arg;
+                std::getline(iss, arg);
+                layers_.back()->init(arg);
                 layers_.back()->zheight = zheight;
             }
 
@@ -179,10 +183,10 @@ void LayeredAssembly::compute(
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,
             Float* f,
-            Float* fpdf) const 
+            Float* f_pdf) const 
 {
     assert(wi_count > 0);
-    assert(wi && (f || fpdf));
+    assert(wi && (f || f_pdf));
 
     // Initial layer.
     const Layer* layer;
@@ -211,8 +215,8 @@ void LayeredAssembly::compute(
             f[j] = 0;
         }
         // Zero-initialize BSDF-PDF.
-        if (fpdf) {
-            fpdf[j] = 0;
+        if (f_pdf) {
+            f_pdf[j] = 0;
         }
     }
 
@@ -271,8 +275,8 @@ void LayeredAssembly::compute(
                         }
 
                         // Update BSDF-PDF.
-                        if (fpdf) {
-                            fpdf[j] += layer->bsdfPdf(pcg, wk, wi[j]);
+                        if (f_pdf) {
+                            f_pdf[j] += layer->bsdfPdf(pcg, wk, wi[j]);
                         }
                     }
                 }
@@ -288,8 +292,8 @@ void LayeredAssembly::compute(
                         }
 
                         // Update BSDF-PDF.
-                        if (fpdf) {
-                            fpdf[j] += layer->bsdfPdf(pcg, wk, wi[j]);
+                        if (f_pdf) {
+                            f_pdf[j] += layer->bsdfPdf(pcg, wk, wi[j]);
                         }
                     }
                 }

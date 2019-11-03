@@ -28,68 +28,65 @@
 /*+-+*/
 #include <sstream>
 #include <preform/microsurface.hpp>
-#include <layered-sqt/layer/dielectric_microsurface.hpp>
+#include <layered-sqt/layer/microsurface_dielectric.hpp>
 
 namespace ls {
 
-// Dielectric microsurface.
+// Dielectric BSDF.
 typedef 
     pr::microsurface_dielectric_bsdf<
         Float,
         pr::microsurface_trowbridge_reitz_slope,
-        pr::microsurface_uniform_height> DielectricMicrosurfaceBsdf;
+        pr::microsurface_uniform_height> MicrosurfaceDielectricBsdf;
 
 // BSDF.
-Float DielectricMicrosurfaceBsdfLayer::bsdf(
+Float MicrosurfaceDielectricBsdfLayer::bsdf(
         Pcg32& pcg,
         const Vec3<Float>& wo,
         const Vec3<Float>& wi) const
 {
     // Surface.
-    DielectricMicrosurfaceBsdf surf = {
+    MicrosurfaceDielectricBsdf surf = {
         kR, kT, 
         this->medium_above->eta /
         this->medium_below->eta,
         Vec2<Float>{alpha, alpha}
     };
 
-    if (fm_iters <= 0) {
+    // Use multiple scattering?
+    if (use_multiple_scattering) {
+
+        // Function to generate canonical random numbers.
+        auto uk = [&pcg]() {
+            return generateCanonical(pcg);
+        };
+
+        // Multiple-scattering version.
+        return surf.fm(uk, wo, wi, 0, iter_count);
+    }
+    else {
 
         // Single-scattering version.
         return surf.fs(wo, wi);
     }
-    else {
-
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
-        // Multiple-scattering version.
-        return surf.fm(uk, wo, wi, 0, fm_iters);
-    }
 }
 
 // BSDF-PDF.
-Float DielectricMicrosurfaceBsdfLayer::bsdfPdf(
+Float MicrosurfaceDielectricBsdfLayer::bsdfPdf(
         Pcg32& pcg,
         const Vec3<Float>& wo,
         const Vec3<Float>& wi) const
 {
     // Surface.
-    DielectricMicrosurfaceBsdf surf = {
+    MicrosurfaceDielectricBsdf surf = {
         kR, kT, 
         this->medium_above->eta /
         this->medium_below->eta,
         Vec2<Float>{alpha, alpha}
     };
 
-    if (fm_iters <= 0) {
-
-        // Single-scattering version.
-        return surf.fs_pdf(wo, wi);
-    }
-    else {
+    // Use multiple scattering?
+    if (use_multiple_scattering) {
 
         // Function to generate canonical random numbers.
         auto uk = [&pcg]() {
@@ -97,25 +94,55 @@ Float DielectricMicrosurfaceBsdfLayer::bsdfPdf(
         };
 
         // Multiple-scattering version.
-        return surf.fm_pdf(uk, wo, wi, 0, fm_iters);
+        return surf.fm_pdf(uk, wo, wi, 0, iter_count);
+    }
+    else {
+
+        // Single-scattering version.
+        return surf.fs_pdf(wo, wi);
     }
 }
 
 // BSDF-PDF sample.
-Vec3<Float> DielectricMicrosurfaceBsdfLayer::bsdfPdfSample(
+Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfPdfSample(
         Pcg32& pcg, 
         Float& tau,
         const Vec3<Float>& wo) const
 {
     // Surface.
-    DielectricMicrosurfaceBsdf surf = {
+    MicrosurfaceDielectricBsdf surf = {
         kR, kT, 
         this->medium_above->eta /
         this->medium_below->eta,
         Vec2<Float>{alpha, alpha}
     };
 
-    if (fm_iters <= 0) {
+    if (use_multiple_scattering) {
+
+        // Function to generate canonical random numbers.
+        auto uk = [&pcg]() {
+            return generateCanonical(pcg);
+        };
+
+        // Multiple-scattering version.
+        int k; 
+        Vec3<Float> wi = 
+        surf.fm_pdf_sample(uk, wo, k);
+
+        // If not perfectly energy-conserving, then BSDF
+        // is not identical to BSDF-PDF.
+        if (!(kR == 1 &&
+              kT == 1)) {
+
+            // Update throughput.
+            Float f_pdf;
+            Float f = surf.fm(uk, wo, wi, 0, 1, &f_pdf);
+            tau *= f / f_pdf;
+        }
+
+        return wi;
+    }
+    else {
 
         // Single-scattering version.
         Vec3<Float> wi = 
@@ -130,45 +157,22 @@ Vec3<Float> DielectricMicrosurfaceBsdfLayer::bsdfPdfSample(
 
         return wi;
     }
-    else {
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
-        // Multiple-scattering version.
-        int k; 
-        Vec3<Float> wi = surf.fm_pdf_sample(uk, wo, k);
-
-        // If not perfectly energy-conserving, then BSDF
-        // is not identical to BSDF-PDF.
-        if (!(kR == 1 &&
-              kT == 1)) {
-
-            // Update throughput.
-            Float fm_pdf;
-            Float fm = surf.fm(uk, wo, wi, 0, fm_iters, &fm_pdf);
-            tau *= fm / fm_pdf;
-        }
-
-        return wi;
-    }
 }
 
 // Is transmissive?
-bool DielectricMicrosurfaceBsdfLayer::isTransmissive() const
+bool MicrosurfaceDielectricBsdfLayer::isTransmissive() const
 {
     return kT > 0;
 }
 
-// Load.
-void DielectricMicrosurfaceBsdfLayer::load(const std::string& strln)
+// Initialize from argument string.
+void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
 {
-    std::stringstream iss(strln);
+    std::istringstream iss(arg);
     std::string str;
 
     try {
-        // Read parameters.
+        // Read arguments.
         // Note std::stod() throws if string is invalid.
         while (iss >> str) {
             if (!str.compare(0, 3, "kR=", 3)) {
@@ -183,8 +187,22 @@ void DielectricMicrosurfaceBsdfLayer::load(const std::string& strln)
                 alpha = std::stod(str.substr(6));
             }
             else
-            if (!str.compare(0, 9, "fm_iters=", 9) ) {
-                fm_iters = std::stoi(str.substr(9));
+            if (!str.compare(0, 24, "use_multiple_scattering=", 24)) {
+                if (str.substr(24) == "true") {
+                    use_multiple_scattering = true;
+                }
+                else
+                if (str.substr(24) == "false") {
+                    use_multiple_scattering = false;
+                }
+                else {
+                    // Trigger catch block.
+                    throw std::exception();
+                }
+            }
+            else
+            if (!str.compare(0, 11, "iter_count=", 11)) {
+                iter_count = std::stoi(str.substr(11));
             }
             else {
                 // Trigger catch block.
@@ -197,7 +215,7 @@ void DielectricMicrosurfaceBsdfLayer::load(const std::string& strln)
         throw
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
-                .append(": invalid parameter '").append(str).append("'"));
+                .append(": invalid argument '").append(str).append("'"));
     }
 
     // Check.
@@ -213,6 +231,10 @@ void DielectricMicrosurfaceBsdfLayer::load(const std::string& strln)
     if (!(alpha > 0)) {
         error_message = ": alpha is non-positive";
     }
+    else 
+    if (!(iter_count > 0)) {
+        error_message = ": iter_count is non-positive";
+    }
     // Error?
     if (error_message) {
         throw 
@@ -221,10 +243,10 @@ void DielectricMicrosurfaceBsdfLayer::load(const std::string& strln)
     }
 
     // Prevent outlandish computation time?
-    if (fm_iters > 128) {
-        fm_iters = 128;
+    if (iter_count > 128) {
+        iter_count = 128;
         std::cerr << "from " << __PRETTY_FUNCTION__ << ": ";
-        std::cerr << "Warning, clamping fm_iters to maximum value of 128\n";
+        std::cerr << "Warning, clamping iter_count to maximum of 128\n";
     }
 }
 

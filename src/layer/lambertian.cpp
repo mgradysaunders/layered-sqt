@@ -78,14 +78,14 @@ bool LambertianBsdfLayer::isTransmissive() const
     return fT > 0;
 }
 
-// Load.
-void LambertianBsdfLayer::load(const std::string& strln)
+// Initialize from argument string.
+void LambertianBsdfLayer::init(const std::string& arg)
 {
-    std::stringstream iss(strln);
+    std::stringstream iss(arg);
     std::string str;
 
     try {
-        // Read parameters.
+        // Read arguments.
         // Note std::stod() throws if string is invalid.
         while (iss >> str) {
             if (!str.compare(0, 3, "fR=", 3)) {
@@ -106,7 +106,7 @@ void LambertianBsdfLayer::load(const std::string& strln)
         throw
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
-                .append(": invalid parameter '").append(str).append("'"));
+                .append(": invalid argument '").append(str).append("'"));
     }
 
     // Check.

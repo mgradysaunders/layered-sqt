@@ -71,16 +71,20 @@ public:
     /**@{*/
 
     /**
-     * @copydoc Layer::load()
+     * @copydoc Layer::init()
+     *
+     * Accepts arguments
+     * - `fR=`(float),
+     * - `fT=`(float).
      *
      * @throw std::runtime_error
      * If
-     * - invalid parameter,
+     * - invalid argument,
      * - `fR` is outside `[0, 1]`,
      * - `fT` is outside `[0, 1]`, or
      * - `fR` plus `fT` is greater than `1`.
      */
-    void load(const std::string& strln);
+    void init(const std::string& arg);
 
     /**
      * @copydoc Layer::bsdf()
