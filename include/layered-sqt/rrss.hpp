@@ -62,19 +62,19 @@ public:
         Vec3<Float> dir;
         
         /**
-         * @brief Direction solid-angle density.
+         * @brief Probability density.
          */
-        Float dir_pdf = 0;
+        Float pdf = 0;
 
         /**
          * @brief Redundancy.
          */
-        mutable Float redundancy = 1;
+        Float redundancy = 1;
 
         /**
          * @brief Is enabled?
          */
-        mutable bool is_enabled = true;
+        bool is_enabled = true;
 
     public:
 
@@ -89,12 +89,12 @@ public:
          * @param[in] dir
          * Direction.
          *
-         * @param[in] dir_pdf
-         * Direction solid-angle density.
+         * @param[in] pdf
+         * Probability density.
          */
-        Sample(const Vec3<Float>& dir, Float dir_pdf) : 
+        Sample(const Vec3<Float>& dir, Float pdf) : 
                 dir(dir), 
-                dir_pdf(dir_pdf)
+                pdf(pdf)
         {
         }
     };
@@ -114,9 +114,12 @@ public:
 public:
 
     /**
-     * @brief Enabled sample directions.
+     * @brief Samples.
      */
-    std::vector<Vec3<Float>> enabledSampleDirections() const;
+    const std::vector<Sample>& samples() const
+    {
+        return samples_;
+    }
 
     /**
      * @brief Disable `num` redundant samples.

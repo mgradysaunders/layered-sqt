@@ -98,33 +98,19 @@ public:
      *
      * @param[in] wi
      * Incident direction.
+     *
+     * @param[out] f_pdf
+     * _Optional_. BSDF-PDF.
      */
     virtual 
     Float bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo, 
-            const Vec3<Float>& wi) const = 0;
+            const Vec3<Float>& wi,
+            Float* f_pdf = nullptr) const = 0;
 
     /**
-     * @brief BSDF probability density function.
-     *
-     * @param[inout] pcg 
-     * Generator.
-     *
-     * @param[in] wo
-     * Outgoing direction.
-     *
-     * @param[in] wi
-     * Incident direction.
-     */
-    virtual
-    Float bsdfPdf(
-            Pcg32& pcg,
-            const Vec3<Float>& wo,
-            const Vec3<Float>& wi) const = 0;
-
-    /**
-     * @brief BSDF probability density function sample.
+     * @brief BSDF sample.
      *
      * @param[inout] pcg 
      * Generator.
@@ -139,7 +125,7 @@ public:
      * Incident direction.
      */
     virtual 
-    Vec3<Float> bsdfPdfSample(
+    Vec3<Float> bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const = 0;

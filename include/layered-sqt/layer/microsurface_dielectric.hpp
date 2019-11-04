@@ -76,7 +76,7 @@ public:
     /**
      * @brief Number of stochastic process iterations.
      */
-    int iter_count = 8;
+    int iter_count = 4;
 
 public:
 
@@ -111,20 +111,13 @@ public:
     Float bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
-            const Vec3<Float>& wi) const;
+            const Vec3<Float>& wi,
+            Float* f_pdf = nullptr) const;
 
     /**
-     * @copydoc Layer::bsdfPdf()
+     * @copydoc Layer::bsdfSample()
      */
-    Float bsdfPdf(
-            Pcg32& pcg,
-            const Vec3<Float>& wo,
-            const Vec3<Float>& wi) const;
-
-    /**
-     * @copydoc Layer::bsdfPdfSample()
-     */
-    Vec3<Float> bsdfPdfSample(
+    Vec3<Float> bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const;

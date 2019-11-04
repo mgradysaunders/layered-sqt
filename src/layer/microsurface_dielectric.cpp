@@ -41,9 +41,10 @@ typedef
 
 // BSDF.
 Float MicrosurfaceDielectricBsdfLayer::bsdf(
-        Pcg32& pcg,
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi,
+            Float* f_pdf) const
 {
     // Surface.
     MicrosurfaceDielectricBsdf surf = {
@@ -62,52 +63,24 @@ Float MicrosurfaceDielectricBsdfLayer::bsdf(
         };
 
         // Multiple-scattering version.
-        return surf.fm(uk, wo, wi, 0, iter_count);
+        return surf.fm(uk, wo, wi, 0, iter_count, f_pdf);
     }
     else {
+
+        if (f_pdf) {
+            *f_pdf = surf.fs_pdf(wo, wi);
+        }
 
         // Single-scattering version.
         return surf.fs(wo, wi);
     }
 }
 
-// BSDF-PDF.
-Float MicrosurfaceDielectricBsdfLayer::bsdfPdf(
-        Pcg32& pcg,
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
-{
-    // Surface.
-    MicrosurfaceDielectricBsdf surf = {
-        kR, kT, 
-        this->medium_above->eta /
-        this->medium_below->eta,
-        Vec2<Float>{alpha, alpha}
-    };
-
-    // Use multiple scattering?
-    if (use_multiple_scattering) {
-
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
-        // Multiple-scattering version.
-        return surf.fm_pdf(uk, wo, wi, 0, iter_count);
-    }
-    else {
-
-        // Single-scattering version.
-        return surf.fs_pdf(wo, wi);
-    }
-}
-
-// BSDF-PDF sample.
-Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfPdfSample(
-        Pcg32& pcg, 
-        Float& tau,
-        const Vec3<Float>& wo) const
+// BSDF sample.
+Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
+            Pcg32& pcg, 
+            Float& tau,
+            const Vec3<Float>& wo) const
 {
     // Surface.
     MicrosurfaceDielectricBsdf surf = {

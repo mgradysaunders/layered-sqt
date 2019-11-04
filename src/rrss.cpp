@@ -35,17 +35,9 @@ Rrss::Rrss(const std::vector<Sample>& samples) :
         samples_(samples),
         samples_remaining_(samples.size())
 {
-    for (auto itr = samples_.begin(); itr < samples_.end();) {
-        if (!(itr->dir_pdf >= pr::numeric_limits<Float>::min_invertible())) {
-            itr = samples_.erase(itr);
-            samples_remaining_--;
-            // TODO Warn
-        }
-        else {
-            itr->redundancy = 1;
-            itr->is_enabled = true;
-            ++itr;
-        }
+    for (Sample& sample : samples_) {
+        sample.redundancy = 1;
+        sample.is_enabled = true;
     }
 
     if (samples_.size() > 0) {
@@ -56,19 +48,6 @@ Rrss::Rrss(const std::vector<Sample>& samples) :
             return std::pair<Vec3<Float>, const Sample*>{sample.dir, &sample};
         });
     }
-}
-
-// Enabled sample directions.
-std::vector<Vec3<Float>> Rrss::enabledSampleDirections() const
-{
-    std::vector<Vec3<Float>> sample_dirs;
-    sample_dirs.reserve(samples_remaining_);
-    for (const Sample& sample : samples_) {
-        if (sample.is_enabled) {
-            sample_dirs.push_back(sample.dir);
-        }
-    }
-    return sample_dirs;
 }
 
 // Disable redundant samples.
@@ -84,7 +63,7 @@ bool Rrss::disable(std::size_t num)
                 Float rad = 
                 pr::sqrt(
                 pr::numeric_constants<Float>::M_1_pi() /
-                (sample.dir_pdf * samples_remaining_));
+                (sample.pdf * samples_remaining_));
 
                 if (!(rad > 0) || 
                     !pr::isfinite(rad)) {
@@ -94,7 +73,7 @@ bool Rrss::disable(std::size_t num)
                 else {
                     int nearby_enabled = 0;
                     int nearby = 0;
-                    Float nearby_dir_pdf_sum = 0;
+                    Float nearby_pdf_sum = 0;
 
                     // Visit samples in region.
                     sample_tree_.nearby(
@@ -106,14 +85,14 @@ bool Rrss::disable(std::size_t num)
                             nearby_enabled++;
                         }
                         nearby++;
-                        nearby_dir_pdf_sum += nearby_sample.dir_pdf;
+                        nearby_pdf_sum += nearby_sample.pdf;
                         return true;
                     });
 
                     // Update redundancy.
                     sample.redundancy = 
                         nearby_enabled * 
-                        nearby * (sample.dir_pdf / nearby_dir_pdf_sum);
+                        nearby * (sample.pdf / nearby_pdf_sum);
 
                     if (pr::isnan(sample.redundancy)) {
                         sample.redundancy = 1;

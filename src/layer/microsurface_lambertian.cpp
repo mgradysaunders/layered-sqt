@@ -41,9 +41,10 @@ typedef
 
 // BSDF.
 Float MicrosurfaceLambertianBrdfLayer::bsdf(
-        Pcg32& pcg,
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi,
+            Float* f_pdf) const
 {
     // Surface.
     MicrosurfaceLambertianBrdf surf = {
@@ -60,65 +61,44 @@ Float MicrosurfaceLambertianBrdfLayer::bsdf(
         };
 
         // Multiple-scattering version.
-        RunningMean f;
+        Float f = 0;
+        if (f_pdf) {
+            *f_pdf = 0;
+        }
         for (int iter = 0; 
                  iter < iter_count; iter++) {
-            f += surf.fm(uk, wo, wi);
+            Float tmp_f_pdf;
+            Float tmp_f = surf.fm(uk, wo, wi, 0, &tmp_f_pdf);
+            f = 
+            f + (tmp_f - f) / (iter + 1);
+            if (f_pdf) {
+                *f_pdf = 
+                *f_pdf + (tmp_f_pdf - *f_pdf) / (iter + 1);
+            }
         }
         return f;
     }
     else {
 
         // Single-scattering version.
-        RunningMean f;
+        Float f = 0;
         for (int iter = 0;
                  iter < iter_count; iter++) {
-            f += surf.fs(generateCanonical2(pcg), wo, wi);
+            f = 
+            f + (surf.fs(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
+        }
+        if (f_pdf) {
+            *f_pdf = surf.fs_pdf(wo, wi);
         }
         return f;
     }
 }
 
-// BSDF-PDF.
-Float MicrosurfaceLambertianBrdfLayer::bsdfPdf(
-        Pcg32& pcg,
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
-{
-    // Surface.
-    MicrosurfaceLambertianBrdf surf = {
-        fR, // fT,
-        Vec2<Float>{alpha, alpha}
-    };
-
-    // Use multiple scattering?
-    if (use_multiple_scattering) {
-
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
-        // Multiple-scattering version.
-        RunningMean f_pdf;
-        for (int iter = 0; 
-                 iter < iter_count; iter++) {
-            f_pdf += surf.fm_pdf(uk, wo, wi);
-        }
-        return f_pdf;
-    }
-    else {
-
-        // Single-scattering version.
-        return surf.fs_pdf(wo, wi);
-    }
-}
-
-// BSDF-PDF sample.
-Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfPdfSample(
-        Pcg32& pcg, 
-        Float& tau,
-        const Vec3<Float>& wo) const
+// BSDF sample.
+Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
+            Pcg32& pcg, 
+            Float& tau,
+            const Vec3<Float>& wo) const
 {
     // Surface.
     MicrosurfaceLambertianBrdf surf = {

@@ -44,14 +44,26 @@ void LayeredAssembly::init(std::istream& is)
     std::string strln;
     while (std::getline(is, strln)) {
         try {
+            std::istringstream iss(strln);
+            std::string str;
+
+
             if (expect_medium) {
+                // No 'Medium'?
+                if (!(iss >> str) ||
+                    !(str == "Medium")) {
+                    throw 
+                        std::runtime_error(
+                        std::string(": expected 'Medium'"));
+                }
+
+                // Delegate.
+                std::string arg;
+                std::getline(iss, arg);
                 mediums_.push_back(new Medium());
-                mediums_.back()->init(strln);
+                mediums_.back()->init(arg);
             }
             else {
-                std::istringstream iss(strln);
-                std::string str;
-
                 // No 'Layer'?
                 if (!(iss >> str) ||
                     !(str == "Layer")) {
@@ -177,7 +189,7 @@ void LayeredAssembly::clear()
     layers_.shrink_to_fit();
 }
 
-// BSDF.
+// Compute BSDF/BSDF-PDF.
 void LayeredAssembly::compute(
             Pcg32& pcg,
             const Vec3<Float>& wo,
@@ -209,13 +221,18 @@ void LayeredAssembly::compute(
         ray.medium = layer->medium_below;
     }
 
-    for (int j = 0; j < wi_count; j++) {
-        // Zero-initialize BSDF.
-        if (f) {
+    // BSDF?
+    if (f) {
+        // Zero initialize.
+        for (int j = 0; j < wi_count; j++) {
             f[j] = 0;
         }
-        // Zero-initialize BSDF-PDF.
-        if (f_pdf) {
+    }
+
+    // BSDF-PDF?
+    if (f_pdf) {
+        // Zero initialize.
+        for (int j = 0; j < wi_count; j++) {
             f_pdf[j] = 0;
         }
     }
@@ -267,16 +284,14 @@ void LayeredAssembly::compute(
             // if at bottom and wi is lower hemisphere, add to result.
             if (layer == layers_.front()) {
                 for (int j = 0; j < wi_count; j++) {
-                    if (wi[j][2] > 0) {
-
-                        // Update BSDF.
+                    if (pr::signbit(wi[j][2]) == 0) {
+                        Float tmp_f_pdf;
+                        Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
                         if (f) {
-                            f[j] += tau * layer->bsdf(pcg, wk, wi[j]);
+                            f[j] += tau * tmp_f;
                         }
-
-                        // Update BSDF-PDF.
                         if (f_pdf) {
-                            f_pdf[j] += layer->bsdfPdf(pcg, wk, wi[j]);
+                            f_pdf[j] += tmp_f_pdf;
                         }
                     }
                 }
@@ -284,16 +299,14 @@ void LayeredAssembly::compute(
             else 
             if (layer == layers_.back()) {
                 for (int j = 0; j < wi_count; j++) {
-                    if (wi[j][2] < 0) {
-
-                        // Update BSDF.
+                    if (pr::signbit(wi[j][2]) == 1) {
+                        Float tmp_f_pdf;
+                        Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
                         if (f) {
-                            f[j] += tau * layer->bsdf(pcg, wk, wi[j]);
+                            f[j] += tau * tmp_f;
                         }
-
-                        // Update BSDF-PDF.
                         if (f_pdf) {
-                            f_pdf[j] += layer->bsdfPdf(pcg, wk, wi[j]);
+                            f_pdf[j] += tmp_f_pdf;
                         }
                     }
                 }
@@ -301,7 +314,7 @@ void LayeredAssembly::compute(
 
             // Update ray.
             ray.pos = hit.pos;
-            ray.dir = layer->bsdfPdfSample(pcg, tau, wk);
+            ray.dir = layer->bsdfSample(pcg, tau, wk);
             ray.medium = 
                 ray.dir[2] > 0 
                 ? layer->medium_above 
@@ -318,99 +331,169 @@ void LayeredAssembly::compute(
     }
 }
 
+// Compute BSDF/BSDF-PDF average.
+void LayeredAssembly::computeAverage(
+            int path_count,
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>* wi, int wi_count,
+            Float* f,
+            Float* f_pdf) const
+{
+    assert(wi_count > 0);
+    assert(wi && (f || f_pdf));
+
+    // BSDF?
+    if (f) {
+        // Zero initialize.
+        for (int j = 0; j < wi_count; j++) {
+            f[j] = 0;
+        }
+    }
+
+    // BSDF-PDF?
+    if (f_pdf) {
+        // Zero initialize.
+        for (int j = 0; j < wi_count; j++) {
+            f_pdf[j] = 0;
+        }
+    }
+
+    // Temporaries.
+    Float* tmp = new Float[2 * wi_count];
+
+    // Temporary BSDFs.
+    Float* tmp_f = f ? tmp : nullptr;
+
+    // Temporary BSDF-PDFs.
+    Float* tmp_f_pdf = f_pdf ? tmp + wi_count : nullptr;
+
+    for (int path = 0;
+             path < path_count; path++) {
+
+        compute(pcg, wo, wi, wi_count, tmp_f, tmp_f_pdf);
+
+        // BSDF?
+        if (f) {
+            // Update.
+            for (int j = 0; j < wi_count; j++) {
+                f[j] = 
+                f[j] + (tmp_f[j] - f[j]) / (path + 1);
+            }
+        }
+
+        // BSDF-PDF?
+        if (f_pdf) {
+            // Update.
+            for (int j = 0; j < wi_count; j++) {
+                f_pdf[j] = 
+                f_pdf[j] + (tmp_f_pdf[j] - f_pdf[j]) / (path + 1);
+            }
+        }
+    }
+    
+    // Delete temporaries.
+    delete[] tmp;
+}
+
 // Random scatter direction.
 Vec3<Float> LayeredAssembly::randomScatterDirection(
                 Pcg32& pcg, 
                 const Vec3<Float>& wo) const
 {
-    // Initial layer.
-    const Layer* layer;
+    for (;;) {
 
-    // Initial ray.
-    Ray ray;
-    ray.dir = -wo;
+        // Initial layer.
+        const Layer* layer;
 
-    // Upper hemisphere?
-    if (wo[2] > 0) {
-        // Move above top layer.
-        layer = layers_.front();
-        ray.pos[2] = layer->zheight + 1;
-        ray.medium = layer->medium_above;
-    }
-    else {
-        // Move below bottom layer.
-        layer = layers_.back();
-        ray.pos[2] = layer->zheight - 1;
-        ray.medium = layer->medium_below;
-    }
+        // Initial ray.
+        Ray ray;
+        ray.dir = -wo;
 
-    Float tau = 1;
-    for (int bounce = 0;
-             bounce < 128; bounce++) {
-
-        Vec3<Float> wk = -ray.dir;
-
-        // Determine neighboring layers.
-        const Layer* layer_above;
-        const Layer* layer_below;
-        // Ray exactly on layer?
-        if (ray.pos[2] == layer->zheight) {
-            layer_above = layer->medium_above->layer_above;
-            layer_below = layer->medium_below->layer_below;
+        // Upper hemisphere?
+        if (wo[2] > 0) {
+            // Move above top layer.
+            layer = layers_.front();
+            ray.pos[2] = layer->zheight + 1;
+            ray.medium = layer->medium_above;
         }
         else {
-            layer_above = ray.medium->layer_above;
-            layer_below = ray.medium->layer_below;
-        }
-        assert(!layer_above || ray.pos[2] < layer_above->zheight);
-        assert(!layer_below || ray.pos[2] > layer_below->zheight);
-
-        // Intersect relevant layer.
-        Hit hit;
-        const Layer* layer_next = ray.dir[2] > 0 
-            ? layer_above 
-            : layer_below;
-        if (!layer_next) {
-            // Exit.
-            return ray.dir;
-        }
-        if (!layer_next->intersect(ray, hit)) {
-            // Terminate.
-            return Vec3<Float>{};
-        }
-        layer = layer_next;
-
-        // Sample medium.
-        Float dmax = pr::length(hit.pos - ray.pos);
-        Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
-        if (!(d == dmax)) {
-
-            // Update ray.
-            ray.pos = ray.pos + ray.dir * d;
-            ray.dir = ray.medium->phaseSample(pcg, tau, wk);
-        }
-        else {
-
-            // Update ray.
-            ray.pos = hit.pos;
-            ray.dir = layer->bsdfPdfSample(pcg, tau, wk);
-            ray.medium = 
-                ray.dir[2] > 0 
-                ? layer->medium_above 
-                : layer->medium_below;
+            // Move below bottom layer.
+            layer = layers_.back();
+            ray.pos[2] = layer->zheight - 1;
+            ray.medium = layer->medium_below;
         }
 
-        // Throughput non-positive?
-        // This test passes if throughput is zero, in which case
-        // path is absorbed, but also if throughput is NaN. This shouldn't
-        // happen, but we want to terminate if it does.
-        if (!(tau > 0)) {
-            // Terminate.
-            return Vec3<Float>{};
+        Float tau = 1;
+        for (int bounce = 0;
+                 bounce < 128; bounce++) {
+
+            Vec3<Float> wk = -ray.dir;
+
+            // Determine neighboring layers.
+            const Layer* layer_above;
+            const Layer* layer_below;
+            // Ray exactly on layer?
+            if (ray.pos[2] == layer->zheight) {
+                layer_above = layer->medium_above->layer_above;
+                layer_below = layer->medium_below->layer_below;
+            }
+            else {
+                layer_above = ray.medium->layer_above;
+                layer_below = ray.medium->layer_below;
+            }
+            assert(!layer_above || ray.pos[2] < layer_above->zheight);
+            assert(!layer_below || ray.pos[2] > layer_below->zheight);
+
+            // Intersect relevant layer.
+            Hit hit;
+            const Layer* layer_next = ray.dir[2] > 0 
+                ? layer_above 
+                : layer_below;
+            if (!layer_next) {
+                // Exit.
+                return ray.dir;
+            }
+            if (!layer_next->intersect(ray, hit)) {
+                // Terminate.
+                break;
+            }
+            layer = layer_next;
+
+            // Sample medium.
+            Float dmax = pr::length(hit.pos - ray.pos);
+            Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
+            if (!(d == dmax)) {
+
+                // Update ray.
+                ray.pos = ray.pos + ray.dir * d;
+                ray.dir = ray.medium->phaseSample(pcg, tau, wk);
+            }
+            else {
+
+                // Update ray.
+                ray.pos = hit.pos;
+                ray.dir = layer->bsdfSample(pcg, tau, wk);
+                ray.medium = 
+                    ray.dir[2] > 0 
+                    ? layer->medium_above 
+                    : layer->medium_below;
+            }
+
+            // Throughput non-positive?
+            // This test passes if throughput is zero, in which case
+            // path is absorbed, but also if throughput is NaN. This shouldn't
+            // happen, but we want to terminate if it does.
+            if (!(tau > 0)) {
+                // Terminate.
+                break;
+            }
         }
+
+        // Try again.
     }
 
-    // Terminate.
+    // Unreachable.
     return Vec3<Float>{};
 }
 

@@ -75,7 +75,7 @@ public:
     void clear();
 
     /**
-     * @brief Compute.
+     * @brief Compute BSDF/BSDF-PDF.
      *
      * @param[inout] pcg
      * Generator.
@@ -90,12 +90,44 @@ public:
      * Incident direction count.
      *
      * @param[out] f
-     * BSDFs per incident direction.
+     * _Optional_. BSDFs per incident direction.
      *
      * @param[out] f_pdf
-     * BSDF-PDFs per incident direction.
+     * _Optional_. BSDF-PDFs per incident direction.
      */
     void compute(
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>* wi, int wi_count,
+            Float* f,
+            Float* f_pdf) const;
+
+    /**
+     * @brief Compute BSDF/BSDF-PDF average.
+     *
+     * @param[in] path_count
+     * Path count.
+     *
+     * @param[inout] pcg
+     * Generator.
+     *
+     * @param[in] wo
+     * Outgoing direction.
+     *
+     * @param[in] wi
+     * Incident directions.
+     *
+     * @param[in] wi_count
+     * Incident direction count.
+     *
+     * @param[out] f
+     * _Optional_. BSDFs per incident direction.
+     *
+     * @param[out] f_pdf
+     * _Optional_. BSDF-PDFs per incident direction.
+     */
+    void computeAverage(
+            int path_count,
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,

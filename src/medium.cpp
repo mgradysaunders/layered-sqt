@@ -102,89 +102,65 @@ void Medium::init(const std::string& arg)
     std::stringstream iss(arg);
     std::string str;
 
-    if (!(iss >> str) || 
-        !(str == "Vacuum" || str == "Medium")) {
-        // Runtime error,
-        // keyword neither 'Vacuum' nor 'Medium'.
-        throw 
-            std::runtime_error(
-            std::string(__PRETTY_FUNCTION__)
-                .append(": expected 'Vacuum' or 'Medium'"));
-    }
-
-    // Defaults.
-    g = 0;
-    mua = 0;
-    mus = 0;
-    mu = 0;
-    eta = 1;
-
-    // Keyword 'Vacuum'?
-    if (str == "Vacuum") {
-        // Use defaults.
-    }
-    // Keyword 'Medium'?
-    else {
-        try {
-            // Read parameters.
-            // Note std::stod() throws if string is invalid.
-            while (iss >> str) {
-                if (!str.compare(0, 2, "g=", 2)) {
-                    g = std::stod(str.substr(2));
-                }
-                else 
-                if (!str.compare(0, 4, "mua=", 4)) {
-                    mua = std::stod(str.substr(4));
-                }
-                else 
-                if (!str.compare(0, 4, "mus=", 4)) {
-                    mus = std::stod(str.substr(4));
-                }
-                else 
-                if (!str.compare(0, 4, "eta=", 4)) {
-                    eta = std::stod(str.substr(4));
-                }
-                else {
-                    // Trigger catch block.
-                    throw std::exception();
-                }
+    try {
+        // Read parameters.
+        // Note std::stod() throws if string is invalid.
+        while (iss >> str) {
+            if (!str.compare(0, 2, "g=", 2)) {
+                g = std::stod(str.substr(2));
+            }
+            else 
+            if (!str.compare(0, 4, "mua=", 4)) {
+                mua = std::stod(str.substr(4));
+            }
+            else 
+            if (!str.compare(0, 4, "mus=", 4)) {
+                mus = std::stod(str.substr(4));
+            }
+            else 
+            if (!str.compare(0, 4, "eta=", 4)) {
+                eta = std::stod(str.substr(4));
+            }
+            else {
+                // Trigger catch block.
+                throw std::exception();
             }
         }
-        catch (...) {
-            // Runtime error.
-            throw
-                std::runtime_error(
-                std::string(__PRETTY_FUNCTION__)
-                    .append(": invalid argument '").append(str).append("'"));
-        }
-
-        // Check.
-        const char* error_message = nullptr;
-        if (!(g > -1 && g < 1)) {
-            error_message = ": g is outside (-1, 1)";
-        }
-        else
-        if (!(mua >= 0)) {
-            error_message = ": mua is negative";
-        }
-        else 
-        if (!(mus >= 0)) {
-            error_message = ": mus is negative";
-        }
-        else
-        if (!(eta >= 1)) {
-            error_message = ": eta is less than 1";
-        }
-        // Error?
-        if (error_message) {
-            throw 
-                std::runtime_error(
-                std::string(__PRETTY_FUNCTION__).append(error_message));
-        }
-        
-        // Extinction.
-        mu = mua + mus;
     }
+    catch (...) {
+        // Runtime error.
+        throw
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": invalid argument '").append(str).append("'"));
+    }
+
+    // Check.
+    const char* error_message = nullptr;
+    if (!(g > -1 && g < 1)) {
+        error_message = ": g is outside (-1, 1)";
+    }
+    else
+    if (!(mua >= 0)) {
+        error_message = ": mua is negative";
+    }
+    else 
+    if (!(mus >= 0)) {
+        error_message = ": mus is negative";
+    }
+    else
+    if (!(eta >= 1)) {
+        error_message = ": eta is less than 1";
+    }
+    // Error?
+    if (error_message) {
+        throw 
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__).append(error_message));
+    }
+    
+    // Extinction.
+    mu = mua + mus;
 }
 
 } // namespace ls

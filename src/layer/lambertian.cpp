@@ -33,29 +33,31 @@ namespace ls {
 
 // BSDF.
 Float LambertianBsdfLayer::bsdf(
-        Pcg32&,
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
+            Pcg32&,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi,
+            Float* f_pdf) const
 {
-    return pr::numeric_constants<Float>::M_1_pi() * pr::abs(wi[2]) * 
-          (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT);
+    Float f = pr::numeric_constants<Float>::M_1_pi() * pr::abs(wi[2]) * 
+             (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT);
+
+    if (f_pdf) {
+        if (f > 0) {
+            *f_pdf = f / (fR + fT);
+        }
+        else {
+            *f_pdf = 0;
+        }
+    }
+    
+    return f;
 }
 
-// BSDF-PDF.
-Float LambertianBsdfLayer::bsdfPdf(
-        Pcg32&,
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
-{
-    return Vec3<Float>::cosine_hemisphere_pdf(pr::abs(wi[2])) *
-          (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT) / (fR + fT);
-}
-
-// BSDF-PDF sample.
-Vec3<Float> LambertianBsdfLayer::bsdfPdfSample(
-        Pcg32& pcg, 
-        Float& tau,
-        const Vec3<Float>& wo) const
+// BSDF sample.
+Vec3<Float> LambertianBsdfLayer::bsdfSample(
+            Pcg32& pcg, 
+            Float& tau,
+            const Vec3<Float>& wo) const
 {
     Vec3<Float> wi = 
     Vec3<Float>::cosine_hemisphere_pdf_sample(generateCanonical2(pcg));
