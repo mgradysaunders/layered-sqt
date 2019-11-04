@@ -138,14 +138,13 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
                 generateCanonical2(pcg), wo);
 
         // Update throughput.
-        RunningMean f;
+        Float f = 0;
         for (int iter = 0;
                  iter < iter_count; iter++) {
-            f += surf.fs(generateCanonical2(pcg), wo, wi);
+            f = 
+            f + (surf.fs(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
         }
-        tau *= 
-            Float(f) / 
-            surf.fs_pdf(wo, wi);
+        tau *= f / surf.fs_pdf(wo, wi);
 
         return wi;
     }

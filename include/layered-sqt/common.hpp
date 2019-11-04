@@ -145,49 +145,6 @@ public:
     Vec3<Float> pos;
 };
 
-/**
- * @brief Running mean.
- */
-class RunningMean
-{
-public:
-
-    /**
-     * @brief Default constructor.
-     */
-    RunningMean() = default;
-
-    /**
-     * @brief Add term.
-     */
-    RunningMean& operator+=(Float val)
-    {
-        num_ = num_ + 1;
-        val_ = val_ + (val - val_) / num_;
-        return *this;
-    }
-
-    /**
-     * @brief As float.
-     */
-    operator Float() const
-    {
-        return val_;
-    }
-
-private:
-
-    /**
-     * @brief Value.
-     */
-    Float val_ = 0;
-
-    /**
-     * @brief Number of terms.
-     */
-    int num_ = 0;
-};
-
 /**@}*/
 
 } // namespace ls
