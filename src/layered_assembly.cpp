@@ -28,6 +28,7 @@
 /*+-+*/
 #include <sstream>
 #include <layered-sqt/layered_assembly.hpp>
+#include <layered-sqt/layer/null.hpp>
 #include <layered-sqt/layer/lambertian.hpp>
 #include <layered-sqt/layer/microsurface_lambertian.hpp>
 #include <layered-sqt/layer/microsurface_dielectric.hpp>
@@ -46,7 +47,6 @@ void LayeredAssembly::init(std::istream& is)
         try {
             std::istringstream iss(strln);
             std::string str;
-
 
             if (expect_medium) {
                 // No 'Medium'?
@@ -106,6 +106,10 @@ void LayeredAssembly::init(std::istream& is)
 
                 // Read identifier.
                 iss >> str;
+                if (str == "NullBsdf") {
+                    layers_.push_back(new NullBsdfLayer());
+                }
+                else
                 if (str == "LambertianBsdf") {
                     layers_.push_back(new LambertianBsdfLayer());
                 }
@@ -168,6 +172,24 @@ void LayeredAssembly::init(std::istream& is)
         mediums_[pos + 1]->layer_above = layers_[pos];
         layers_[pos]->medium_above = mediums_[pos + 0];
         layers_[pos]->medium_below = mediums_[pos + 1];
+    }
+
+    // Find non-null BSDF layer at top.
+    for (auto itr = layers_.begin();
+              itr < layers_.end(); itr++) {
+        if (!(*itr)->isNull()) {
+            layers_top_ = *itr;
+            break;
+        }
+    }
+
+    // Find non-null BSDF layer at bottom.
+    for (auto itr = layers_.rbegin();
+              itr < layers_.rend(); itr++) {
+        if (!(*itr)->isNull()) {
+            layers_bottom_ = *itr;
+            break;
+        }
     }
 }
 
@@ -260,53 +282,161 @@ void LayeredAssembly::compute(
 
         // Intersect relevant layer.
         Hit hit;
-        const Layer* layer_next = ray.dir[2] > 0 
-            ? layer_above 
-            : layer_below;
-        if (!layer_next ||
-            !layer_next->intersect(ray, hit)) {
-            break;
+        {
+            const Layer* layer_next = ray.dir[2] > 0 
+                ? layer_above 
+                : layer_below;
+            if (!layer_next ||
+                !layer_next->intersect(ray, hit)) {
+                break;
+            }
+            layer = layer_next;
         }
-        layer = layer_next;
 
         // Sample medium.
         Float dmax = pr::length(hit.pos - ray.pos);
         Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
         if (!(d == dmax)) {
 
-            // Update ray.
-            ray.pos = ray.pos + ray.dir * d;
-            ray.dir = ray.medium->phaseSample(pcg, tau, wk);
-        }
-        else {
+            assert(ray.medium->layer_above);
+            assert(ray.medium->layer_below);
 
-            // If at top and wi is upper hemisphere OR
-            // if at bottom and wi is lower hemisphere, add to result.
-            if (layer == layers_.front()) {
+            // Update hit.
+            hit.pos = ray.pos + ray.dir * d;
+
+            // Above top?
+            if (!layers_top_ ||
+                hit.pos[2] > layers_top_->zheight) {
                 for (int j = 0; j < wi_count; j++) {
                     if (pr::signbit(wi[j][2]) == 0) {
-                        Float tmp_f_pdf;
-                        Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
-                        if (f) {
-                            f[j] += tau * tmp_f;
+                        Float tmp_p = ray.medium->phase(wk, wi[j]);
+
+                        // Transmittance.
+                        Float tr = 1;
+                        Float z0 = hit.pos[2];
+                        const Layer* layer_next = ray.medium->layer_above;
+                        while (layer_next) {
+                            tr *= 
+                                layer_next->medium_below->transmittance(
+                               (layer_next->zheight - z0) / wi[j][2]);
+                            z0 = layer_next->zheight;
+                            layer_next = 
+                            layer_next->medium_above->layer_above;
                         }
+
+                        // BSDF?
+                        if (f) {
+                            f[j] += tau * tr * tmp_p;
+                        }
+
+                        // BSDF-PDF?
                         if (f_pdf) {
-                            f_pdf[j] += tmp_f_pdf;
+                            f_pdf[j] += tr * tmp_p;
                         }
                     }
                 }
             }
-            else 
-            if (layer == layers_.back()) {
+
+            // Below bottom?
+            if (!layers_bottom_ ||
+                hit.pos[2] < layers_bottom_->zheight) {
+                for (int j = 0; j < wi_count; j++) {
+                    if (pr::signbit(wi[j][2]) == 1) {
+                        Float tmp_p = ray.medium->phase(wk, wi[j]);
+
+                        // Transmittance.
+                        Float tr = 1;
+                        Float z0 = hit.pos[2];
+                        const Layer* layer_next = ray.medium->layer_below;
+                        while (layer_next) {
+                            tr *= 
+                                layer_next->medium_above->transmittance(
+                               (layer_next->zheight - z0) / wi[j][2]);
+                            z0 = layer_next->zheight;
+                            layer_next = 
+                            layer_next->medium_below->layer_below;
+                        }
+
+                        // BSDF?
+                        if (f) {
+                            f[j] += tau * tr * tmp_p;
+                        }
+
+                        // BSDF-PDF?
+                        if (f_pdf) {
+                            f_pdf[j] += tr * tmp_p;
+                        }
+                    }
+                }
+            }
+
+            // Update ray.
+            ray.pos = hit.pos;
+            ray.dir = ray.medium->phaseSample(pcg, tau, wk);
+        }
+        else {
+
+            // At top?
+            if (layer == layers_top_) {
+                for (int j = 0; j < wi_count; j++) {
+                    if (pr::signbit(wi[j][2]) == 0) {
+                        Float tmp_f_pdf;
+                        Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
+
+                        // Transmittance.
+                        Float tr = 1;
+                        Float z0 = hit.pos[2];
+                        const Layer* layer_next = layer_above;
+                        while (layer_next) {
+                            tr *= 
+                                layer_next->medium_below->transmittance(
+                               (layer_next->zheight - z0) / wi[j][2]);
+                            z0 = layer_next->zheight;
+                            layer_next = 
+                            layer_next->medium_above->layer_above;
+                        }
+
+                        // BSDF?
+                        if (f) {
+                            f[j] += tau * tr * tmp_f;
+                        }
+
+                        // BSDF-PDF?
+                        if (f_pdf) {
+                            f_pdf[j] += tr * tmp_f_pdf;
+                        }
+                    }
+                }
+            }
+
+            // At bottom?
+            if (layer == layers_bottom_) {
                 for (int j = 0; j < wi_count; j++) {
                     if (pr::signbit(wi[j][2]) == 1) {
                         Float tmp_f_pdf;
                         Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
-                        if (f) {
-                            f[j] += tau * tmp_f;
+
+                        // Transmittance.
+                        Float tr = 1;
+                        Float z0 = hit.pos[2];
+                        const Layer* layer_next = layer_below;
+                        while (layer_next) {
+                            tr *= 
+                                layer_next->medium_above->transmittance(
+                               (layer_next->zheight - z0) / wi[j][2]);
+                            z0 = layer_next->zheight;
+                            layer_next = 
+                            layer_next->medium_below->layer_below;
                         }
+
+                        // BSDF?
+                        if (f) {
+                            f[j] += tau * tr * tmp_f;
+                        }
+
+                        // BSDF-PDF?
                         if (f_pdf) {
-                            f_pdf[j] += tmp_f_pdf;
+                            f_pdf[j] += tr * tmp_f_pdf;
                         }
                     }
                 }

@@ -136,6 +136,15 @@ public:
     virtual 
     bool isTransmissive() const = 0;
 
+    /**
+     * @brief Is null?
+     *
+     * @note
+     * Identifies `NullBsdfLayer`.
+     */
+    virtual
+    bool isNull() const;
+
     /**@}*/
 
 public:

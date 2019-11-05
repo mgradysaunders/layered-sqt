@@ -179,6 +179,16 @@ private:
      * @brief Layers.
      */
     std::vector<Layer*> layers_;
+
+    /**
+     * @brief Non-null BSDF layer at top.
+     */
+    const Layer* layers_top_ = nullptr;
+
+    /**
+     * @brief Non-null BSDF layer at bottom.
+     */
+    const Layer* layers_bottom_ = nullptr;
 };
 
 /**@}*/

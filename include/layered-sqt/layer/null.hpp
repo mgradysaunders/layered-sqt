@@ -26,31 +26,70 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
+#pragma once
+#ifndef LAYERED_SQT_LAYER_NULL_HPP
+#define LAYERED_SQT_LAYER_NULL_HPP
+
 #include <layered-sqt/layer.hpp>
 
 namespace ls {
 
-// Is null?
-bool Layer::isNull() const
-{
-    return false;
-}
+/**
+ * @addtogroup layers Layers
+ *
+ * `<layered-sqt/layer/null.hpp>`
+ */
+/**@{*/
 
-// Intersect.
-bool Layer::intersect(const Ray& ray, Hit& hit) const
+/**
+ * @brief Null BSDF layer.
+ */
+class NullBsdfLayer final : public Layer
 {
-    Float t = (zheight - ray.pos[2]) / ray.dir[2];
-    if (!(t > 0 &&
-          t < pr::numeric_limits<Float>::infinity())) {
-        return false;
-    }
+public:
 
-    hit.pos = {
-        ray.pos[0] + ray.dir[0] * t,
-        ray.pos[1] + ray.dir[1] * t,
-        zheight // Set exact.
-    };
-    return true;
-}
+    /**
+     * @name Interface
+     */
+    /**@{*/
+
+    /**
+     * @copydoc Layer::init()
+     */
+    void init(const std::string& arg);
+
+    /**
+     * @copydoc Layer::bsdf()
+     */
+    Float bsdf(
+            Pcg32& pcg,
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi,
+            Float* f_pdf = nullptr) const;
+
+    /**
+     * @copydoc Layer::bsdfSample()
+     */
+    Vec3<Float> bsdfSample(
+            Pcg32& pcg, 
+            Float& tau,
+            const Vec3<Float>& wo) const;
+
+    /**
+     * @copydoc Layer::isTransmissive()
+     */
+    bool isTransmissive() const;
+
+    /**
+     * @copydoc Layer::isNull()
+     */
+    bool isNull() const;
+
+    /**@}*/
+};
+
+/**@}*/
 
 } // namespace ls
+
+#endif // #ifndef LAYERED_SQT_LAYER_NULL_HPP

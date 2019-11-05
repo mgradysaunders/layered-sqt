@@ -26,30 +26,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
-#include <layered-sqt/layer.hpp>
+#include <sstream>
+#include <layered-sqt/layer/null.hpp>
 
 namespace ls {
 
-// Is null?
-bool Layer::isNull() const
+// Initialize from argument string.
+void NullBsdfLayer::init(const std::string& arg)
 {
-    return false;
+    std::stringstream iss(arg);
+    std::string str;
+    if (iss >> str) {
+        // Runtime error.
+        throw
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": invalid argument '").append(str).append("'"));
+    }
 }
 
-// Intersect.
-bool Layer::intersect(const Ray& ray, Hit& hit) const
+// BSDF.
+Float NullBsdfLayer::bsdf(
+            Pcg32&,
+            const Vec3<Float>&,
+            const Vec3<Float>&,
+            Float* f_pdf) const
 {
-    Float t = (zheight - ray.pos[2]) / ray.dir[2];
-    if (!(t > 0 &&
-          t < pr::numeric_limits<Float>::infinity())) {
-        return false;
+    // This function should never be called, return zeros.
+    if (f_pdf) {
+        *f_pdf = 0;
     }
+    return 0;
+}
 
-    hit.pos = {
-        ray.pos[0] + ray.dir[0] * t,
-        ray.pos[1] + ray.dir[1] * t,
-        zheight // Set exact.
-    };
+// BSDF sample.
+Vec3<Float> NullBsdfLayer::bsdfSample(
+            Pcg32&, 
+            Float&,
+            const Vec3<Float>& wo) const
+{
+    return -wo;
+}
+
+// Is transmissive?
+bool NullBsdfLayer::isTransmissive() const
+{
+    return true;
+}
+
+// Is null?
+bool NullBsdfLayer::isNull() const
+{
     return true;
 }
 
