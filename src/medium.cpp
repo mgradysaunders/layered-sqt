@@ -80,7 +80,7 @@ Float Medium::phase(
         const Vec3<Float>& wo,
         const Vec3<Float>& wi) const
 {
-    return Vec3<Float>::hg_phase_pdf(g, pr::dot(wo, wi));
+    return Vec3<Float>::hg_phase_pdf(g, pr::dot(-wo, wi));
 }
 
 // Phase function sample.
@@ -91,7 +91,7 @@ Vec3<Float> Medium::phaseSample(
 {
     (void) tau; // tau *= 1
     return pr::dot(
-                Mat3<Float>::build_onb(wo),
+                Mat3<Float>::build_onb(-wo),
                 Vec3<Float>::hg_phase_pdf_sample(g, 
                                 generateCanonical2(pcg)));
 }
