@@ -333,6 +333,7 @@ void LayeredAssembly::compute(
 
 // Compute BSDF/BSDF-PDF average.
 void LayeredAssembly::computeAverage(
+            int path_count_before,
             int path_count,
             Pcg32& pcg,
             const Vec3<Float>& wo,
@@ -340,45 +341,38 @@ void LayeredAssembly::computeAverage(
             Float* f,
             Float* f_pdf) const
 {
+    assert(path_count > 
+           path_count_before);
+
     assert(wi_count > 0);
     assert(wi && (f || f_pdf));
 
-    // BSDF?
-    if (f) {
-        // Zero initialize.
-        for (int j = 0; j < wi_count; j++) {
-            f[j] = 0;
-        }
-    }
-
-    // BSDF-PDF?
-    if (f_pdf) {
-        // Zero initialize.
-        for (int j = 0; j < wi_count; j++) {
-            f_pdf[j] = 0;
-        }
-    }
-
     // Temporaries.
-    Float* tmp = new Float[2 * wi_count];
+    Float* tmp = new Float[4 * wi_count];
 
     // Temporary BSDFs.
-    Float* tmp_f = f ? tmp : nullptr;
+    Float* tmp1_f = f ? tmp + 0 * wi_count : nullptr;
+
+    // Temporary BSDFs.
+    Float* tmp2_f = f ? tmp + 1 * wi_count : nullptr;
 
     // Temporary BSDF-PDFs.
-    Float* tmp_f_pdf = f_pdf ? tmp + wi_count : nullptr;
+    Float* tmp1_f_pdf = f_pdf ? tmp + 2 * wi_count : nullptr;
+
+    // Temporary BSDF-PDFs.
+    Float* tmp2_f_pdf = f_pdf ? tmp + 3 * wi_count : nullptr;
 
     for (int path = 0;
-             path < path_count; path++) {
+             path < path_count - path_count_before; path++) {
 
-        compute(pcg, wo, wi, wi_count, tmp_f, tmp_f_pdf);
+        compute(pcg, wo, wi, wi_count, tmp1_f, tmp1_f_pdf);
 
         // BSDF?
         if (f) {
             // Update.
             for (int j = 0; j < wi_count; j++) {
-                f[j] = 
-                f[j] + (tmp_f[j] - f[j]) / (path + 1);
+                tmp2_f[j] = 
+                tmp2_f[j] + (tmp1_f[j] - tmp2_f[j]) / (path + 1);
             }
         }
 
@@ -386,8 +380,47 @@ void LayeredAssembly::computeAverage(
         if (f_pdf) {
             // Update.
             for (int j = 0; j < wi_count; j++) {
+                tmp2_f_pdf[j] = 
+                tmp2_f_pdf[j] + (tmp1_f_pdf[j] - tmp2_f_pdf[j]) / (path + 1);
+            }
+        }
+    }
+
+    // Factor to combine averages.
+    Float fac = 
+        Float(path_count_before) / 
+        Float(path_count);
+
+    // BSDF?
+    if (f) {
+        if (path_count_before == 0) {
+            // Initialize.
+            for (int j = 0; j < wi_count; j++) {
+                f[j] = tmp2_f[j];
+            }
+        }
+        else {
+            // Update.
+            for (int j = 0; j < wi_count; j++) {
+                f[j] = 
+                f[j] * fac + tmp2_f[j] * (1 - fac);
+            }
+        }
+    }
+
+    // BSDF-PDF?
+    if (f_pdf) {
+        if (path_count_before == 0) {
+            // Initialize.
+            for (int j = 0; j < wi_count; j++) {
+                f_pdf[j] = tmp2_f_pdf[j];
+            }
+        }
+        else {
+            // Update.
+            for (int j = 0; j < wi_count; j++) {
                 f_pdf[j] = 
-                f_pdf[j] + (tmp_f_pdf[j] - f_pdf[j]) / (path + 1);
+                f_pdf[j] * fac + tmp2_f_pdf[j] * (1 - fac);
             }
         }
     }

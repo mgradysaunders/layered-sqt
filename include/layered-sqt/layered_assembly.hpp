@@ -105,8 +105,11 @@ public:
     /**
      * @brief Compute BSDF/BSDF-PDF average.
      *
+     * @param[in] path_count_before
+     * Path count in average before this call.
+     *
      * @param[in] path_count
-     * Path count.
+     * Path count in average after this call.
      *
      * @param[inout] pcg
      * Generator.
@@ -120,13 +123,14 @@ public:
      * @param[in] wi_count
      * Incident direction count.
      *
-     * @param[out] f
+     * @param[inout] f
      * _Optional_. BSDFs per incident direction.
      *
-     * @param[out] f_pdf
+     * @param[inout] f_pdf
      * _Optional_. BSDF-PDFs per incident direction.
      */
     void computeAverage(
+            int path_count_before,
             int path_count,
             Pcg32& pcg,
             const Vec3<Float>& wo,
