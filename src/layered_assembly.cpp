@@ -148,21 +148,30 @@ void LayeredAssembly::init(std::istream& is)
         }
     }
 
+    const char* error_message = nullptr;
+
     // Expect medium?
     if (expect_medium) {
-        throw 
-            std::runtime_error(
-            std::string(__PRETTY_FUNCTION__)
-                .append(": expected bottom medium"));
-
+        error_message = ": expected bottom medium";
+    }
+    else 
+    // Layers empty?
+    if (layers_.empty()) {
+        error_message = ": no layers";
+    }
+    else
+    // Boundary medium scatters or absorbs?
+    if (mediums_.front()->mu != 0 ||
+        mediums_.back()->mu != 0) {
+        error_message = ": boundary medium scatters or absorbs";
     }
 
-    // No layers?
-    if (layers_.empty()) {
-        throw 
+    // Error?
+    if (error_message) {
+        throw
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
-                .append(": no layers"));
+                .append(error_message));
     }
 
     // Link pointers.
@@ -308,8 +317,12 @@ void LayeredAssembly::compute(
             if (!layers_top_ ||
                 hit.pos[2] > layers_top_->zheight) {
                 for (int j = 0; j < wi_count; j++) {
+
+                    // Incident direction in upper hemisphere?
                     if (pr::signbit(wi[j][2]) == 0) {
-                        Float tmp_p = ray.medium->phase(wk, wi[j]);
+
+                        // Phase.
+                        Float ph = ray.medium->phase(wk, wi[j]);
 
                         // Transmittance.
                         Float tr = 1;
@@ -326,12 +339,12 @@ void LayeredAssembly::compute(
 
                         // BSDF?
                         if (f) {
-                            f[j] += tau * tr * tmp_p;
+                            f[j] += tau * tr * ph;
                         }
 
                         // BSDF-PDF?
                         if (f_pdf) {
-                            f_pdf[j] += tr * tmp_p;
+                            f_pdf[j] += tr * ph;
                         }
                     }
                 }
@@ -341,8 +354,12 @@ void LayeredAssembly::compute(
             if (!layers_bottom_ ||
                 hit.pos[2] < layers_bottom_->zheight) {
                 for (int j = 0; j < wi_count; j++) {
+
+                    // Incident direction in lower hemisphere?
                     if (pr::signbit(wi[j][2]) == 1) {
-                        Float tmp_p = ray.medium->phase(wk, wi[j]);
+
+                        // Phase.
+                        Float ph = ray.medium->phase(wk, wi[j]);
 
                         // Transmittance.
                         Float tr = 1;
@@ -359,12 +376,12 @@ void LayeredAssembly::compute(
 
                         // BSDF?
                         if (f) {
-                            f[j] += tau * tr * tmp_p;
+                            f[j] += tau * tr * ph;
                         }
 
                         // BSDF-PDF?
                         if (f_pdf) {
-                            f_pdf[j] += tr * tmp_p;
+                            f_pdf[j] += tr * ph;
                         }
                     }
                 }
@@ -379,7 +396,11 @@ void LayeredAssembly::compute(
             // At top?
             if (layer == layers_top_) {
                 for (int j = 0; j < wi_count; j++) {
+
+                    // Incident direction in upper hemisphere?
                     if (pr::signbit(wi[j][2]) == 0) {
+
+                        // BSDF/BSDF-PDF.
                         Float tmp_f_pdf;
                         Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
 
@@ -412,7 +433,11 @@ void LayeredAssembly::compute(
             // At bottom?
             if (layer == layers_bottom_) {
                 for (int j = 0; j < wi_count; j++) {
+
+                    // Incident direction in lower hemisphere?
                     if (pr::signbit(wi[j][2]) == 1) {
+
+                        // BSDF/BSDF-PDF.
                         Float tmp_f_pdf;
                         Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
 
@@ -482,14 +507,10 @@ void LayeredAssembly::computeAverage(
 
     // Temporary BSDFs.
     Float* tmp1_f = f ? tmp + 0 * wi_count : nullptr;
-
-    // Temporary BSDFs.
     Float* tmp2_f = f ? tmp + 1 * wi_count : nullptr;
 
     // Temporary BSDF-PDFs.
     Float* tmp1_f_pdf = f_pdf ? tmp + 2 * wi_count : nullptr;
-
-    // Temporary BSDF-PDFs.
     Float* tmp2_f_pdf = f_pdf ? tmp + 3 * wi_count : nullptr;
 
     for (int path = 0;
@@ -564,7 +585,8 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
                 Pcg32& pcg, 
                 const Vec3<Float>& wo) const
 {
-    for (;;) {
+    for (int attempt = 0;
+             attempt < 4096; attempt++) {
 
         // Initial layer.
         const Layer* layer;
@@ -655,6 +677,10 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
 
         // Try again.
     }
+
+    throw std::runtime_error(
+          std::string(__PRETTY_FUNCTION__)
+              .append(": failed to sample direction in 4096 attempts"));
 
     // Unreachable.
     return Vec3<Float>{};
