@@ -118,6 +118,19 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Redundancy-reduced sample set. </p>
+<p>This encapsulates an algorithm for building a <em>redundancy-reduced sample set</em> which, as the name suggests, is a set of sample directions fit to a target solid-angle distribution with minimal redundancy&mdash;that is, minimal unwarranted (and undesirable) clumping of sample directions.</p>
+<dl class="section user"><dt>Algorithm</dt><dd></dd></dl>
+<p>Let \( \Omega = \{\omega_k\} \), where \( k = 1,2,\ldots,N \), be a set of \( N \) random sample directions. We would like to select \( N&#39; &lt; N \) of these sample directions to form a subset \( \Omega&#39; \subset \Omega \) which fits a solid-angle density \( p \) with minimal &ldquo;redundancy&rdquo;. In other words, we intend to discard directions from \( \Omega \) such that the inherent density of the remaining directions better represents \( p \), a target density.</p>
+<p>We thus require a quantifiable measure of &ldquo;redundancy&rdquo; so that we can identify the most appropriate sample directions to discard. We define such a measure by inspecting a region \( \mathcal{R}_k \) around each \( \omega_k \). For each \( \omega_k \), let \( m_k \) be the number of directions we actually find in \( \mathcal{R}_k \), and let \( \bar{m}_k \) be the number of directions we would expect to find in \( \mathcal{R}_k \) if \( \Omega \) were ideally representative of \( p \), </p><p class="formulaDsp">
+\[ m_k = \sum_{k=1}^N \begin{cases} 1 &amp; \omega_k \in \mathcal{R}_k \\ 0 &amp; \omega_k \notin \mathcal{R}_k \end{cases} \]
+</p>
+ <p class="formulaDsp">
+\[ \bar{m}_k = N \operatorname{Pr}(\mathcal{R}_k) = N \int_{\mathcal{R}_k} p(\omega)\;\mathrm{d}\omega. \]
+</p>
+<p> We define the redundancy \( \rho_k \) for each \( \omega_k \) as </p><p class="formulaDsp">
+\[ \rho_k = \frac{m_k}{\bar{m}_k}. \]
+</p>
+<p> When \( \rho_k \approx 1 \), we see about as many directions around \( \omega_k \) as we expect, and so \( \omega_k \) is properly representative. When \( \rho_k \gg 1 \), we see many more directions around \( \omega_k \) than we expect, and so \( \omega_k \) is redundant. Of course, we must still consider how to form the \( \mathcal{R}_k \) and how to estimate the \( \bar{m}_k \). Before continuing however, it is important to discuss how we might apply this measure to discard directions. To discard only the most redundant direction, we can simply select and discard the direction with the greatest \( \rho_k \). However, to discard \( \ell &gt; 1 \) directions, we cannot simply select and discard the top- \( \ell \) directions with greatest \( \rho_k \), as the act of discarding a direction implicitly changes the \( \rho_k \) of the remaining directions. We must instead discard the most redundant direction \( \ell \) times, updating the \( \rho_k \) in between. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a0ecc7ae7a8b0ec1010c1dcff7e051d02"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ecc7ae7a8b0ec1010c1dcff7e051d02">&#9670;&nbsp;</a></span>Rrss() <span class="overload">[1/2]</span></h2>
