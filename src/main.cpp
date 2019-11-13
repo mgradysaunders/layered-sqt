@@ -27,6 +27,7 @@
  */
 /*+-+*/
 #include <fstream>
+#include <preform/misc_float.hpp>
 #include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
 #include <preform/bash_format.hpp>
@@ -572,18 +573,40 @@ int main(int argc, char** argv)
             std::cout.flush();
         }
 
-        // TODO Prompt user if error opening file
-        // TODO Decide BRDF vs BSDF
+
+        bool is_bsdf = false;
+        for (int wi_index = 0; 
+                 wi_index < wo_count * wi_count; wi_index++) {
+            if (raw_wi[wi_index][2] < 0) {
+                is_bsdf = true;
+                break;
+            }
+        }
+
+        if (is_bsdf == false && layered_assembly.isTransmissive()) {
+            std::cerr << "Warning: no incident directions sampled in "
+                         "lower hemisphere, though layered assembly is "
+                         "potentially transmissive\n\n";
+        }
+
         {
             std::cout << "Writing " << ofs_filename << "...\n";
             std::cout.flush();
 
             // Output filestream.
             std::ofstream ofs(ofs_filename);
-            if (!ofs.is_open()) {
-                throw std::runtime_error("");
+            while (!ofs.is_open()) {
+                std::cerr << "Error opening " << ofs_filename << "...\n";
+                if (ifs_filename == "-") {
+                    std::exit(EXIT_FAILURE);
+                }
+                else {
+                    std::cerr << "Enter alternative filename: ";
+                    std::cin >> ofs_filename;
+                    ofs.open(ofs_filename);
+                }
             }
-            ofs << "RAWBH";
+            ofs << "RAWB" << (is_bsdf ? 'S' : 'H');
             ofs << "10A Layered-SQT\n";
             ofs << "1 0.5\n";
             ofs << wo_count;
