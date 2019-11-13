@@ -143,6 +143,7 @@ void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;
+    bool iter_count_specified = false;
 
     try {
         // Read arguments.
@@ -176,6 +177,7 @@ void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
             else
             if (!str.compare(0, 11, "iter_count=", 11)) {
                 iter_count = std::stoi(str.substr(11));
+                iter_count_specified = true;
             }
             else {
                 // Trigger catch block.
@@ -189,6 +191,22 @@ void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
                 .append(": invalid argument '").append(str).append("'"));
+    }
+
+    // Ad hoc iter count.
+    if (!iter_count_specified) {
+        if (alpha <= 0.1) {
+            iter_count = 1;
+        }
+        else if (alpha <= 0.2) {
+            iter_count = 2;
+        }
+        else if (alpha <= 0.5) {
+            iter_count = 4;
+        }
+        else {
+            iter_count = 6;
+        }
     }
 
     // Check.

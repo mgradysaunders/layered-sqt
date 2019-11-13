@@ -32,6 +32,7 @@
 #include <layered-sqt/layer/lambertian.hpp>
 #include <layered-sqt/layer/microsurface_lambertian.hpp>
 #include <layered-sqt/layer/microsurface_dielectric.hpp>
+#include <layered-sqt/layer/oren_nayar_diffuse.hpp>
 
 namespace ls {
 
@@ -120,6 +121,10 @@ void LayeredAssembly::init(std::istream& is)
                 else
                 if (str == "MicrosurfaceDielectricBsdf") {
                     layers_.push_back(new MicrosurfaceDielectricBsdfLayer());
+                }
+                else
+                if (str == "OrenNayarDiffuseBrdf") {
+                    layers_.push_back(new OrenNayarDiffuseBrdfLayer());
                 }
                 else {
                     // Runtime error.
