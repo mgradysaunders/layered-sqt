@@ -1,7 +1,0 @@
-Medium eta=1.0
-Layer z=4 NullBsdf
-Medium eta=1.0 g=-0.2 mus=0.2 mua=0.0
-Layer z=1 MicrosurfaceDielectricBsdf kR=1.0 kT=1.0 alpha=0.3 iter_count=2
-Medium eta=1.5
-Layer z=0 LambertianBsdf fR=0.8 fT=0
-Medium eta=1.0
