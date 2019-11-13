@@ -76,7 +76,7 @@ public:
     /**
      * @brief Number of stochastic process iterations.
      */
-    int iter_count = 4;
+    int iter_count = 1;
 
 public:
 
