@@ -2,8 +2,8 @@
     twoside,
     twocolumn,
     letterpaper,
-    defaultfont,
-    rmheading,
+    %defaultfont,
+    %rmheading,
     10pt]{article}
 \usepackage{myfont}
 \usepackage{myformat}
@@ -13,7 +13,7 @@
 \addbibresource{References.bib}
 \raggedbottom
 \begin{document}
-\title{Layered-SQT}
+\title{Layered-SQT usage}
 \author{
 M. Grady Saunders\\
 \texttt{mgs8033@rit.edu}}
@@ -67,18 +67,19 @@ keyword arguments may appear in any order.
 
 \subsection{Basics of program usage}
 
-As \texttt{layered-sqt} is a command-line tool, it executes 
-on the command-line, whereby it scans command-line arguments for 
-(optional) flags and a (required) filename appearing somewhere as a 
-positional argument, i.e., an argument not consumed by 
-a flag. It then parses the input file, simulates the emergent BSDF,
+As \texttt{layered-sqt} is a command-line tool, it runs
+on the command line, whereby it scans command-line arguments for
+(optional) configuration flags and a (required) input filename
+appearing somewhere as a positional argument, i.e., an argument 
+not consumed by a flag. It then parses the input file, simulates 
+the emergent BSDF,
 and writes the results to a RAW-format file ready for conversion to
 SQT-format via \texttt{raw2sqt}. For instance, 
 \begin{verbatim}
 $ ./layered-sqt example.lsqt -p 50000 \
   -o example.raw
 \end{verbatim}
-simulates a layered assembly as described in the file \texttt{example.lsqt} 
+simulates a layered assembly as described in \texttt{example.lsqt} 
 with 50,000 paths, and writes the emergent BSDF in plain-text RAW-format to
 \texttt{example.raw}. To convert the BSDF to SQT-format, which is necessary
 for use in DIRSIG, run
@@ -193,6 +194,23 @@ Medium
 which describes a layer of forward-scattering ``dust'' on top 
 of a 100\% reflective Lambertian surface.
 
+\begin{figure*}
+\begin{center}
+    \includegraphics[width=0.4\linewidth]{example1.png}\hspace{0.05\linewidth}%
+    \includegraphics[width=0.4\linewidth]{example2.png}
+    \caption{A sphere with an LSQT BRDF on a Lambertian ground plane 
+        rendered from above with DIRSIG5. The LSQT BRDF models a
+        dusty dielectric substrate---from top to bottom, we have a 
+        vacuum medium, a null BSDF layer, a slightly back-scattering 
+        medium with $g=-0.2$, a decently smooth microsurface dielectric 
+        BSDF layer, a transparent medium with $\eta=1.5$, 
+        and a Lambertian BRDF layer. On the left, the Lambertian
+        layer has $f_R=0.8$. On the right, the Lambertian layer has 
+        $f_R=0.4$, such that the backscattering due to ``dust'' is
+        more obvious. All other parameters are the same in both images.}
+\end{center}
+\end{figure*}
+
 \subsection{Lambertian BSDF}
 
 The Lambertian BSDF models a uniformly scattering surface which 
@@ -244,11 +262,11 @@ As given in \cite{Heitz:16},
 the microsurface Lambertian BRDF is a multiple scattering (stochastic)
 microfacet model wherein facets are assumed to be Lambertian reflectors. 
 This is particularly useful for representing rough diffuse surfaces. The 
-implementation in \texttt{layered-sqt} is parameterized by the 
-microsurface roughness $\alpha>0$, the underlying Lambertian BRDF coefficient 
+implementation in \texttt{layered-sqt} is parameterized by
+roughness $\alpha>0$, the Lambertian BRDF coefficient 
 $f_R \in [0,1]$, and the number of local stochastic process 
 iterations $n_{\text{iter}} \ge 1$. For rougher microsurfaces 
-(say, $\alpha > 0.4$), it may be more efficient to increase 
+(say, $\alpha > 0.4$), it is typically more efficient to increase 
 $n_{\text{iter}}$ rather than the global path count.
 
 \subsubsection{LSQT format}
@@ -261,24 +279,56 @@ MicrosurfaceLambertianBsdf
 followed by (optional) keyword arguments 
 \texttt{alpha}, \texttt{fR}, and \texttt{iter\_count} for $\alpha$,
 $f_R$, and $n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
-\texttt{fR=1}, and \texttt{iter\_count} is chosen from \texttt{alpha}.
-Furthermore, multiple scattering may be disabled by the keyword argument
+\texttt{fR=1}, and \texttt{iter\_count} is chosen to be 1, 2, 4, or 6 
+depending on \texttt{alpha}. Furthermore, multiple scattering may be 
+disabled by the keyword argument
 \begin{verbatim}
 use_multiple_scattering=false
 \end{verbatim}
-in which case only the single scattering term is computed. Note that,
-if multiple-scattering interactions are ignored, then setting \texttt{fR=1}
-does not guarantee that the BRDF is perfectly energy conserving. 
+in which case only the single scattering term is computed. It is 
+important to note that, if multiple-scattering interactions are 
+ignored, then setting \texttt{fR=1} does not guarantee that the BRDF 
+is perfectly energy conserving. 
 For small roughness values (say, $\alpha < 0.05$), the energy carried by 
-multiple scattering interactions is insignificant, and so this may not be a
+multiple scattering interations is insignificant, and so this may not be a
 concern. For large roughness values however, multiple scattering is important
-to prevent energy loss.,
+to prevent energy loss.
 
 \subsection{Microsurface dielectric BSDF}
 
-%\subsection{Oren-Nayar diffuse BRDF}
+The microsurface dielectric BSDF follows the same logical construction as 
+the microsurface Lambertian BRDF, except the constituent BSDF assigned to the
+facets is the delta Fresnel mirror BSDF. The implementation in 
+\texttt{layered-sqt} is parameterized by roughness $\alpha > 0$, a scaling
+factor for the Fresnel mirror BRDF $k_R \in [0, 1]$, a scaling factor for 
+the Fresnel mirror BTDF $k_T \in [0, 1]$, and the number of local stochastic 
+process iterations $n_{\text{iter}} \ge 1$.
 
-%\subsection{Disney diffuse BRDF}
+\subsubsection{LSQT format}
+To specify the microsurface dielectric BSDF in LSQT format, use the name
+\begin{verbatim}
+MicrosurfaceDielectricBsdf
+\end{verbatim}
+followed by (optional) keyword arguments \texttt{alpha}, \texttt{kR},
+\texttt{kT}, and \texttt{iter\_count} for $\alpha$, $k_R$, $k_T$, and 
+$n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
+\texttt{kR=1}, \texttt{kT=1}, and \texttt{iter\_count} is chosen to 
+be 1, 2, 4, or 6 depending on \texttt{alpha}. As in the Lambertian case,
+multiple-scattering may be disabled by the keyword argument
+\begin{verbatim}
+use_multiple_scattering=false
+\end{verbatim}
+so that only the single-scattering term is computed. Unlike the
+Lambertian case however, the single-scattering term is directly 
+computable (without a stochastic process) due to the delta function 
+in the Fresnel mirror BSDF---such that disabling multiple-scattering makes
+\texttt{iter\_count} irrelevant. This leads to noticeably faster
+simulations, though still at the cost of significant
+energy loss for rough surfaces.
+
+\subsection{Oren-Nayar diffuse BRDF}
+
+TODO
 
 {
 \nocite{*}
