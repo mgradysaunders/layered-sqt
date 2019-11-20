@@ -1,0 +1,288 @@
+\documentclass[
+    twoside,
+    twocolumn,
+    letterpaper,
+    defaultfont,
+    rmheading,
+    10pt]{article}
+\usepackage{myfont}
+\usepackage{myformat}
+\usepackage[backend=biber,
+            style=numeric-comp]{biblatex}
+\renewcommand*\bibfont{\small}
+\addbibresource{References.bib}
+\raggedbottom
+\begin{document}
+\title{Layered-SQT}
+\author{
+M. Grady Saunders\\
+\texttt{mgs8033@rit.edu}}
+\date{}
+\maketitle
+
+\section{Introduction}
+
+This document describes \texttt{layered-sqt}, a command-line 
+tool for simulating the Bidirectional Scattering Distribution 
+Function (BSDF) which emerges from a layered assembly. In this
+context, a \emph{layered assembly} is a theoretical construction
+consisting of $N$ layers separated by $N+1$ participating media for
+$N \ge 1$. A layer is an infinite plane which is offset along (and 
+normal to) the $z$-axis, and which is associated with a constituent 
+BSDF that describes how light is scattered upon intersection. 
+A medium is thought to occupy the space between adjacent layers or, 
+in boundary cases, the spaces above and below the top and bottom 
+layers respectively. 
+To ensure that the emergent BSDF is well-defined, 
+\texttt{layered-sqt} requires that participating media be homogeneous,
+i.e., that scattering properties be independent of spatial location. 
+Furthermore, for simplicity/tractability, \texttt{layered-sqt} does 
+not account for wavelength-dependence.
+
+\subsection{Basics of LSQT format}
+
+The structure of a layered assembly is easy enough to convey 
+in plain-text with rudimentary syntax, so this is the format 
+\texttt{layered-sqt}
+accepts as input. By convention, we refer to this format as
+``LSQT format'', and we suffix associated filenames with the extension 
+\texttt{.lsqt} (though this suffix is not strictly required for the program
+to run). 
+
+An LSQT file is therefore a line-by-line plain-text description of a 
+layered assembly from top to bottom. So, the first line describes the 
+top medium, the second line describes the top layer beneath the top medium, 
+the third line describes the medium beneath the top layer, and so on until 
+the bottom medium. That being the case, odd-numbered lines describe media
+and even-numbered lines describe layers. For media as well as layers, 
+the general syntax is 
+\begin{verbatim}
+Name key1=val1 key2=val2
+\end{verbatim}
+where \texttt{Name} is described by keyword arguments 
+\texttt{key1} and \texttt{key2}---importantly, this syntax is
+whitespace-delimited, so keyword arguments of the form \texttt{key=val} 
+must not contain whitespace. It is also worth mentioning that 
+keyword arguments may appear in any order.
+
+\subsection{Basics of program usage}
+
+As \texttt{layered-sqt} is a command-line tool, it executes 
+on the command-line, whereby it scans command-line arguments for 
+(optional) flags and a (required) filename appearing somewhere as a 
+positional argument, i.e., an argument not consumed by 
+a flag. It then parses the input file, simulates the emergent BSDF,
+and writes the results to a RAW-format file ready for conversion to
+SQT-format via \texttt{raw2sqt}. For instance, 
+\begin{verbatim}
+$ ./layered-sqt example.lsqt -p 50000 \
+  -o example.raw
+\end{verbatim}
+simulates a layered assembly as described in the file \texttt{example.lsqt} 
+with 50,000 paths, and writes the emergent BSDF in plain-text RAW-format to
+\texttt{example.raw}. To convert the BSDF to SQT-format, which is necessary
+for use in DIRSIG, run
+\begin{verbatim}
+$ ./raw2sqt example.raw
+\end{verbatim}
+which will write a new file \texttt{example.sqt}.
+
+Two of the most common flags appear above, namely
+\texttt{-p} (or \texttt{--path-count}) to specify the number of paths used in
+the simulation and \texttt{-o} (or \texttt{--output}) to specify the output 
+filename. To see a list of all acceptable flags with brief descriptions and 
+default values, pass \texttt{-h} (or \texttt{--help}), or simply run 
+\texttt{layered-sqt} with no filename. As an aside,
+\texttt{layered-sqt} verifies parameters specified in command-line flags
+as well as keyword arguments specified in the input LSQT file.
+In the event that something has an unreasonable value, the program
+issues an error and fails in a controlled manner.
+
+Lastly, \texttt{layered-sqt} recognizes the single dash filename 
+``\texttt{-}'' as standard input. So, it is possible to pipe the 
+(presumably LSQT format) output of a script into \texttt{layered-sqt} 
+directly, if this happens to be convenient. As a trivial example,
+\begin{verbatim}
+$ cat example.lsqt | \
+  ./layered-sqt -p 50000 -o example.raw -
+\end{verbatim}
+is equivalent to just passing \texttt{example.lsqt}.
+
+\section{Participating media}
+
+A medium is characterized by its 
+absolute index of refraction $\eta \ge 1$, its absorption coefficient 
+$\mu_a \ge 0 $, its scattering coefficient $\mu_s \ge 0$, and a 
+Henyey-Greenstein phase function
+\begin{equation*}
+    p(\omega_o\to\omega_i) = 
+    \frac{1}{4\pi}
+    \frac{1-g^2}{\parens{1+g^2+2g\omega_o\cdot\omega_i}^{3/2}}
+\end{equation*}
+with shape parameter $g\in(-1,1)$. It may be helpful to note 
+that $g$ is the mean cosine of the scattered direction with respect to the 
+incident direction, such that $p$ becomes forward scattering as $g\to1$, 
+backward scattering as $g\to-1$, and uniformly/isotropically scattering 
+as $g\to0$. Of course, the Henyey-Greenstein phase is neither the only 
+nor the canonical phase function. However, it is intuitive and often 
+good enough to reproduce phenenomenology. So, at least for the time being, 
+it is hard-coded into \texttt{layered-sqt}.
+
+\subsection{LSQT format}
+
+To specify a medium, simply type the name \texttt{Medium} followed 
+by (optional) keywords arguments \texttt{eta}, \texttt{mua}, 
+\texttt{mus}, and \texttt{g} for $\eta$, $\mu_a$, $\mu_s$, and $g$
+respectively. Keyword 
+arguments for a medium have default values \texttt{eta=1}, \texttt{mua=0}, 
+\texttt{mus=0}, \texttt{g=0}, such that any may be omitted for brevity.
+So, for example,
+\begin{verbatim}
+Medium eta=1.2 mus=0.7 g=-0.2
+\end{verbatim}
+specifies a medium with refractive index 1.2 which is non-absorbing and 
+somewhat back-scattering. As the defaults may suggest, \texttt{layered-sqt}
+considers that vacuuum is just a medium with refractive index 1 which neither
+absorbs nor scatters. So,
+\begin{verbatim}
+Medium
+\end{verbatim}
+specifies vacuum. Note---the implementation requires that top and 
+bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
+and issues an error if this requirement is not met.
+
+\section{Layers}
+
+A layer is characterized by its $z$-height and 
+a local BSDF model. As different BSDF models require different 
+parameters, there is a different ``type'' of layer for each 
+BSDF model implemented in \texttt{layered-sqt}. 
+
+\subsection{LSQT format (common to all layers)}
+
+Every layer accepts $z$-height as a parameter, so every line describing a 
+layer must begin with the name \texttt{Layer} followed by the (required) 
+keyword argument \texttt{z}. This is followed in turn by the name of the 
+desired BSDF, followed by any keyword arguments for the BSDF. For example,
+\begin{verbatim}
+Layer z=1 NullBsdf
+\end{verbatim}
+specifies a layer at $z$-height 1 with a null BSDF. As explained in 
+the next sub-section, a null BSDF is a special case which accepts no additional
+keyword arguments.
+
+% TODO Must be in top-to-bottom order.
+
+\subsection{Null BSDF}
+
+It is occasionally desirable to separate media 
+\emph{without} scattering at a layer. This is possible in
+\texttt{layered-sqt} by assigning a null BSDF (with name 
+\texttt{NullBsdf}), which may be interpreted as a 100\% transmissive 
+directional delta function aligned to the direction a ray is already 
+traveling. This is useful, for example, to model a layer of dust on 
+top of a surface. To do so, we might specify the following
+LSQT file
+\begin{verbatim}
+Medium
+Layer z=1 NullBsdf
+Medium g=0.2 mus=1
+Layer z=0 LambertianBsdf fR=1 fT=0
+Medium
+\end{verbatim}
+which describes a layer of forward-scattering ``dust'' on top 
+of a 100\% reflective Lambertian surface.
+
+\subsection{Lambertian BSDF}
+
+The Lambertian BSDF models a uniformly scattering surface which 
+may reflect, transmit, or both. That is, the (cosine-weighted)
+scattering function is
+\begin{equation*}
+    f(\omega_o\to\omega_i) =
+    \frac{|\cos{\theta_i}|}{\pi}
+    \begin{cases}
+        f_R & \text{$(\omega_o, \omega_i)$ in same hemisphere}\\
+        f_T & \text{otherwise}
+    \end{cases}
+\end{equation*}
+where $f_R$ and $f_T$ specify the amount of incident energy 
+reflected and transmitted respectively. Both $f_R$ and $f_T$ should
+be non-negative numbers such that $f_R + f_T \le 1$ for this to be
+physically plausible. In the event that $f_R + f_T = 1$, this is
+perfectly energy-conserving.
+
+\subsubsection{LSQT format}
+
+To specify the Lambertian BSDF in LSQT format, use the name
+\texttt{LambertianBsdf} followed by keyword arguments \texttt{fR}
+and \texttt{fT} for $f_R$ and $f_T$ respectively. The implementation
+requires that the values of \texttt{fR} and \texttt{fT} be physically
+plausible, i.e., non-negative numbers whose sum does not exceed 1.
+For example,
+\begin{verbatim}
+Layer z=2.2 LambertianBsdf fR=0.8 fT=0.1
+\end{verbatim}
+specifies a Lambertian surface at $z$-height 2.2 which is 80\% reflective,
+10\% transmissive, and 10\% absorptive. 
+
+\subsection{Microsurface Lambertian BRDF}
+
+A microsurface is thought 
+to be an infinitesimally thin cloud of microfacets, where each facet 
+is thought to scatter light according to another, simpler BSDF. The 
+cloud is characterized geometrically by 1) a distribution of the
+slopes of the facets and 2) a distribution of the heights of the facets,
+which are assumed to uncorrelated, such that the facets are discontinuous. 
+The distribution of slopes is parameterized by its so-called roughness
+$\alpha$ (more generally, anisotropic roughness $\alpha_x$, $\alpha_y$).
+As $\alpha\to\infty$, the distribution of slopes widens and the emergent
+BSDF appears rougher. As $\alpha\to0$, the distribution of slopes collapses,
+recovering the initial, simpler BSDF in the limiting case $\alpha=0$.
+
+As given in \cite{Heitz:16},
+the microsurface Lambertian BRDF is a multiple scattering (stochastic)
+microfacet model wherein facets are assumed to be Lambertian reflectors. 
+This is particularly useful for representing rough diffuse surfaces. The 
+implementation in \texttt{layered-sqt} is parameterized by the 
+microsurface roughness $\alpha>0$, the underlying Lambertian BRDF coefficient 
+$f_R \in [0,1]$, and the number of local stochastic process 
+iterations $n_{\text{iter}} \ge 1$. For rougher microsurfaces 
+(say, $\alpha > 0.4$), it may be more efficient to increase 
+$n_{\text{iter}}$ rather than the global path count.
+
+\subsubsection{LSQT format}
+
+To specify the microsurface Lambertian BRDF in LSQT format, use the 
+name 
+\begin{verbatim}
+MicrosurfaceLambertianBsdf
+\end{verbatim}
+followed by (optional) keyword arguments 
+\texttt{alpha}, \texttt{fR}, and \texttt{iter\_count} for $\alpha$,
+$f_R$, and $n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
+\texttt{fR=1}, and \texttt{iter\_count} is chosen from \texttt{alpha}.
+Furthermore, multiple scattering may be disabled by the keyword argument
+\begin{verbatim}
+use_multiple_scattering=false
+\end{verbatim}
+in which case only the single scattering term is computed. Note that,
+if multiple-scattering interactions are ignored, then setting \texttt{fR=1}
+does not guarantee that the BRDF is perfectly energy conserving. 
+For small roughness values (say, $\alpha < 0.05$), the energy carried by 
+multiple scattering interactions is insignificant, and so this may not be a
+concern. For large roughness values however, multiple scattering is important
+to prevent energy loss.,
+
+\subsection{Microsurface dielectric BSDF}
+
+%\subsection{Oren-Nayar diffuse BRDF}
+
+%\subsection{Disney diffuse BRDF}
+
+{
+\nocite{*}
+\raggedright
+\printbibliography
+}
+\end{document}

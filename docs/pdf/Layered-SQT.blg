@@ -1,0 +1,19 @@
+[0] Config.pm:304> INFO - This is Biber 2.12
+[0] Config.pm:307> INFO - Logfile is 'Layered-SQT.blg'
+[17] biber:315> INFO - === Fri Nov 15, 2019, 12:06:58
+[33] Biber.pm:371> INFO - Reading 'Layered-SQT.bcf'
+[77] Biber.pm:886> INFO - Using all citekeys in bib section 0
+[86] Biber.pm:4093> INFO - Processing section 0
+[92] Biber.pm:4254> INFO - Looking for bibtex format file 'References.bib' for section 0
+[93] bibtex.pm:1512> INFO - LaTeX decoding ...
+[98] bibtex.pm:1329> INFO - Found BibTeX data source 'References.bib'
+[101] Utils.pm:193> WARN - month field 'June' in entry 'Heitz:14' is not an integer - this will probably not sort properly.
+[106] Utils.pm:193> WARN - month field 'July' in entry 'Heitz:16' is not an integer - this will probably not sort properly.
+[109] Utils.pm:193> WARN - month field 'Nov' in entry 'Goodenough:17' is not an integer - this will probably not sort properly.
+[117] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[117] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[117] Biber.pm:3921> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[117] Biber.pm:3927> INFO - No sort tailoring available for locale 'en-US'
+[119] bbl.pm:636> INFO - Writing 'Layered-SQT.bbl' with encoding 'UTF-8'
+[121] bbl.pm:739> INFO - Output to Layered-SQT.bbl
+[121] Biber.pm:110> INFO - WARNINGS: 3

@@ -1,0 +1,131 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.0 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{Goodenough:17}{article}{}
+      \name{author}{2}{}{%
+        {{hash=eeb0700f7ab5ed574916f2480e68a319}{%
+           family={Goodenough},
+           familyi={G\bibinitperiod},
+           given={Adam\bibnamedelima A.},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=7c45a8eeded8ac3f0346f06537d9a683}{%
+           family={Brown},
+           familyi={B\bibinitperiod},
+           given={Scott\bibnamedelima D.},
+           giveni={S\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{75e1c18e3e840cc5b09d284fc42b0e71}
+      \strng{fullhash}{75e1c18e3e840cc5b09d284fc42b0e71}
+      \strng{bibnamehash}{75e1c18e3e840cc5b09d284fc42b0e71}
+      \strng{authorbibnamehash}{75e1c18e3e840cc5b09d284fc42b0e71}
+      \strng{authornamehash}{75e1c18e3e840cc5b09d284fc42b0e71}
+      \strng{authorfullhash}{75e1c18e3e840cc5b09d284fc42b0e71}
+      \field{sortinit}{G}
+      \field{sortinithash}{5e8d2bf9d38de41b1528bd307546008f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}
+      \field{month}{11}
+      \field{number}{11}
+      \field{title}{DIRSIG5: Next-Generation Remote Sensing Data and Image Simulation Framework}
+      \field{volume}{10}
+      \field{year}{2017}
+      \true{nocite}
+      \field{pages}{4818\bibrangedash 4833}
+      \range{pages}{16}
+    \endentry
+    \entry{Heitz:14}{article}{}
+      \name{author}{1}{}{%
+        {{hash=08ab310be24509f90fb29372bb333177}{%
+           family={Heitz},
+           familyi={H\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{08ab310be24509f90fb29372bb333177}
+      \strng{fullhash}{08ab310be24509f90fb29372bb333177}
+      \strng{bibnamehash}{08ab310be24509f90fb29372bb333177}
+      \strng{authorbibnamehash}{08ab310be24509f90fb29372bb333177}
+      \strng{authornamehash}{08ab310be24509f90fb29372bb333177}
+      \strng{authorfullhash}{08ab310be24509f90fb29372bb333177}
+      \field{sortinit}{H}
+      \field{sortinithash}{5f15a7bc777ad49ff15aa4d2831b1681}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2331-7418}
+      \field{journaltitle}{Journal of Computer Graphics Techniques (JCGT)}
+      \field{month}{6}
+      \field{number}{2}
+      \field{title}{Understanding the masking-shadowing function in microfacet-based BRDFs}
+      \field{volume}{3}
+      \field{year}{2014}
+      \true{nocite}
+      \field{pages}{48\bibrangedash 107}
+      \range{pages}{60}
+    \endentry
+    \entry{Heitz:16}{article}{}
+      \name{author}{4}{}{%
+        {{hash=08ab310be24509f90fb29372bb333177}{%
+           family={Heitz},
+           familyi={H\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+        {{hash=9afd37ca863b08f774bf9a55ef396572}{%
+           family={Hanika},
+           familyi={H\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=fc5aaeb197c42096646580ae382ba645}{%
+           family={d'Eon},
+           familyi={d\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+        {{hash=a78e88021b356efaa2f2fa44903c88ec}{%
+           family={Dachsbacher},
+           familyi={D\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{99d276d78a4ffb16a3fa7780f4990693}
+      \strng{fullhash}{fcbef97d93f2bd5136b66ba014b059a8}
+      \strng{bibnamehash}{99d276d78a4ffb16a3fa7780f4990693}
+      \strng{authorbibnamehash}{99d276d78a4ffb16a3fa7780f4990693}
+      \strng{authornamehash}{99d276d78a4ffb16a3fa7780f4990693}
+      \strng{authorfullhash}{fcbef97d93f2bd5136b66ba014b059a8}
+      \field{sortinit}{H}
+      \field{sortinithash}{5f15a7bc777ad49ff15aa4d2831b1681}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0730-0301}
+      \field{journaltitle}{ACM Transactions on Graphics}
+      \field{month}{7}
+      \field{number}{4}
+      \field{title}{Multiple-scattering microfacet BSDFs with the Smith model}
+      \field{volume}{35}
+      \field{year}{2016}
+      \true{nocite}
+      \field{pages}{1\bibrangedash 58}
+      \range{pages}{58}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
