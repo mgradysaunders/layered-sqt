@@ -32,7 +32,11 @@ normal to) the $z$-axis, and which is associated with a constituent
 BSDF that describes how light is scattered upon intersection. 
 A medium is thought to occupy the space between adjacent layers or, 
 in boundary cases, the spaces above and below the top and bottom 
-layers respectively. 
+layers respectively. See figure \ref{fig:assembly} for clarification.
+
+The \emph{emergent BSDF} is the BSDF observed in the limit as one backs
+infinitely far away from the assembly or, identically, as the assembly
+shrinks to an infinitesmial point.
 To ensure that the emergent BSDF is well-defined, 
 \texttt{layered-sqt} requires that participating media be homogeneous,
 i.e., that scattering properties be independent of spatial location. 
@@ -53,7 +57,8 @@ An LSQT file is therefore a line-by-line plain-text description of a
 layered assembly from top to bottom. So, the first line describes the 
 top medium, the second line describes the top layer beneath the top medium, 
 the third line describes the medium beneath the top layer, and so on until 
-the bottom medium. That being the case, odd-numbered lines describe media
+the bottom medium. 
+That being the case, odd-numbered lines describe media
 and even-numbered lines describe layers. For media as well as layers, 
 the general syntax is 
 \begin{verbatim}
@@ -64,6 +69,15 @@ where \texttt{Name} is described by keyword arguments
 whitespace-delimited, so keyword arguments of the form \texttt{key=val} 
 must not contain whitespace. It is also worth mentioning that 
 keyword arguments may appear in any order.
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=\columnwidth]{Fig-layers/Fig-layers.pdf}
+    \caption{An example diagram of a layered assembly with 3 layers
+    and 4 participating media.
+    \label{fig:assembly}}
+\end{center}
+\end{figure}
 
 \subsection{Basics of program usage}
 
@@ -126,7 +140,7 @@ incident direction, such that $p$ becomes forward scattering as $g\to1$,
 backward scattering as $g\to-1$, and uniformly/isotropically scattering 
 as $g\to0$. Of course, the Henyey-Greenstein phase is neither the only 
 nor the canonical phase function. However, it is intuitive and often 
-good enough to reproduce phenenomenology. So, at least for the time being, 
+good enough to reproduce phenomenology. So, at least for the time being, 
 it is hard-coded into \texttt{layered-sqt}.
 
 \subsection{LSQT format}
@@ -172,7 +186,10 @@ specifies a layer at $z$-height 1 with a null BSDF. As explained in
 the next sub-section, a null BSDF is a special case which accepts no additional
 keyword arguments.
 
-% TODO Must be in top-to-bottom order.
+The implementation requires that layers appear in top-to-bottom order,
+such that the $z$-heights of subsequent layers in an LSQT file are
+strictly decreasing. If this condition 
+is violated, the implementation issues an error and exits.
 
 \subsection{Null BSDF}
 
