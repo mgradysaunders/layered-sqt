@@ -31,6 +31,7 @@ set_target_properties(
     CXX_STANDARD_REQUIRED True
     )
 
+# Include directories.
 target_include_directories(
     layered-sqt
     PUBLIC
