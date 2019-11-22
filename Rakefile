@@ -29,10 +29,12 @@ FILES.cpp = Rake::FileList.new(*GLOBS.all_cpp)
 FILES.o = FILES.cpp.pathmap "%{^#{DIR.src},#{DIR.build}}X.o"
 FILES.o_debug = FILES.o.pathmap "%X-debug.o"
 
+=begin
 # Binary files.
 BINFILES = OpenStruct.new
 BINFILES.bin = File.join(DIR.bin, "#{PROJECT}")
 BINFILES.bin_debug = File.join(DIR.bin, "#{PROJECT}-debug")
+=end
 
 # Prompt yes/no question.
 def yes? str, ans
@@ -48,6 +50,7 @@ def yes? str, ans
     return ans == "y"
 end
 
+=begin
 # Get source filename from object filename.
 def get_srcfname_from_objfname objfname
     FILES.cpp.detect do |srcfname|
@@ -89,6 +92,7 @@ def get_srcfnames_from_objfname objfname
     [get_srcfname_from_objfname(objfname),
         *get_incfnames_from_objfname(objfname)]
 end
+=end
 
 # Get include guard from include filename.
 def get_incguard_from_incfname incfname
@@ -109,10 +113,11 @@ end
 
 # Default task.
 desc "Default task."
-task :default => [BINFILES.bin, BINFILES.bin_debug] do
+task :default do
     # nothing
 end
 
+=begin
 # Remove build.
 desc "Remove #{DIR.build}."
 task :clean do 
@@ -124,6 +129,7 @@ desc "Remove #{DIR.bin}."
 task :clobber do 
     sh "rm -r -f #{DIR.bin}"
 end
+=end
 
 # Doxygen.
 namespace :doxygen do
@@ -256,6 +262,7 @@ HPP
     end
 end
 
+=begin
 CC = OpenStruct.new
 CC.cc = "g++"
 CC.ccflags = []
@@ -296,3 +303,4 @@ rule ".o" => [*->(objfname){get_srcfnames_from_objfname(objfname)}] do |task|
     ccflags = CC.ccflags_debug if task.name.pathmap("%X").match(/-debug$/)
     sh "#{cc} #{ccflags} -c #{task.source} -o #{task.name}"
 end
+=end
