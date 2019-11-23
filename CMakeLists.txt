@@ -18,7 +18,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 find_package(Threads REQUIRED)
 
 # Glob sources.
-file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp")
+file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 
 # Add executable.
 add_executable(layered-sqt ${SOURCES})
@@ -35,8 +35,8 @@ set_target_properties(
 target_include_directories(
     layered-sqt
     PUBLIC
-    "${CMAKE_SOURCE_DIR}/include"
-    "${CMAKE_SOURCE_DIR}/lib/preform/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib/preform/include"
     )
 
 # Link threads.
