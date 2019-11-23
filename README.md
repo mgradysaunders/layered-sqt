@@ -11,3 +11,5 @@ $ mkdir bin && cd bin
 $ cmake ..
 $ cmake --build .
 ```
+
+![CMake](https://upload.wikimedia.org/wikipedia/commons/1/13/Cmake.svg)
