@@ -12,4 +12,4 @@ $ cmake ..
 $ cmake --build .
 ```
 
-![CMake](https://upload.wikimedia.org/wikipedia/commons/1/13/Cmake.svg)
+<a href="https://cmake.org"><img alt="CMake" src="https://upload.wikimedia.org/wikipedia/commons/1/13/Cmake.svg" width="256px"></a>
