@@ -61,22 +61,7 @@ Float MicrosurfaceLambertianBrdfLayer::bsdf(
         };
 
         // Multiple-scattering version.
-        Float f = 0;
-        if (f_pdf) {
-            *f_pdf = 0;
-        }
-        for (int iter = 0; 
-                 iter < iter_count; iter++) {
-            Float tmp_f_pdf;
-            Float tmp_f = surf.fm(uk, wo, wi, 0, &tmp_f_pdf);
-            f = 
-            f + (tmp_f - f) / (iter + 1);
-            if (f_pdf) {
-                *f_pdf = 
-                *f_pdf + (tmp_f_pdf - *f_pdf) / (iter + 1);
-            }
-        }
-        return f;
+        return surf.fm(uk, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
@@ -124,7 +109,7 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fm(uk, wo, wi, 0, &f_pdf);
+            Float f = surf.fm(uk, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 

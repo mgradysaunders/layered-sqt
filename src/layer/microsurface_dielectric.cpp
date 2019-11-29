@@ -63,7 +63,7 @@ Float MicrosurfaceDielectricBsdfLayer::bsdf(
         };
 
         // Multiple-scattering version.
-        return surf.fm(uk, wo, wi, 0, iter_count, f_pdf);
+        return surf.fm(uk, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
@@ -109,7 +109,7 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fm(uk, wo, wi, 0, 1, &f_pdf);
+            Float f = surf.fm(uk, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
