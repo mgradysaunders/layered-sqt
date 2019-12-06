@@ -63,16 +63,16 @@ Float MicrosurfaceDielectricBsdfLayer::bsdf(
         };
 
         // Multiple-scattering version.
-        return surf.fm(uk, wo, wi, 0, 0, iter_count, f_pdf);
+        return surf.fs(uk, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
         if (f_pdf) {
-            *f_pdf = surf.fs_pdf(wo, wi);
+            *f_pdf = surf.fs1_pdf(wo, wi);
         }
 
         // Single-scattering version.
-        return surf.fs(wo, wi);
+        return surf.fs1(wo, wi);
     }
 }
 
@@ -100,7 +100,7 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
         // Multiple-scattering version.
         int k; 
         Vec3<Float> wi = 
-        surf.fm_pdf_sample(uk, wo, k);
+        surf.fs_pdf_sample(uk, wo, k);
 
         // If not perfectly energy-conserving, then BSDF
         // is not identical to BSDF-PDF.
@@ -109,7 +109,7 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fm(uk, wo, wi, 0, 0, 1, &f_pdf);
+            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -119,14 +119,14 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 
         // Single-scattering version.
         Vec3<Float> wi = 
-        surf.fs_pdf_sample(
+        surf.fs1_pdf_sample(
                 generateCanonical(pcg),
                 generateCanonical2(pcg), wo);
 
         // Update throughput.
         tau *= 
-            surf.fs(wo, wi) / 
-            surf.fs_pdf(wo, wi);
+            surf.fs1(wo, wi) / 
+            surf.fs1_pdf(wo, wi);
 
         return wi;
     }

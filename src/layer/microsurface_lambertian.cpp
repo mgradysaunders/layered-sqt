@@ -61,7 +61,7 @@ Float MicrosurfaceLambertianBrdfLayer::bsdf(
         };
 
         // Multiple-scattering version.
-        return surf.fm(uk, wo, wi, 0, 0, iter_count, f_pdf);
+        return surf.fs(uk, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
@@ -70,10 +70,10 @@ Float MicrosurfaceLambertianBrdfLayer::bsdf(
         for (int iter = 0;
                  iter < iter_count; iter++) {
             f = 
-            f + (surf.fs(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
+            f + (surf.fs1(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
         }
         if (f_pdf) {
-            *f_pdf = surf.fs_pdf(wo, wi);
+            *f_pdf = surf.fs1_pdf(wo, wi);
         }
         return f;
     }
@@ -101,7 +101,7 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
 
         // Multiple-scattering version.
         int k; 
-        Vec3<Float> wi = surf.fm_pdf_sample(uk, wo, k);
+        Vec3<Float> wi = surf.fs_pdf_sample(uk, wo, k);
 
         // If not perfectly energy-conserving, then BSDF
         // is not identical to BSDF-PDF.
@@ -109,7 +109,7 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fm(uk, wo, wi, 0, 0, 1, &f_pdf);
+            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -119,7 +119,7 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
 
         // Single-scattering version.
         Vec3<Float> wi = 
-        surf.fs_pdf_sample(
+        surf.fs1_pdf_sample(
                 generateCanonical2(pcg), wo);
 
         // Update throughput.
@@ -127,9 +127,9 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
         for (int iter = 0;
                  iter < iter_count; iter++) {
             f = 
-            f + (surf.fs(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
+            f + (surf.fs1(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
         }
-        tau *= f / surf.fs_pdf(wo, wi);
+        tau *= f / surf.fs1_pdf(wo, wi);
 
         return wi;
     }
