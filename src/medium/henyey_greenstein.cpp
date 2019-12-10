@@ -26,86 +26,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
-#include <sstream>
-#include <layered-sqt/medium.hpp>
+#include <preform/medium.hpp>
+#include <layered-sqt/medium/henyey_greenstein.hpp>
 
 namespace ls {
 
-// Transmittance.
-Float Medium::transmittance(Float d) const
-{
-    assert(d >= 0);
-    if (d == 0 || mu == 0) {
-        return 1;
-    }
-    else {
-        return pr::exp(-mu * 
-               pr::min(d, pr::numeric_limits<Float>::max()));
-    }
-}
-
-// Transmittance sample.
-Float Medium::transmittanceSample(
-        Pcg32& pcg, 
-        Float& tau,
-        Float dmax) const 
-{
-    if (mu != 0) {
-
-        // Sample distance.
-        Float u = generateCanonical(pcg);
-        Float d = (u < Float(0.5) ? -pr::log1p(-u) : -pr::log(1 - u)) / mu;
-
-        // Scattering event occurred?
-        if (d < dmax) {
-            // Update throughput.
-            tau *= mus / mu;
-
-            // Return distance of scattering event.
-            return d;
-        }
-        else {
-            // Indicate no scattering event.
-            return dmax;
-        }
-    }
-    else {
-        // Indicate no scattering event.
-        return dmax;
-    }
-}
+// Henyey-Greenstein phase.
+typedef pr::hg_phase<Float> HenyeyGreensteinPhase;
 
 // Phase function.
-Float Medium::phase(
-        const Vec3<Float>& wo,
-        const Vec3<Float>& wi) const
+Float HenyeyGreensteinPhaseMedium::phase(
+            const Vec3<Float>& wo,
+            const Vec3<Float>& wi) const
 {
-    (void) wo;
-    (void) wi;
-    throw 
-        std::runtime_error(
-        std::string(__PRETTY_FUNCTION__).append(": invalid call"));
+    return HenyeyGreensteinPhase(g).ps(wo, wi);
 }
 
 // Phase function sample.
-Vec3<Float> Medium::phaseSample(
-        Pcg32& pcg,
-        Float& tau,
-        const Vec3<Float>& wo) const
+Vec3<Float> HenyeyGreensteinPhaseMedium::phaseSample(
+            Pcg32& pcg,
+            Float& tau,
+            const Vec3<Float>& wo) const
 {
-    (void) pcg;
-    (void) tau;
-    (void) wo;
-    throw 
-        std::runtime_error(
-        std::string(__PRETTY_FUNCTION__).append(": invalid call"));
+    (void) tau; // tau *= 1
+    return HenyeyGreensteinPhase(g).ps_sample(generateCanonical2(pcg), wo);
 }
 
 // Initialize from argument string.
-void Medium::init(const std::string& arg)
+void HenyeyGreensteinPhaseMedium::init(const std::string& arg)
 {
-    (void) arg;
-#if 0
     std::stringstream iss(arg);
     std::string str;
 
@@ -115,18 +64,6 @@ void Medium::init(const std::string& arg)
         while (iss >> str) {
             if (!str.compare(0, 2, "g=", 2)) {
                 g = std::stod(str.substr(2));
-            }
-            else 
-            if (!str.compare(0, 4, "mua=", 4)) {
-                mua = std::stod(str.substr(4));
-            }
-            else 
-            if (!str.compare(0, 4, "mus=", 4)) {
-                mus = std::stod(str.substr(4));
-            }
-            else 
-            if (!str.compare(0, 4, "eta=", 4)) {
-                eta = std::stod(str.substr(4));
             }
             else {
                 // Trigger catch block.
@@ -147,28 +84,12 @@ void Medium::init(const std::string& arg)
     if (!(g > -1 && g < 1)) {
         error_message = ": g is outside (-1, 1)";
     }
-    else
-    if (!(mua >= 0)) {
-        error_message = ": mua is negative";
-    }
-    else 
-    if (!(mus >= 0)) {
-        error_message = ": mus is negative";
-    }
-    else
-    if (!(eta >= 1)) {
-        error_message = ": eta is less than 1";
-    }
     // Error?
     if (error_message) {
         throw 
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__).append(error_message));
     }
-    
-    // Extinction.
-    mu = mua + mus;
-#endif
 }
 
 } // namespace ls

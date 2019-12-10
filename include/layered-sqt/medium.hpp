@@ -35,14 +35,14 @@
 namespace ls {
 
 /**
- * @defgroup medium Medium
+ * @defgroup medium_interface Medium interface
  *
  * `<layered-sqt/medium.hpp>`
  */
 /**@{*/
 
 /**
- * @brief Medium.
+ * @brief Medium interface.
  */
 class Medium
 {
@@ -54,6 +54,13 @@ public:
     Medium() = default;
 
     /**
+     * @brief Destructor.
+     */
+    virtual ~Medium()
+    {
+    }
+
+    /**
      * @brief Layer above.
      */
     const Layer* layer_above = nullptr;
@@ -63,10 +70,17 @@ public:
      */
     const Layer* layer_below = nullptr;
 
+#if 0
     /**
      * @brief Henyey-Greenstein parameter @f$ g \in (-1, 1) @f$.
      */
     Float g = 0;
+#endif
+
+    /**
+     * @brief Refractive index @f$ \eta @f$.
+     */
+    Float eta = 1;
 
     /**
      * @brief Volume absorption coefficient @f$ \mu_a @f$.
@@ -83,11 +97,6 @@ public:
      */
     Float mu = 0;
 
-    /**
-     * @brief Refractive index @f$ \eta @f$.
-     */
-    Float eta = 1;
-
 public:
 
     /**
@@ -96,6 +105,7 @@ public:
      * @param[in] arg
      * Argument.
      */
+    virtual 
     void init(const std::string& arg);
 
     /**
@@ -135,6 +145,7 @@ public:
      * @param[in] wi
      * Incident direction.
      */
+    virtual 
     Float phase(
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const;
@@ -154,6 +165,7 @@ public:
      * @returns
      * Incident direction.
      */
+    virtual 
     Vec3<Float> phaseSample(
             Pcg32& pcg,
             Float& tau,

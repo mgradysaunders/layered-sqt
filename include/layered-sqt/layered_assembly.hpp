@@ -47,37 +47,6 @@ namespace ls {
  * This characterizes a _layered assembly_, consisting of `Layer`s 
  * separated by `Medium`s, and allows for Monte Carlo evaluation
  * of the emergent BSDF/BSDF-PDF.
- *
- * @par Layered assembly structure
- *
- * A layered assembly must contain at least 1 layer and at least 2
- * participating media. In general, a layered assembly may contain @f$ N @f$
- * layers and @f$ N + 1 @f$ participating media. In essence, a layer
- * characterizes a surface, while a medium characterizes the space between
- * surfaces (or, in the boundary cases, the spaces above and below the top 
- * and bottom surfaces respectively).
- *
- * Each `Layer` stores its Z-height in the member variable `zheight` and 
- * implements a BSDF model via virtual functions. The implementation requires 
- * that Z-heights of layers in an assembly be strictly decreasing, so 
- * that layers appear in top-to-bottom order. `NullBsdfLayer` is a special 
- * sub-class representing a layer without a BSDF, useful to separate media
- * _without_ surface scattering at a layer in between. The implementation 
- * allows `NullBsdfLayer`s to appear anywhere in the assembly. Moreover, an
- * assembly may consist entirely of `NullBsdfLayers` to represent scattering
- * in a layered cloud of sorts&mdash;beware the implicit delta function,
- * this is inadvisable for low scattering coefficients!
- *
- * Each `Medium` stores its refractive index @f$ \eta @f$ in the member
- * variable `eta`, its Henyey-Greenstein parameter @f$ g @f$ in the member
- * variable `g`, and its absorption, scattering, and extinction coefficients 
- * @f$ \mu_a @f$, @f$ \mu_s @f$, and @f$ \mu = \mu_a + \mu_s @f$ in the 
- * member variables `mua`, `mus`, and `mu` respectively. The implementation 
- * considers that &ldquo;vacuum&rdquo; is a medium with @f$ \eta = 1 @f$ 
- * and @f$ \mu_a = \mu_s = \mu = 0 @f$, and _not a null pointer_. The 
- * implementation requires that the boundary media be non-absorbing and 
- * non-scattering such that @f$ \mu_a = \mu_s = \mu = 0 @f$, though 
- * @f$ \eta @f$ need not be unity. 
  */
 class LayeredAssembly
 {
@@ -105,38 +74,6 @@ public:
      * medium, the second line describes the layer beneath the
      * medium, the third line describes the medium beneath the
      * previous layer, and so on until the bottom medium.
-     *
-     * A line describing a medium must begin with the keyword `Medium`
-     * and may be followed by optional keyword arguments with syntax
-     * `key=val` (no spaces!) where `key` is either `eta`, `g`, `mus`, or 
-     * `mua`. By default, `eta=1`, `g=0`, `mus=0`, and `mua=0`. Hence, to
-     * specify a vacuum medium,
-     * ~~~~~~
-     * Medium
-     * ~~~~~~
-     * is sufficient. As a slightly more interesting example, 
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * Medium eta=1.5 mua=0 mus=0.8 g=-0.2 
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * specifies a medium with the refractive index of glass, no volume
-     * absorption, and a bit of volume back-scattering. It may be worth
-     * noting that `mua=0` in the above line could be left out since 
-     * `mua` is `0` by default.
-     *
-     * A line describing a layer must begin with the keyword `Layer` and
-     * be followed by a required keyword argument `z=val` to specify 
-     * Z-height. This must be followed by the keyword for a particular 
-     * sub-class (either `NullBsdf`, `LambertianBsdf`,
-     * `MicrosurfaceLambertianBrdf`, or `MicrosurfaceDielectricBsdf`), 
-     * which in turn may be followed by optional keyword arguments with 
-     * syntax `key=val` (no spaces!) associated with the sub-class. 
-     * For example,
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * Layer z=3.2 LambertianBsdf fR=0.7 fT=0.2
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * specifies a layer at Z-height 3.2 with a Lambertian BSDF that is
-     * 70% reflective, 20% transmissive, and (per energy conservation)
-     * 10% absorptive.
      *
      * @param[inout] is
      * Input stream.

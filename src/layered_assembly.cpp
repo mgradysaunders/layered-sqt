@@ -33,6 +33,8 @@
 #include <layered-sqt/layer/microsurface_lambertian.hpp>
 #include <layered-sqt/layer/microsurface_dielectric.hpp>
 #include <layered-sqt/layer/oren_nayar_diffuse.hpp>
+#include <layered-sqt/medium/henyey_greenstein.hpp>
+#include <layered-sqt/medium/rayleigh.hpp>
 
 namespace ls {
 
@@ -58,11 +60,90 @@ void LayeredAssembly::init(std::istream& is)
                         std::string(": expected 'Medium'"));
                 }
 
-                // Delegate.
-                std::string arg;
-                std::getline(iss, arg);
-                mediums_.push_back(new Medium());
-                mediums_.back()->init(arg);
+                Float mua = 0;
+                Float mus = 0;
+                Float eta = 1;
+                std::string medium_phase;
+                try {
+                    // Read parameters.
+                    // Note std::stod() throws if string is invalid.
+                    while (iss >> str) {
+                        if (!str.compare(0, 4, "eta=", 4)) {
+                            eta = std::stod(str.substr(4));
+                        }
+                        else
+                        if (!str.compare(0, 4, "mua=", 4)) {
+                            mua = std::stod(str.substr(4));
+                        }
+                        else 
+                        if (!str.compare(0, 4, "mus=", 4)) {
+                            mus = std::stod(str.substr(4));
+                        }
+                        else {
+                            if (str == "HenyeyGreensteinPhase" ||
+                                str == "RayleighPhase") {
+                                medium_phase = str;
+                                break;
+                            }
+                            else {
+                                // Trigger catch block.
+                                throw std::exception();
+                            }
+                        }
+                    }
+                }
+                catch (const std::exception&) {
+                    std::runtime_error(
+                    std::string(__PRETTY_FUNCTION__)
+                        .append(": invalid argument '").append(str)
+                        .append("'"));
+                }
+
+                const char* error_message = nullptr;
+                if (!(eta >= 1)) {
+                    error_message = ": eta is less than 1";
+                }
+                else
+                if (!(mua >= 0)) {
+                    error_message = ": mua is negative";
+                }
+                else 
+                if (!(mus >= 0)) {
+                    error_message = ": mus is negative";
+                }
+                // Error?
+                if (error_message) {
+                    throw 
+                        std::runtime_error(
+                        std::string(__PRETTY_FUNCTION__).append(error_message));
+                }
+
+                // Medium phase identifier.
+                if (medium_phase.empty()) {
+                    mediums_.push_back(new Medium()); // Default.
+                }
+                else 
+                if (medium_phase == "HenyeyGreensteinPhase") {
+                    mediums_.push_back(new HenyeyGreensteinPhaseMedium());
+                }
+                else
+                if (medium_phase == "RayleighPhase") {
+                    mediums_.push_back(new RayleighPhaseMedium());
+                }
+
+                // Medium parameters.
+                mediums_.back()->eta = eta;
+                mediums_.back()->mua = mua;
+                mediums_.back()->mus = mus;
+                mediums_.back()->mu = mua + mus;
+
+                // Medium phase parameters
+                if (!medium_phase.empty()) {
+                    // Delegate.
+                    std::string arg;
+                    std::getline(iss, arg);
+                    mediums_.back()->init(arg);
+                }
             }
             else {
                 // No 'Layer'?
