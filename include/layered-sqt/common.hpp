@@ -34,6 +34,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <mutex>
 #include <preform/random.hpp>
 #include <preform/multi.hpp>
 #include <preform/multi_math.hpp>
@@ -144,6 +145,11 @@ public:
      */
     Vec3<Float> pos;
 };
+
+/**
+ * @brief Print mutex.
+ */
+inline std::mutex g_print_mutex;
 
 /**@}*/
 
