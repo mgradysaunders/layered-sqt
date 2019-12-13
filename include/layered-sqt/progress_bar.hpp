@@ -34,25 +34,52 @@
 
 namespace ls {
 
+/**
+ * @defgroup progress_bar Progress bar
+ *
+ * `<layered-sqt/progress_bar.hpp>`
+ */
+/**@{*/
+
+/**
+ * @brief Progress bar.
+ */
 class ProgressBar
 {
 public:
 
-    ProgressBar(int path_count_total) :
-                    path_count_total_(path_count_total)
+    /**
+     * @brief Constructor.
+     */
+    ProgressBar(std::int64_t path_count_total) :
+                             path_count_total_(path_count_total)
     {
     }
 
+    /**
+     * @brief Add paths.
+     */
     void add(int path_count);
 
+    /**
+     * @brief Finish, print newlines.
+     */
     void finish();
 
 private:
 
+    /**
+     * @brief Path count.
+     */
     std::int64_t path_count_ = 0;
 
+    /**
+     * @brief Path count total.
+     */
     std::int64_t path_count_total_ = 0;
 };
+
+/**@}*/
 
 } // namespace ls
 
