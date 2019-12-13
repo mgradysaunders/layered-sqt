@@ -74,6 +74,8 @@ public:
     {
     public:
 
+        // TODO Reorganize API?
+
         /**
          * @brief Initialize.
          */
@@ -111,7 +113,7 @@ public:
                 int rrss_path_count_per_iter = 512);
 
         /**
-         * @brief Update BSDFs.
+         * @brief Update BSDF averages.
          *
          * @param[in] layered_assembly
          * Layered assembly.
@@ -126,7 +128,7 @@ public:
          * Path count per iteration. Set this to a smaller value to 
          * update the progress bar more frequently.
          */
-        void updateBsdfs(
+        void updateBsdfAverages(
                 LayeredAssembly& layered_assembly, 
                 ProgressBar& progress_bar,
                 int path_count,
@@ -147,6 +149,8 @@ public:
         }
 
     public:
+
+        // TODO Non-private variable naming?
 
         /**
          * @brief Path PCG.
@@ -182,9 +186,13 @@ public:
          * @brief BSDF averages @f$ f_{[k]} @f$ for each incident direction.
          */
         Float* f_ = nullptr;
+
+        // TODO BSDF average error/convergence estimates?
     };
 
 public:
+
+    // TODO Reorganize API?
 
     /**
      * @brief Initialize.
@@ -216,6 +224,12 @@ public:
 
 //  void writeLss(std::ostream& ostr) const;
 
+    /**
+     * @brief Write SQT RAW.
+     *
+     * @param[inout] ostr
+     * Output stream.
+     */
     void writeSqtRaw(std::ostream& ostr) const;
 
 private:

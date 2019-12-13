@@ -170,7 +170,7 @@ void FileData::Slice::sampleIncidentDirs(
             next_path_count = rrss_path_count;
         }
 
-        // Update BSDFs/BSDF-PDFs.
+        // Update BSDF/BSDF-PDF averages.
         layered_assembly.computeAverage(
                 curr_path_count,
                 next_path_count,
@@ -270,8 +270,8 @@ void FileData::Slice::sampleIncidentDirs(
     delete[] rrss_wi;
 }
 
-// Update BSDFs.
-void FileData::Slice::updateBsdfs(
+// Update BSDF averages.
+void FileData::Slice::updateBsdfAverages(
                 LayeredAssembly& layered_assembly,
                 ProgressBar& progress_bar,
                 int path_count,
@@ -290,7 +290,7 @@ void FileData::Slice::updateBsdfs(
             next_path_count = target_path_count;
         }
 
-        // Update BSDFs.
+        // Update BSDF averages.
         layered_assembly.computeAverage(
                 this_path_count, 
                 next_path_count,
