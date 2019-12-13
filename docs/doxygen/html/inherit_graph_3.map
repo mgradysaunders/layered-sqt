@@ -1,5 +1,8 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classls_1_1Medium.html" title="Medium interface. " alt="" coords="5,42,92,69"/>
-<area shape="rect" id="node2" href="$classls_1_1HenyeyGreensteinPhaseMedium.html" title="Henyey&#45;Greenstein phase medium. " alt="" coords="140,5,325,47"/>
-<area shape="rect" id="node3" href="$classls_1_1RayleighPhaseMedium.html" title="Rayleigh phase medium. " alt="" coords="145,71,320,98"/>
+<area shape="rect" id="node1" href="$classls_1_1Layer.html" title="Layer interface. " alt="" coords="5,129,77,156"/>
+<area shape="rect" id="node2" href="$classls_1_1LambertianBsdfLayer.html" title="Lambertian BSDF layer. " alt="" coords="133,5,296,32"/>
+<area shape="rect" id="node3" href="$classls_1_1MicrosurfaceDielectricBsdfLayer.html" title="Microsurface dielectric BSDF layer. " alt="" coords="129,57,300,98"/>
+<area shape="rect" id="node4" href="$classls_1_1MicrosurfaceLambertianBrdfLayer.html" title="Microsurface Lambertian BRDF layer. " alt="" coords="125,122,304,163"/>
+<area shape="rect" id="node5" href="$classls_1_1NullBsdfLayer.html" title="Null BSDF layer. " alt="" coords="153,188,276,215"/>
+<area shape="rect" id="node6" href="$classls_1_1OrenNayarDiffuseBrdfLayer.html" title="Oren&#45;Nayar diffuse BRDF layer. " alt="" coords="130,239,299,281"/>
 </map>
