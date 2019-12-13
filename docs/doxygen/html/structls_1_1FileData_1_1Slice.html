@@ -90,9 +90,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a13eaa165a523ac11f9ae6abe21ea58de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a13eaa165a523ac11f9ae6abe21ea58de">sampleIncidentDirs</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int rrss_oversampling, int rrss_path_count, int rrss_path_count_per_iter=512)</td></tr>
 <tr class="memdesc:a13eaa165a523ac11f9ae6abe21ea58de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sample incident directions.  <a href="#a13eaa165a523ac11f9ae6abe21ea58de">More...</a><br /></td></tr>
 <tr class="separator:a13eaa165a523ac11f9ae6abe21ea58de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a786c365e21c1e49d40830b0b763aa5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a4a786c365e21c1e49d40830b0b763aa5">updateBsdfs</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int path_count, int path_count_per_iter=4096)</td></tr>
-<tr class="memdesc:a4a786c365e21c1e49d40830b0b763aa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update BSDFs.  <a href="#a4a786c365e21c1e49d40830b0b763aa5">More...</a><br /></td></tr>
-<tr class="separator:a4a786c365e21c1e49d40830b0b763aa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9459b40dbd34e6ca1930c6a52bd9ff77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a9459b40dbd34e6ca1930c6a52bd9ff77">updateBsdfAverages</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int path_count, int path_count_per_iter=4096)</td></tr>
+<tr class="memdesc:a9459b40dbd34e6ca1930c6a52bd9ff77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update BSDF averages.  <a href="#a9459b40dbd34e6ca1930c6a52bd9ff77">More...</a><br /></td></tr>
+<tr class="separator:a9459b40dbd34e6ca1930c6a52bd9ff77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ffce512564171b8dec7235ff188fbf8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a1ffce512564171b8dec7235ff188fbf8">anyTransmitted</a> () const</td></tr>
 <tr class="memdesc:a1ffce512564171b8dec7235ff188fbf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Any transmitted directions?  <a href="#a1ffce512564171b8dec7235ff188fbf8">More...</a><br /></td></tr>
 <tr class="separator:a1ffce512564171b8dec7235ff188fbf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -231,14 +231,14 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a4a786c365e21c1e49d40830b0b763aa5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a786c365e21c1e49d40830b0b763aa5">&#9670;&nbsp;</a></span>updateBsdfs()</h2>
+<a id="a9459b40dbd34e6ca1930c6a52bd9ff77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9459b40dbd34e6ca1930c6a52bd9ff77">&#9670;&nbsp;</a></span>updateBsdfAverages()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void ls::FileData::Slice::updateBsdfs </td>
+          <td class="memname">void ls::FileData::Slice::updateBsdfAverages </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;&#160;</td>
           <td class="paramname"><em>layered_assembly</em>, </td>
@@ -269,7 +269,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Update BSDFs. </p>
+<p>Update BSDF averages. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">layered_assembly</td><td>Layered assembly.</td></tr>
