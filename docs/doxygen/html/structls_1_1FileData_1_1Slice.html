@@ -81,84 +81,88 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a68daa3461b19ec6364c2ef2333740c33"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a68daa3461b19ec6364c2ef2333740c33">init</a> (<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> thetao, int wi_count)</td></tr>
-<tr class="memdesc:a68daa3461b19ec6364c2ef2333740c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize.  <a href="#a68daa3461b19ec6364c2ef2333740c33">More...</a><br /></td></tr>
-<tr class="separator:a68daa3461b19ec6364c2ef2333740c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d503c60b306b723505a06b71a7abc9f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a5d503c60b306b723505a06b71a7abc9f">Slice</a> ()=default</td></tr>
+<tr class="memdesc:a5d503c60b306b723505a06b71a7abc9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor.  <a href="#a5d503c60b306b723505a06b71a7abc9f">More...</a><br /></td></tr>
+<tr class="separator:a5d503c60b306b723505a06b71a7abc9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d98b6e6727ff4d9c5c69af2c02d7a81"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a0d98b6e6727ff4d9c5c69af2c02d7a81">clear</a> ()</td></tr>
 <tr class="memdesc:a0d98b6e6727ff4d9c5c69af2c02d7a81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear.  <a href="#a0d98b6e6727ff4d9c5c69af2c02d7a81">More...</a><br /></td></tr>
 <tr class="separator:a0d98b6e6727ff4d9c5c69af2c02d7a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13eaa165a523ac11f9ae6abe21ea58de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a13eaa165a523ac11f9ae6abe21ea58de">sampleIncidentDirs</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int rrss_oversampling, int rrss_path_count, int rrss_path_count_per_iter=512)</td></tr>
-<tr class="memdesc:a13eaa165a523ac11f9ae6abe21ea58de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sample incident directions.  <a href="#a13eaa165a523ac11f9ae6abe21ea58de">More...</a><br /></td></tr>
-<tr class="separator:a13eaa165a523ac11f9ae6abe21ea58de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9459b40dbd34e6ca1930c6a52bd9ff77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a9459b40dbd34e6ca1930c6a52bd9ff77">updateBsdfAverages</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int path_count, int path_count_per_iter=4096)</td></tr>
-<tr class="memdesc:a9459b40dbd34e6ca1930c6a52bd9ff77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update BSDF averages.  <a href="#a9459b40dbd34e6ca1930c6a52bd9ff77">More...</a><br /></td></tr>
-<tr class="separator:a9459b40dbd34e6ca1930c6a52bd9ff77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a401d51a0a905b625aa06cbfe4f0af44a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a401d51a0a905b625aa06cbfe4f0af44a">readLss</a> (std::istream &amp;istr)</td></tr>
+<tr class="memdesc:a401d51a0a905b625aa06cbfe4f0af44a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read LSQT-slice binary format.  <a href="#a401d51a0a905b625aa06cbfe4f0af44a">More...</a><br /></td></tr>
+<tr class="separator:a401d51a0a905b625aa06cbfe4f0af44a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3b326fe44e265d5f024b6f5074fe3cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#ae3b326fe44e265d5f024b6f5074fe3cb">writeLss</a> (std::ostream &amp;ostr) const</td></tr>
+<tr class="memdesc:ae3b326fe44e265d5f024b6f5074fe3cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write LSQT-slice binary format.  <a href="#ae3b326fe44e265d5f024b6f5074fe3cb">More...</a><br /></td></tr>
+<tr class="separator:ae3b326fe44e265d5f024b6f5074fe3cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d9005267f04f5b9c417c37cb86ef708"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a7d9005267f04f5b9c417c37cb86ef708">computeIncidentDirs</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int rrss_oversampling, int rrss_path_count, int rrss_path_count_per_iter=512)</td></tr>
+<tr class="memdesc:a7d9005267f04f5b9c417c37cb86ef708"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute incident directions.  <a href="#a7d9005267f04f5b9c417c37cb86ef708">More...</a><br /></td></tr>
+<tr class="separator:a7d9005267f04f5b9c417c37cb86ef708"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0fda3045fe6506642fbbb69b2073ede"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#af0fda3045fe6506642fbbb69b2073ede">computeBsdfAverages</a> (<a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;layered_assembly, <a class="el" href="classls_1_1ProgressBar.html">ProgressBar</a> &amp;progress_bar, int path_count_to_add, int path_count_to_add_per_iter=4096)</td></tr>
+<tr class="memdesc:af0fda3045fe6506642fbbb69b2073ede"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute BSDF averages.  <a href="#af0fda3045fe6506642fbbb69b2073ede">More...</a><br /></td></tr>
+<tr class="separator:af0fda3045fe6506642fbbb69b2073ede"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ffce512564171b8dec7235ff188fbf8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a1ffce512564171b8dec7235ff188fbf8">anyTransmitted</a> () const</td></tr>
 <tr class="memdesc:a1ffce512564171b8dec7235ff188fbf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Any transmitted directions?  <a href="#a1ffce512564171b8dec7235ff188fbf8">More...</a><br /></td></tr>
 <tr class="separator:a1ffce512564171b8dec7235ff188fbf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a56948dd3d14421eb016aab099d6ff471"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gaf216083f271be0cc3df39fbc92e5f242">Pcg32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a56948dd3d14421eb016aab099d6ff471">path_pcg_</a> = {}</td></tr>
-<tr class="memdesc:a56948dd3d14421eb016aab099d6ff471"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path PCG.  <a href="#a56948dd3d14421eb016aab099d6ff471">More...</a><br /></td></tr>
-<tr class="separator:a56948dd3d14421eb016aab099d6ff471"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7445f631bd6715827dd263a38229b9c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#ae7445f631bd6715827dd263a38229b9c">path_count_</a> = 0</td></tr>
-<tr class="memdesc:ae7445f631bd6715827dd263a38229b9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path count in each BSDF average.  <a href="#ae7445f631bd6715827dd263a38229b9c">More...</a><br /></td></tr>
-<tr class="separator:ae7445f631bd6715827dd263a38229b9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a96cdeeb844659d2b644beae2f3fc608a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a96cdeeb844659d2b644beae2f3fc608a">thetao_</a> = 0</td></tr>
-<tr class="memdesc:a96cdeeb844659d2b644beae2f3fc608a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outgoing angle \( \theta_o \).  <a href="#a96cdeeb844659d2b644beae2f3fc608a">More...</a><br /></td></tr>
-<tr class="separator:a96cdeeb844659d2b644beae2f3fc608a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad7a56bf68b7e99ceeabfbd266dc05e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#aad7a56bf68b7e99ceeabfbd266dc05e4">wo_</a> = {}</td></tr>
-<tr class="memdesc:aad7a56bf68b7e99ceeabfbd266dc05e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outgoing direction \( \omega_o \).  <a href="#aad7a56bf68b7e99ceeabfbd266dc05e4">More...</a><br /></td></tr>
-<tr class="separator:aad7a56bf68b7e99ceeabfbd266dc05e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55bbd0d1732a15699f2b6ea5c164891f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a55bbd0d1732a15699f2b6ea5c164891f">wi_count_</a> = 0</td></tr>
-<tr class="memdesc:a55bbd0d1732a15699f2b6ea5c164891f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Incident direction count.  <a href="#a55bbd0d1732a15699f2b6ea5c164891f">More...</a><br /></td></tr>
-<tr class="separator:a55bbd0d1732a15699f2b6ea5c164891f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64520594fbb84e577e4584cf885093f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a64520594fbb84e577e4584cf885093f5">wi_</a> = nullptr</td></tr>
-<tr class="memdesc:a64520594fbb84e577e4584cf885093f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Incident directions \( \omega_{i[k]} \).  <a href="#a64520594fbb84e577e4584cf885093f5">More...</a><br /></td></tr>
-<tr class="separator:a64520594fbb84e577e4584cf885093f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7ae9388ca670a2e689d0a8fb2fe9995"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#ab7ae9388ca670a2e689d0a8fb2fe9995">f_</a> = nullptr</td></tr>
-<tr class="memdesc:ab7ae9388ca670a2e689d0a8fb2fe9995"><td class="mdescLeft">&#160;</td><td class="mdescRight">BSDF averages \( f_{[k]} \) for each incident direction.  <a href="#ab7ae9388ca670a2e689d0a8fb2fe9995">More...</a><br /></td></tr>
-<tr class="separator:ab7ae9388ca670a2e689d0a8fb2fe9995"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9940b401579e2051bebe5dc15154c6e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a9940b401579e2051bebe5dc15154c6e4">outgoing_angle</a> = 0</td></tr>
+<tr class="memdesc:a9940b401579e2051bebe5dc15154c6e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outgoing angle \( \theta_o \) in radians.  <a href="#a9940b401579e2051bebe5dc15154c6e4">More...</a><br /></td></tr>
+<tr class="separator:a9940b401579e2051bebe5dc15154c6e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7520746e90870de7d656ad13f5435c15"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a7520746e90870de7d656ad13f5435c15">outgoing_dir</a></td></tr>
+<tr class="memdesc:a7520746e90870de7d656ad13f5435c15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Outgoing direction \( \omega_o \).  <a href="#a7520746e90870de7d656ad13f5435c15">More...</a><br /></td></tr>
+<tr class="separator:a7520746e90870de7d656ad13f5435c15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac56e2a98eb98a7fae22b1dd6da1cdcd4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#ac56e2a98eb98a7fae22b1dd6da1cdcd4">incident_dirs</a></td></tr>
+<tr class="memdesc:ac56e2a98eb98a7fae22b1dd6da1cdcd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Incident directions \( \omega_{i[k]} \).  <a href="#ac56e2a98eb98a7fae22b1dd6da1cdcd4">More...</a><br /></td></tr>
+<tr class="separator:ac56e2a98eb98a7fae22b1dd6da1cdcd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a917005eecc040a2e8f2c71a5fabb5371"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a917005eecc040a2e8f2c71a5fabb5371">bsdf_averages</a></td></tr>
+<tr class="memdesc:a917005eecc040a2e8f2c71a5fabb5371"><td class="mdescLeft">&#160;</td><td class="mdescRight">BSDF averages \( f_{[k]} \) for each incident direction.  <a href="#a917005eecc040a2e8f2c71a5fabb5371">More...</a><br /></td></tr>
+<tr class="separator:a917005eecc040a2e8f2c71a5fabb5371"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48af0ba5d0928b3324fea5da7e1efb5c"><td class="memItemLeft" align="right" valign="top">std::int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a48af0ba5d0928b3324fea5da7e1efb5c">path_count</a> = 0</td></tr>
+<tr class="memdesc:a48af0ba5d0928b3324fea5da7e1efb5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path count in each BSDF average.  <a href="#a48af0ba5d0928b3324fea5da7e1efb5c">More...</a><br /></td></tr>
+<tr class="separator:a48af0ba5d0928b3324fea5da7e1efb5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a550a181d5d6e7a7a37beaca077923d4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gaf216083f271be0cc3df39fbc92e5f242">Pcg32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html#a550a181d5d6e7a7a37beaca077923d4e">path_pcg</a> = {}</td></tr>
+<tr class="memdesc:a550a181d5d6e7a7a37beaca077923d4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Path PCG.  <a href="#a550a181d5d6e7a7a37beaca077923d4e">More...</a><br /></td></tr>
+<tr class="separator:a550a181d5d6e7a7a37beaca077923d4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Slice. </p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a68daa3461b19ec6364c2ef2333740c33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68daa3461b19ec6364c2ef2333740c33">&#9670;&nbsp;</a></span>init()</h2>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a5d503c60b306b723505a06b71a7abc9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d503c60b306b723505a06b71a7abc9f">&#9670;&nbsp;</a></span>Slice()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void ls::FileData::Slice::init </td>
+          <td class="memname">ls::FileData::Slice::Slice </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&#160;</td>
-          <td class="paramname"><em>thetao</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>wi_count</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Initialize. </p>
+<p>Default constructor. </p>
 
 </div>
 </div>
+<h2 class="groupheader">Member Function Documentation</h2>
 <a id="a0d98b6e6727ff4d9c5c69af2c02d7a81"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0d98b6e6727ff4d9c5c69af2c02d7a81">&#9670;&nbsp;</a></span>clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void ls::FileData::Slice::clear </td>
@@ -167,20 +171,77 @@ Public Attributes</h2></td></tr>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Clear. </p>
 
 </div>
 </div>
-<a id="a13eaa165a523ac11f9ae6abe21ea58de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13eaa165a523ac11f9ae6abe21ea58de">&#9670;&nbsp;</a></span>sampleIncidentDirs()</h2>
+<a id="a401d51a0a905b625aa06cbfe4f0af44a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a401d51a0a905b625aa06cbfe4f0af44a">&#9670;&nbsp;</a></span>readLss()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void ls::FileData::Slice::sampleIncidentDirs </td>
+          <td class="memname">void ls::FileData::Slice::readLss </td>
+          <td>(</td>
+          <td class="paramtype">std::istream &amp;&#160;</td>
+          <td class="paramname"><em>istr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read LSQT-slice binary format. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">istr</td><td>Input stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae3b326fe44e265d5f024b6f5074fe3cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3b326fe44e265d5f024b6f5074fe3cb">&#9670;&nbsp;</a></span>writeLss()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ls::FileData::Slice::writeLss </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>ostr</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write LSQT-slice binary format. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ostr</td><td>Output stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a7d9005267f04f5b9c417c37cb86ef708"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d9005267f04f5b9c417c37cb86ef708">&#9670;&nbsp;</a></span>computeIncidentDirs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ls::FileData::Slice::computeIncidentDirs </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;&#160;</td>
           <td class="paramname"><em>layered_assembly</em>, </td>
@@ -217,7 +278,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sample incident directions. </p>
+<p>Compute incident directions. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">layered_assembly</td><td>Layered assembly.</td></tr>
@@ -231,14 +292,14 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a9459b40dbd34e6ca1930c6a52bd9ff77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9459b40dbd34e6ca1930c6a52bd9ff77">&#9670;&nbsp;</a></span>updateBsdfAverages()</h2>
+<a id="af0fda3045fe6506642fbbb69b2073ede"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0fda3045fe6506642fbbb69b2073ede">&#9670;&nbsp;</a></span>computeBsdfAverages()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void ls::FileData::Slice::updateBsdfAverages </td>
+          <td class="memname">void ls::FileData::Slice::computeBsdfAverages </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classls_1_1LayeredAssembly.html">LayeredAssembly</a> &amp;&#160;</td>
           <td class="paramname"><em>layered_assembly</em>, </td>
@@ -253,13 +314,13 @@ Public Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>path_count</em>, </td>
+          <td class="paramname"><em>path_count_to_add</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>path_count_per_iter</em> = <code>4096</code>&#160;</td>
+          <td class="paramname"><em>path_count_to_add_per_iter</em> = <code>4096</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -269,13 +330,13 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Update BSDF averages. </p>
+<p>Compute BSDF averages. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">layered_assembly</td><td>Layered assembly.</td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">progress_bar</td><td>Progress bar.</td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">path_count</td><td>Path count to add.</td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">path_count_per_iter</td><td>Path count per iteration. Set this to a smaller value to update the progress bar more frequently. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">path_count_to_add</td><td>Path count to add.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">path_count_to_add_per_iter</td><td>Path count to add per iteration. Set this to a smaller value to update the progress bar more frequently. </td></tr>
   </table>
   </dd>
 </dl>
@@ -310,62 +371,30 @@ Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a56948dd3d14421eb016aab099d6ff471"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a56948dd3d14421eb016aab099d6ff471">&#9670;&nbsp;</a></span>path_pcg_</h2>
+<a id="a9940b401579e2051bebe5dc15154c6e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9940b401579e2051bebe5dc15154c6e4">&#9670;&nbsp;</a></span>outgoing_angle</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__common.html#gaf216083f271be0cc3df39fbc92e5f242">Pcg32</a> ls::FileData::Slice::path_pcg_ = {}</td>
+          <td class="memname"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> ls::FileData::Slice::outgoing_angle = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Path PCG. </p>
+<p>Outgoing angle \( \theta_o \) in radians. </p>
 
 </div>
 </div>
-<a id="ae7445f631bd6715827dd263a38229b9c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae7445f631bd6715827dd263a38229b9c">&#9670;&nbsp;</a></span>path_count_</h2>
+<a id="a7520746e90870de7d656ad13f5435c15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7520746e90870de7d656ad13f5435c15">&#9670;&nbsp;</a></span>outgoing_dir</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ls::FileData::Slice::path_count_ = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Path count in each BSDF average. </p>
-
-</div>
-</div>
-<a id="a96cdeeb844659d2b644beae2f3fc608a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96cdeeb844659d2b644beae2f3fc608a">&#9670;&nbsp;</a></span>thetao_</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> ls::FileData::Slice::thetao_ = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Outgoing angle \( \theta_o \). </p>
-
-</div>
-</div>
-<a id="aad7a56bf68b7e99ceeabfbd266dc05e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad7a56bf68b7e99ceeabfbd266dc05e4">&#9670;&nbsp;</a></span>wo_</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::FileData::Slice::wo_ = {}</td>
+          <td class="memname"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::FileData::Slice::outgoing_dir</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -374,30 +403,14 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a55bbd0d1732a15699f2b6ea5c164891f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55bbd0d1732a15699f2b6ea5c164891f">&#9670;&nbsp;</a></span>wi_count_</h2>
+<a id="ac56e2a98eb98a7fae22b1dd6da1cdcd4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac56e2a98eb98a7fae22b1dd6da1cdcd4">&#9670;&nbsp;</a></span>incident_dirs</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ls::FileData::Slice::wi_count_ = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Incident direction count. </p>
-
-</div>
-</div>
-<a id="a64520594fbb84e577e4584cf885093f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a64520594fbb84e577e4584cf885093f5">&#9670;&nbsp;</a></span>wi_</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt;* ls::FileData::Slice::wi_ = nullptr</td>
+          <td class="memname">std::vector&lt;<a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; &gt; ls::FileData::Slice::incident_dirs</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -406,19 +419,51 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ab7ae9388ca670a2e689d0a8fb2fe9995"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7ae9388ca670a2e689d0a8fb2fe9995">&#9670;&nbsp;</a></span>f_</h2>
+<a id="a917005eecc040a2e8f2c71a5fabb5371"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a917005eecc040a2e8f2c71a5fabb5371">&#9670;&nbsp;</a></span>bsdf_averages</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>* ls::FileData::Slice::f_ = nullptr</td>
+          <td class="memname">std::vector&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::FileData::Slice::bsdf_averages</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>BSDF averages \( f_{[k]} \) for each incident direction. </p>
+
+</div>
+</div>
+<a id="a48af0ba5d0928b3324fea5da7e1efb5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48af0ba5d0928b3324fea5da7e1efb5c">&#9670;&nbsp;</a></span>path_count</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::int64_t ls::FileData::Slice::path_count = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Path count in each BSDF average. </p>
+
+</div>
+</div>
+<a id="a550a181d5d6e7a7a37beaca077923d4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a550a181d5d6e7a7a37beaca077923d4e">&#9670;&nbsp;</a></span>path_pcg</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__common.html#gaf216083f271be0cc3df39fbc92e5f242">Pcg32</a> ls::FileData::Slice::path_pcg = {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Path PCG. </p>
 
 </div>
 </div>

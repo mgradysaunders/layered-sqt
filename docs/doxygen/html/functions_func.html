@@ -76,6 +76,9 @@ $(function() {
 
 
 <h3><a id="index_b"></a>- b -</h3><ul>
+<li>basicInit()
+: <a class="el" href="classls_1_1FileData.html#a7b600ea3983c666063d73a8fa992aa94">ls::FileData</a>
+</li>
 <li>bsdf()
 : <a class="el" href="classls_1_1LambertianBsdfLayer.html#a98c5db9474819ce958654549425de7c0">ls::LambertianBsdfLayer</a>
 , <a class="el" href="classls_1_1Layer.html#a448c7521b59e2ef824da5cb30d7eae3e">ls::Layer</a>
@@ -100,12 +103,19 @@ $(function() {
 : <a class="el" href="classls_1_1FileData.html#afc87f697437cf4fea3d416484782cfec">ls::FileData</a>
 , <a class="el" href="structls_1_1FileData_1_1Slice.html#a0d98b6e6727ff4d9c5c69af2c02d7a81">ls::FileData::Slice</a>
 , <a class="el" href="classls_1_1LayeredAssembly.html#a222dfea3cd47fe1566dccffde4cc0a56">ls::LayeredAssembly</a>
+, <a class="el" href="classls_1_1TriInterpolator.html#a647c8185e23b59d03eadeaa30ab32aca">ls::TriInterpolator</a>
 </li>
 <li>compute()
 : <a class="el" href="classls_1_1LayeredAssembly.html#a04a4227a1715491606671875b9f8895c">ls::LayeredAssembly</a>
 </li>
 <li>computeAverage()
 : <a class="el" href="classls_1_1LayeredAssembly.html#ae9f1bc9b28c460e47f7fcd56776ba2cd">ls::LayeredAssembly</a>
+</li>
+<li>computeBsdfAverages()
+: <a class="el" href="structls_1_1FileData_1_1Slice.html#af0fda3045fe6506642fbbb69b2073ede">ls::FileData::Slice</a>
+</li>
+<li>computeIncidentDirs()
+: <a class="el" href="structls_1_1FileData_1_1Slice.html#a7d9005267f04f5b9c417c37cb86ef708">ls::FileData::Slice</a>
 </li>
 </ul>
 
@@ -139,9 +149,7 @@ $(function() {
 
 <h3><a id="index_i"></a>- i -</h3><ul>
 <li>init()
-: <a class="el" href="classls_1_1FileData.html#a6b6a10b10b1a133fa1171cf18594eb2b">ls::FileData</a>
-, <a class="el" href="structls_1_1FileData_1_1Slice.html#a68daa3461b19ec6364c2ef2333740c33">ls::FileData::Slice</a>
-, <a class="el" href="classls_1_1HenyeyGreensteinPhaseMedium.html#af4ccefdbd7cf228132861adf1d337681">ls::HenyeyGreensteinPhaseMedium</a>
+: <a class="el" href="classls_1_1HenyeyGreensteinPhaseMedium.html#af4ccefdbd7cf228132861adf1d337681">ls::HenyeyGreensteinPhaseMedium</a>
 , <a class="el" href="classls_1_1LambertianBsdfLayer.html#af1c766a2c1e172b3ba0278e03ddfc68b">ls::LambertianBsdfLayer</a>
 , <a class="el" href="classls_1_1Layer.html#ad28e4a93e72119032111de9885b8b433">ls::Layer</a>
 , <a class="el" href="classls_1_1LayeredAssembly.html#a74e4346e6476c3c0a2216d8504de0d05">ls::LayeredAssembly</a>
@@ -151,6 +159,7 @@ $(function() {
 , <a class="el" href="classls_1_1NullBsdfLayer.html#ad4911cabf194d6056a2987f39a3005c3">ls::NullBsdfLayer</a>
 , <a class="el" href="classls_1_1OrenNayarDiffuseBrdfLayer.html#a405aeb9db8414f6dcf72146bfcad763f">ls::OrenNayarDiffuseBrdfLayer</a>
 , <a class="el" href="classls_1_1RayleighPhaseMedium.html#afbebb8f1debb8417e5a335091d2f32db">ls::RayleighPhaseMedium</a>
+, <a class="el" href="classls_1_1TriInterpolator.html#a454fc2464f4010382bc431bce686a21b">ls::TriInterpolator</a>
 </li>
 <li>intersect()
 : <a class="el" href="classls_1_1Layer.html#a118c118e07bc25416dae863718b45085">ls::Layer</a>
@@ -225,8 +234,12 @@ $(function() {
 <li>RayleighPhaseMedium()
 : <a class="el" href="classls_1_1RayleighPhaseMedium.html#afc533cde3b8e85cef4f872733333f67a">ls::RayleighPhaseMedium</a>
 </li>
+<li>readLss()
+: <a class="el" href="classls_1_1FileData.html#a69aeed61fea6b2275e776d39b2c10d2f">ls::FileData</a>
+, <a class="el" href="structls_1_1FileData_1_1Slice.html#a401d51a0a905b625aa06cbfe4f0af44a">ls::FileData::Slice</a>
+</li>
 <li>Rrss()
-: <a class="el" href="classls_1_1Rrss.html#a0ecc7ae7a8b0ec1010c1dcff7e051d02">ls::Rrss</a>
+: <a class="el" href="classls_1_1Rrss.html#abb28ccba60c25ba930405a92ad6ad5e9">ls::Rrss</a>
 </li>
 </ul>
 
@@ -235,14 +248,11 @@ $(function() {
 <li>Sample()
 : <a class="el" href="classls_1_1Rrss_1_1Sample.html#a88ead20b9b305dd2ecf1b880028534ef">ls::Rrss::Sample</a>
 </li>
-<li>sampleIncidentDirs()
-: <a class="el" href="structls_1_1FileData_1_1Slice.html#a13eaa165a523ac11f9ae6abe21ea58de">ls::FileData::Slice</a>
-</li>
 <li>samples()
 : <a class="el" href="classls_1_1Rrss.html#aed3ad185aa4fc2dd2aacceb97acd31fe">ls::Rrss</a>
 </li>
-<li>slices()
-: <a class="el" href="classls_1_1FileData.html#af91bf201338996b803772523f6700bce">ls::FileData</a>
+<li>Slice()
+: <a class="el" href="structls_1_1FileData_1_1Slice.html#a5d503c60b306b723505a06b71a7abc9f">ls::FileData::Slice</a>
 </li>
 </ul>
 
@@ -254,17 +264,25 @@ $(function() {
 <li>transmittanceSample()
 : <a class="el" href="classls_1_1Medium.html#a1edb506cbe2238404ac277f519bbb107">ls::Medium</a>
 </li>
+<li>TriInterpolator()
+: <a class="el" href="classls_1_1TriInterpolator.html#ac3c39e7bd61e4658bb44a0639148dfb7">ls::TriInterpolator</a>
+</li>
 </ul>
 
 
-<h3><a id="index_u"></a>- u -</h3><ul>
-<li>updateBsdfAverages()
-: <a class="el" href="structls_1_1FileData_1_1Slice.html#a9459b40dbd34e6ca1930c6a52bd9ff77">ls::FileData::Slice</a>
+<h3><a id="index_v"></a>- v -</h3><ul>
+<li>value()
+: <a class="el" href="classls_1_1TriInterpolator_1_1Tri.html#ad8bb6620af54dd39c621df4e683d1d0e">ls::TriInterpolator::Tri</a>
+, <a class="el" href="classls_1_1TriInterpolator.html#ab3cdc3dc25600140725097273473795c">ls::TriInterpolator</a>
 </li>
 </ul>
 
 
 <h3><a id="index_w"></a>- w -</h3><ul>
+<li>writeLss()
+: <a class="el" href="structls_1_1FileData_1_1Slice.html#ae3b326fe44e265d5f024b6f5074fe3cb">ls::FileData::Slice</a>
+, <a class="el" href="classls_1_1FileData.html#a60c97cb0de127e5be0f5491f209882ea">ls::FileData</a>
+</li>
 <li>writeSqtRaw()
 : <a class="el" href="classls_1_1FileData.html#aa7c5b4f407f08903b1f43b88e778958b">ls::FileData</a>
 </li>
@@ -272,9 +290,6 @@ $(function() {
 
 
 <h3><a id="index_0x7e"></a>- ~ -</h3><ul>
-<li>~FileData()
-: <a class="el" href="classls_1_1FileData.html#a679ad57a49d12bac73df69b246662616">ls::FileData</a>
-</li>
 <li>~Layer()
 : <a class="el" href="classls_1_1Layer.html#a330514649f9933bbdc226f07a8032676">ls::Layer</a>
 </li>
