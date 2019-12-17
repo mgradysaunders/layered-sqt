@@ -35,7 +35,8 @@
 #include <layered-sqt/medium.hpp>
 #include <layered-sqt/layer.hpp>
 #include <layered-sqt/layered_assembly.hpp>
-#include <layered-sqt/rrss.hpp>
+#include <layered-sqt/progress_bar.hpp>
+#include <layered-sqt/file_data.hpp>
 
 int main(int argc, char** argv)
 {
@@ -309,6 +310,76 @@ int main(int argc, char** argv)
         std::cerr << "Warning: path count less than RRSS path count\n";
     }
 
+    // File data.
+    ls::FileData file_data;
+    file_data.basicInit(wo_count, wi_count, seed);
+
+    {
+        // Thread pool.
+        pr::thread_pool pool(thread_count);
+
+        // Progress bar.
+        ls::ProgressBar progress_bar(path_count * wo_count);
+
+        // Task.
+        auto task = [&](int wo_index) {
+            auto& slice = file_data.slices[wo_index];
+
+            // Compute incident directions.
+            slice.computeIncidentDirs(
+                    layered_assembly,
+                    progress_bar,
+                    rrss_oversampling,
+                    rrss_path_count);
+
+            // Compute BSDF averages.
+            slice.computeBsdfAverages(
+                    layered_assembly,
+                    progress_bar,
+                    path_count - rrss_path_count);
+        };
+
+        // Submit tasks.
+        std::vector<std::future<void>> task_futures;
+        task_futures.reserve(wo_count);
+        for (int wo_index = 0;
+                 wo_index < wo_count; wo_index++) {
+            task_futures.emplace_back(pool.submit(task, wo_index));
+        }
+
+        // Wait.
+        for (int wo_index = 0;
+                 wo_index < wo_count; wo_index++) {
+            task_futures[wo_index].wait();
+        }
+
+        // Finish progress bar.
+        progress_bar.finish();
+    }
+
+    {
+        std::cout << "Writing " << ofs_filename << "...\n";
+        std::cout.flush();
+
+        // Output filestream.
+        std::ofstream ofs(ofs_filename);
+        while (!ofs.is_open()) {
+            std::cerr << "Error opening " << ofs_filename << "...\n";
+            if (ifs_filename == "-") {
+                std::exit(EXIT_FAILURE);
+            }
+            else {
+                std::cerr << "Enter alternative filename: ";
+                std::cin >> ofs_filename;
+                ofs.open(ofs_filename);
+            }
+        }
+
+        // Output SQT RAW.
+        file_data.writeSqtRaw(ofs);
+    }
+
+#if 0
     {
         using namespace ls;
 
@@ -641,6 +712,7 @@ int main(int argc, char** argv)
         // Delete raw outgoing angles.
         delete[] raw_thetao;
     }
+#endif
 
     return EXIT_SUCCESS;
 }

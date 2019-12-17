@@ -57,14 +57,6 @@ public:
      */
     FileData() = default;
 
-    /**
-     * @brief Destructor.
-     */
-    ~FileData()
-    {
-        clear();
-    }
-
 public:
 
     /**
@@ -74,20 +66,37 @@ public:
     {
     public:
 
-        // TODO Reorganize API?
-
         /**
-         * @brief Initialize.
+         * @brief Default constructor.
          */
-        void init(Float thetao, int wi_count);
+        Slice() = default;
 
         /**
          * @brief Clear.
          */
-        void clear();
+        void clear()
+        {
+            *this = std::move(Slice());
+        }
 
         /**
-         * @brief Sample incident directions.
+         * @brief Read LSQT-slice binary format.
+         *
+         * @param[inout] istr
+         * Input stream.
+         */
+        void readLss(std::istream& istr);
+
+        /**
+         * @brief Write LSQT-slice binary format.
+         *
+         * @param[inout] ostr
+         * Output stream.
+         */
+        void writeLss(std::ostream& ostr) const;
+
+        /**
+         * @brief Compute incident directions.
          *
          * @param[in] layered_assembly
          * Layered assembly.
@@ -105,7 +114,7 @@ public:
          * RRSS path count per iteration. Set this to a smaller value
          * to update the progress bar more frequently.
          */
-        void sampleIncidentDirs(
+        void computeIncidentDirs(
                 LayeredAssembly& layered_assembly,
                 ProgressBar& progress_bar,
                 int rrss_oversampling,
@@ -113,7 +122,7 @@ public:
                 int rrss_path_count_per_iter = 512);
 
         /**
-         * @brief Update BSDF averages.
+         * @brief Compute BSDF averages.
          *
          * @param[in] layered_assembly
          * Layered assembly.
@@ -121,27 +130,26 @@ public:
          * @param[in] progress_bar
          * Progress bar.
          *
-         * @param[in] path_count
+         * @param[in] path_count_to_add
          * Path count to add.
          *
-         * @param[in] path_count_per_iter
-         * Path count per iteration. Set this to a smaller value to 
+         * @param[in] path_count_to_add_per_iter
+         * Path count to add per iteration. Set this to a smaller value to 
          * update the progress bar more frequently.
          */
-        void updateBsdfAverages(
+        void computeBsdfAverages(
                 LayeredAssembly& layered_assembly, 
                 ProgressBar& progress_bar,
-                int path_count,
-                int path_count_per_iter = 4096);
+                int path_count_to_add,
+                int path_count_to_add_per_iter = 4096);
 
         /**
          * @brief Any transmitted directions?
          */
         bool anyTransmitted() const
         {
-            for (int wi_index = 0;
-                     wi_index < wi_count_; wi_index++) {
-                if (wi_[wi_index][2] < 0) {
+            for (const Vec3<Float>& wi : incident_dirs) {
+                if (wi[2] < 0) {
                     return true;
                 }
             }
@@ -150,94 +158,86 @@ public:
 
     public:
 
-        // TODO Non-private variable naming?
-
         /**
-         * @brief Path PCG.
+         * @brief Outgoing angle @f$ \theta_o @f$ in radians.
          */
-        Pcg32 path_pcg_ = {};
-
-        /**
-         * @brief Path count in each BSDF average.
-         */
-        int path_count_ = 0;
-
-        /**
-         * @brief Outgoing angle @f$ \theta_o @f$.
-         */
-        Float thetao_ = 0;
+        Float outgoing_angle = 0;
     
         /**
          * @brief Outgoing direction @f$ \omega_o @f$.
          */
-        Vec3<Float> wo_ = {};
+        Vec3<Float> outgoing_dir;
 
-        /**
-         * @brief Incident direction count.
-         */
-        int wi_count_ = 0;
-    
         /**
          * @brief Incident directions @f$ \omega_{i[k]} @f$.
          */
-        Vec3<Float>* wi_ = nullptr;
+        std::vector<Vec3<Float>> incident_dirs;
 
         /**
          * @brief BSDF averages @f$ f_{[k]} @f$ for each incident direction.
          */
-        Float* f_ = nullptr;
+        std::vector<Float> bsdf_averages;
 
-        // TODO BSDF average error/convergence estimates?
+        /**
+         * @brief Path count in each BSDF average.
+         */
+        std::int64_t path_count = 0;
+
+        /**
+         * @brief Path PCG.
+         */
+        Pcg32 path_pcg = {};
     };
 
 public:
 
-    // TODO Reorganize API?
-
     /**
-     * @brief Initialize.
+     * @brief Basic initialize.
      */
-    void init(int wo_count, int wi_count);
+    void basicInit(
+            int wo_count, 
+            int wi_count,
+            int seed = 0);
 
     /**
      * @brief Clear.
      */
-    void clear();
-
-    /**
-     * @brief Get slices.
-     */
-    std::vector<Slice>& slices()
+    void clear()
     {
-        return slices_;
+        slices.clear();
+        slices.shrink_to_fit();
     }
 
     /**
-     * @brief Get slices.
+     * @brief Read LSQT-slice binary format.
+     *
+     * @param[inout] istr
+     * Input stream.
      */
-    const std::vector<Slice>& slices() const
-    {
-        return slices_;
-    }
-
-//  void readLss(std::istream& istr);
-
-//  void writeLss(std::ostream& ostr) const;
+    void readLss(std::istream& istr);
 
     /**
-     * @brief Write SQT RAW.
+     * @brief Write LSQT-slice binary format.
+     *
+     * @param[inout] ostr
+     * Output stream.
+     */
+    void writeLss(std::ostream& ostr) const;
+
+    /**
+     * @brief Write SQT RAW plain-text format.
      *
      * @param[inout] ostr
      * Output stream.
      */
     void writeSqtRaw(std::ostream& ostr) const;
 
-private:
+public:
 
     /** 
      * @brief Slices.
      */
-    std::vector<Slice> slices_;
+    std::vector<Slice> slices;
 };
 
 /**@}*/
