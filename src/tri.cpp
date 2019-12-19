@@ -41,7 +41,13 @@ void TriInterpolator::init(
 {
     if (locs.size() != vals.size() ||
         locs.size() <= 2) {
-        throw std::invalid_argument(__PRETTY_FUNCTION__);
+        if (locs.empty() &&
+            vals.empty()) {
+            return;
+        }
+        else {
+            throw std::invalid_argument(__PRETTY_FUNCTION__);
+        }
     }
 
     DelaunayTriangulation delaunay;
@@ -102,6 +108,119 @@ std::optional<Float> TriInterpolator::value(const Vec2<Float>& loc) const
         }
     }
     return val;
+}
+
+// Initialize.
+void TriFileData::init(const FileData& file_data)
+{
+    // Initialize slices.
+    slices_.clear();
+    for (const FileData::Slice& file_data_slice : file_data.slices) {
+        slices_.emplace_back();
+        slices_.back().init(file_data_slice);
+    }
+
+    // Sort by outgoing angle.
+    slices_.sort(
+        [=](const Slice& lhs, const Slice& rhs) {
+            return lhs.outgoing_dirz_ < 
+                   rhs.outgoing_dirz_;
+        });
+}
+
+// Value.
+Float TriFileData::value(
+                const Vec3<Float>& wo, 
+                const Vec3<Float>& wi) const
+{
+    Float cos_thetao = wo[2];
+    Float cos2_thetao = cos_thetao * cos_thetao;
+    cos2_thetao = pr::fmin(cos2_thetao, Float(+1));
+    cos2_thetao = pr::fmax(cos2_thetao, Float(-1));
+    Float sin2_thetao = 1 - cos2_thetao;
+    Float sin_thetao = pr::sqrt(sin2_thetao);
+    Float cos_phio = wo[0] / sin_thetao;
+    Float sin_phio = wo[1] / sin_thetao;
+    if (!(pr::isfinite(cos_phio) && 
+          pr::isfinite(sin_phio))) {
+        cos_phio = 1;
+        sin_phio = 0;
+    }
+
+    // Local directions.
+/*  Vec3<Float> wo_local = {sin_thetao, 0, cos_thetao}; */
+    Vec3<Float> wi_local = {
+         cos_phio * wi[0] + sin_phio * wi[1],
+        -sin_phio * wi[0] + cos_phio * wi[1],
+        wi[2]
+    };
+
+    auto slice_itr = 
+    std::lower_bound(
+            slices_.begin(),
+            slices_.end(),
+            cos_thetao,
+            [=](const Slice& lhs, Float rhs) {
+                return lhs.outgoing_dirz_ < rhs;
+            });
+    if (slice_itr == slices_.begin() ||
+        slice_itr == slices_.end()) {
+        if (slice_itr == slices_.end()) {
+            slice_itr--;
+        }
+        return slice_itr->value(wi_local).value_or(0);
+    }
+    else {
+        const Slice& slice1 = *slice_itr--;
+        const Slice& slice0 = *slice_itr;
+        Float val0 = slice0.value(wi_local).value_or(0);
+        Float val1 = slice1.value(wi_local).value_or(0);
+        if (val0 == 0) return val1;
+        if (val1 == 0) return val0;
+        Float cos_thetao0 = slice0.outgoing_dirz_;
+        Float cos_thetao1 = slice1.outgoing_dirz_;
+        Float fac = (cos_thetao - cos_thetao0) / (cos_thetao1 - cos_thetao0);
+        return (1 - fac) * val0 + fac * val1;
+    }
+}
+
+// Initialize.
+void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
+{
+    // Outgoing direction Z-component.
+    outgoing_dirz_ = file_data_slice.outgoing_dir[2];
+
+    // Partition into upper/lower.
+    std::vector<Vec2<Float>> locs_upper;
+    std::vector<Vec2<Float>> locs_lower;
+    std::vector<Float> vals_upper;
+    std::vector<Float> vals_lower;
+
+    // Iterate.
+    auto incident_dir = file_data_slice.incident_dirs.begin();
+    auto bsdf_average = file_data_slice.bsdf_averages.begin();
+    for (; bsdf_average < file_data_slice.bsdf_averages.end();) {
+
+        // In upper hemisphere?
+        if ((*incident_dir)[2] > 0) {
+            // Add to upper hemisphere.
+            locs_upper.push_back(*incident_dir);
+            vals_upper.push_back(*bsdf_average);
+        }
+        else {
+            // Add to lower hemisphere.
+            locs_lower.push_back(*incident_dir);
+            vals_lower.push_back(*bsdf_average);
+        }
+
+        // Increment.
+        incident_dir++;
+        bsdf_average++;
+    }
+
+    // Initialize.
+    bsdf_upper_.init(locs_upper, vals_upper);
+    bsdf_lower_.init(locs_lower, vals_lower);
 }
 
 } // namespace ls

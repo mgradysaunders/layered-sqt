@@ -31,7 +31,9 @@
 #define LAYERED_SQT_TRI_HPP
 
 #include <optional>
+#include <list>
 #include <layered-sqt/common.hpp>
+#include <layered-sqt/file_data.hpp>
 
 namespace ls {
 
@@ -138,6 +140,92 @@ private:
      * @brief Triangles.
      */
     std::vector<Tri> tris_;
+};
+
+/**
+ * @brief Triangulated file data.
+ */
+class TriFileData
+{
+public:
+
+    /**
+     * @brief Initialize.
+     *
+     * @param[in] file_data
+     * File data.
+     */
+    void init(const FileData& file_data);
+
+    /**
+     * @brief Value.
+     *
+     * @param[in] wo
+     * Outgoing direction @f$ \omega_o @f$.
+     *
+     * @param[in] wi
+     * Incident direction @f$ \omega_i @f$.
+     */
+    Float value(
+            const Vec3<Float>& wo, 
+            const Vec3<Float>& wi) const;
+
+    /**
+     * @brief Triangulated file data slice.
+     */
+    class Slice
+    {
+    public:
+
+        /**
+         * @brief Initialize.
+         *
+         * @param[in] file_data_slice
+         * File data slice.
+         */
+        void init(const FileData::Slice& file_data_slice);
+
+        /**
+         * @brief Value.
+         *
+         * @param[in] dir
+         * Direction.
+         */
+        std::optional<Float> value(const Vec3<Float>& dir) const
+        {
+            return dir[2] > 0 ?
+                    bsdf_upper_.value(Vec2<Float>(dir)) :
+                    bsdf_lower_.value(Vec2<Float>(dir));
+        }
+
+    private:
+
+        /**
+         * @brief Outgoing direction Z-component.
+         */
+        Float outgoing_dirz_ = 0;
+
+        /**
+         * @brief Triangulated BSDF upper hemisphere.
+         */
+        TriInterpolator bsdf_upper_;
+
+        /**
+         * @brief Triangulated BSDF lower hemisphere.
+         */
+        TriInterpolator bsdf_lower_;
+
+        // Friend.
+        friend class TriFileData;
+    };
+
+
+private:
+
+    /**
+     * @brief Triangulated file data slices.
+     */
+    std::list<Slice> slices_;
 };
 
 /**@}*/
