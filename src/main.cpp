@@ -305,14 +305,71 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
-    if (path_count < rrss_path_count) {
-        path_count = rrss_path_count;
-        std::cerr << "Warning: path count less than RRSS path count\n";
-    }
-
     // File data.
     ls::FileData file_data;
-    file_data.basicInit(wo_count, wi_count, seed);
+
+    std::string lss_filename;
+    if (ifs_filename != "-") {
+        lss_filename = ifs_filename + ".lss";
+    }
+
+    // Read in-progress simulation if available.
+    bool has_lss = false;
+    if (!lss_filename.empty()) {
+        std::ifstream ifs(
+                lss_filename,
+                std::ios_base::in |
+                std::ios_base::binary);
+        if (ifs.good()) {
+            has_lss = true;
+            std::cout << "Reading in-progress simulation " << lss_filename;
+            std::cout << "...\n";
+            std::cout.flush();
+
+            try {
+                // Read LSQT Slice binary format.
+                file_data.readLss(ifs);
+
+                std::cout << "Done.\n\n";
+                std::cout.flush();
+            }
+            catch (const std::exception& exception) {
+                std::cerr << "Unhandled exception!\n";
+                std::cerr << "exception.what(): " << exception.what() << "\n";
+                std::cout << "Error, re-initializing simulation...\n\n";
+                std::cout.flush();
+                has_lss = false;
+            }
+        }
+    }
+
+    // No simulation read?
+    if (!has_lss) {
+
+        // Initialize.
+        file_data.basicInit(wo_count, wi_count, seed);
+
+        // Check RRSS path count.
+        if (path_count < rrss_path_count) {
+            path_count = rrss_path_count;
+            std::cerr << "Warning: path count less than RRSS path count\n";
+        }
+    }
+    else {
+
+        // Update count from file data.
+        wo_count = file_data.slices.size();
+
+        // Note.
+        std::cout << "Note: using in-progress simulation, so the following\n";
+        std::cout << "command line args are ignored:\n";
+        std::cout << "    -s/--seed\n";
+        std::cout << "    --wo-count\n";
+        std::cout << "    --wi-count\n";
+        std::cout << "    --rrss-oversampling\n";
+        std::cout << "    --rrss-path-count\n\n";
+        std::cout.flush();
+    }
 
     {
         // Thread pool.
@@ -325,18 +382,29 @@ int main(int argc, char** argv)
         auto task = [&](int wo_index) {
             auto& slice = file_data.slices[wo_index];
 
-            // Compute incident directions.
-            slice.computeIncidentDirs(
-                    layered_assembly,
-                    progress_bar,
-                    rrss_oversampling,
-                    rrss_path_count);
+            if (has_lss) {
+                
+                // Compute BSDF averages.
+                slice.computeBsdfAverages(
+                        layered_assembly,
+                        progress_bar,
+                        path_count);
+            }
+            else {
 
-            // Compute BSDF averages.
-            slice.computeBsdfAverages(
-                    layered_assembly,
-                    progress_bar,
-                    path_count - rrss_path_count);
+                // Compute RRSS incident directions first.
+                slice.computeIncidentDirs(
+                        layered_assembly,
+                        progress_bar,
+                        rrss_oversampling,
+                        rrss_path_count);
+
+                // Compute BSDF averages.
+                slice.computeBsdfAverages(
+                        layered_assembly,
+                        progress_bar,
+                        path_count - rrss_path_count);
+            }
         };
 
         // Submit tasks.
@@ -355,6 +423,37 @@ int main(int argc, char** argv)
 
         // Finish progress bar.
         progress_bar.finish();
+    }
+
+    if (!lss_filename.empty()) {
+        std::cout << "Writing " << lss_filename << "...\n";
+        std::cout.flush();
+
+        // Output filestream.
+        std::ofstream ofs(
+                lss_filename, 
+                std::ios_base::out |
+                std::ios_base::binary);
+        if (!ofs.is_open()) {
+            std::cerr << "Error opening " << lss_filename << "...\n\n";
+
+            // No renaming.
+        }
+        else {
+            try {
+                // Output LSQT Slice binary format.
+                file_data.writeLss(ofs);
+
+                std::cout << "Done.\n\n";
+                std::cout.flush();
+            }
+            catch (const std::exception& exception) {
+                std::cerr << "Unhandled exception!\n";
+                std::cerr << "exception.what(): " << exception.what() << "\n";
+                std::cout << "Error writing " << lss_filename << "...\n\n";
+                std::cout.flush();
+            }
+        }
     }
 
     {
@@ -377,342 +476,10 @@ int main(int argc, char** argv)
 
         // Output SQT RAW.
         file_data.writeSqtRaw(ofs);
-    }
 
-#if 0
-    {
-        using namespace ls;
-
-        // Raw outgoing angles.
-        Float* raw_thetao = new Float[wo_count];
-
-        // Raw outgoing directions.
-        Vec3<Float>* raw_wo = new Vec3<Float>[wo_count];
-
-        // Raw incident directions.
-        Vec3<Float>* raw_wi = new Vec3<Float>[wo_count * wi_count];
-
-        // Raw BSDFs.
-        Float* raw_f = new Float[wo_count * wi_count];
-
-        for (int wo_index = 0; 
-                 wo_index < wo_count; wo_index++) {
-
-            // Initialize outgoing angle.
-            raw_thetao[wo_index] = 
-                    wo_index / Float(wo_count) * 
-                    pr::numeric_constants<Float>::M_pi_2();
-
-            // Initialize outgoing direction.
-            raw_wo[wo_index] = {
-                pr::sin(raw_thetao[wo_index]), 0,
-                pr::cos(raw_thetao[wo_index])
-            };
-        }
-
-        // Print mutex.
-        std::mutex print_mutex;
-        std::int64_t paths_complete = 0;
-        std::int64_t paths_todo = 
-                std::int64_t(wo_count) * 
-                std::int64_t(path_count);
-
-        // Print initial 0% progress bar.
-        std::cout << "Computing...\n";
-        std::cout << pr::terminal_progress_bar{0.0};
+        std::cout << "Done.\n\n";
         std::cout.flush();
-
-        // Task executed on thread.
-        auto task = [&](int wo_index) {
-
-            // Permuted-congruential generator.
-            Pcg32 pcg(seed, wo_index);
-
-            // Local outgoing direction.
-            Vec3<Float>& wo = raw_wo[wo_index];
-
-            // Local incident directions.
-            Vec3<Float>* wi = raw_wi + wo_index * wi_count;
-
-            // Local BSDFs.
-            Float* f = raw_f + wo_index * wi_count;
-
-            {
-                // RRSS incident direction count.
-                int rrss_wi_count = 
-                    rrss_oversampling * wi_count;
-
-                // RRSS incident directions.
-                Vec3<Float>* rrss_wi = new Vec3<Float>[rrss_wi_count];
-
-                // Initialize incident directions.
-                for (int rrss_wi_index = 0;
-                         rrss_wi_index < rrss_wi_count;
-                         rrss_wi_index++) {
-                
-                    rrss_wi[rrss_wi_index] = 
-                    layered_assembly.randomScatterDirection(pcg, wo); 
-                }
-
-                // RRSS BSDFs.
-                Float* rrss_f = new Float[rrss_wi_count];
-
-                // RRSS BSDF-PDFs.
-                Float* rrss_f_pdf = new Float[rrss_wi_count];
-
-                // Average BSDFs/BSDF-PDFs in blocks of 512.
-                for (int curr_path_count = 0;
-                         curr_path_count < rrss_path_count;
-                         curr_path_count += 512) {
-
-                    int next_path_count = curr_path_count + 512;
-                    if (next_path_count > rrss_path_count) {
-                        next_path_count = rrss_path_count;
-                    }
-
-                    // Update average BSDFs/BSDF-PDFs.
-                    layered_assembly.computeAverage(
-                            curr_path_count,
-                            next_path_count,
-                            pcg, wo,
-                            rrss_wi,
-                            rrss_wi_count,
-                            rrss_f, rrss_f_pdf);
-
-                    {
-                        // Update terminal progress bar.
-                        std::unique_lock<std::mutex> lock(print_mutex);
-                        paths_complete += 
-                            next_path_count - 
-                            curr_path_count;
-                        std::cout << '\r';
-                        std::cout << pr::terminal_progress_bar{
-                            double(paths_complete) / 
-                            double(paths_todo)};
-                        std::cout.flush();
-                    }
-                }
-
-                // RRSS samples.
-                std::vector<Rrss::Sample> rrss_samples;
-                rrss_samples.reserve(rrss_wi_count);
-
-                // RRSS BSDF integral.
-                Float rrss_f_int = 0;
-
-                for (int rrss_wi_index = 0;
-                         rrss_wi_index < rrss_wi_count; 
-                         rrss_wi_index++) {
-
-                    // Push sample.
-                    rrss_samples.push_back(
-                    Rrss::Sample{
-                        rrss_wi[rrss_wi_index],
-                        rrss_f [rrss_wi_index] // BSDF as initial PDF.
-                    });
-
-                    // BSDF integral term.
-                    Float f_int = 
-                        rrss_f[rrss_wi_index] /
-                        rrss_f_pdf[rrss_wi_index];
-
-                    // BSDF integral term okay?
-                    if (pr::isfinite(f_int)) {
-
-                        // Update BSDF integral estimate.
-                        rrss_f_int =
-                        rrss_f_int + (f_int - rrss_f_int) / 
-                                (rrss_wi_index + 1);
-                    }
-                }
-
-                // BSDF integral okay?
-                if (rrss_f_int > 0 &&
-                    pr::isfinite(rrss_f_int)) {
-
-                    // Normalize.
-                    for (Rrss::Sample& rrss_sample : rrss_samples) {
-                        rrss_sample.pdf /= rrss_f_int;
-                    }
-                }
-                else {
-
-                    {
-                        // Warn.
-                        std::unique_lock<std::mutex> lock(print_mutex);
-                        std::cerr << 
-                            "Warning: RRSS failed to compute valid BSDF "
-                            "integral, defaulting to BSDF-PDF\n";
-                    }
-
-                    // Default to BSDF-PDF.
-                    int rrss_wi_index = 0;
-                    for (Rrss::Sample& rrss_sample : rrss_samples) {
-                        rrss_sample.pdf = rrss_f_pdf[rrss_wi_index++];
-                    }
-                }
-
-                // Redundancy-reduced sample set.
-                Rrss rrss(rrss_samples);
-                if (!rrss.disableUntil(wi_count)) {
-                    // Unreachable?
-                }
-
-                int wi_index = 0;
-                for (int rrss_wi_index = 0;
-                         rrss_wi_index < rrss_wi_count; 
-                         rrss_wi_index++) {
-
-                    // Is sample enabled?
-                    if (rrss.samples()[rrss_wi_index].is_enabled) {
-
-                        // Use incident direction and BSDF.
-                        wi[wi_index] = rrss_wi[rrss_wi_index];
-                        f [wi_index] = rrss_f [rrss_wi_index];
-                        wi_index++;
-                    }
-                }
-
-                // Delete RRSS BSDF-PDFs.
-                delete[] rrss_f_pdf;
-
-                // Delete RRSS BSDFs.
-                delete[] rrss_f;
-
-                // Delete RRSS incident directions.
-                delete[] rrss_wi;
-            }
-
-            // Average BSDFs in blocks of 4096.
-            for (int curr_path_count = rrss_path_count;
-                     curr_path_count < path_count;
-                     curr_path_count += 4096) {
-
-                int next_path_count = curr_path_count + 4096;
-                if (next_path_count > path_count) {
-                    next_path_count = path_count;
-                }
-
-                // Update average BSDFs.
-                layered_assembly.computeAverage(
-                            curr_path_count,
-                            next_path_count,
-                            pcg, wo, wi, wi_count, f, nullptr);
-
-                {
-                    // Update terminal progress bar.
-                    std::unique_lock<std::mutex> lock(print_mutex);
-                    paths_complete += 
-                        next_path_count - 
-                        curr_path_count;
-                    std::cout << '\r';
-                    std::cout << pr::terminal_progress_bar{
-                        double(paths_complete) / 
-                        double(paths_todo)};
-                    std::cout.flush();
-                }
-            }
-
-            // SQT expects BSDF without cosine weighting...
-            for (int wi_index = 0;
-                     wi_index < wi_count; wi_index++) {
-                f[wi_index] /= pr::abs(wi[wi_index][2]);
-            }
-        };
-
-        {
-            // Thread pool.
-            pr::thread_pool pool(thread_count);
-
-            // Submit tasks.
-            std::vector<std::future<void>> task_futures;
-            task_futures.reserve(wo_count);
-            for (int wo_index = 0;
-                     wo_index < wo_count; wo_index++) {
-                task_futures.emplace_back(
-                        pool.submit(task, wo_index));
-            }
-
-            // Wait.
-            for (int wo_index = 0;
-                     wo_index < wo_count; wo_index++) {
-                task_futures[wo_index].wait();
-            }   
-
-            // Newlines after terminal progress bar. 
-            std::cout << "\n\n";
-            std::cout.flush();
-        }
-
-
-        bool is_bsdf = false;
-        for (int wi_index = 0; 
-                 wi_index < wo_count * wi_count; wi_index++) {
-            if (raw_wi[wi_index][2] < 0) {
-                is_bsdf = true;
-                break;
-            }
-        }
-
-        if (is_bsdf == false && layered_assembly.isTransmissive()) {
-            std::cerr << "Warning: no incident directions sampled in "
-                         "lower hemisphere, though layered assembly is "
-                         "potentially transmissive\n\n";
-        }
-
-        {
-            std::cout << "Writing " << ofs_filename << "...\n";
-            std::cout.flush();
-
-            // Output filestream.
-            std::ofstream ofs(ofs_filename);
-            while (!ofs.is_open()) {
-                std::cerr << "Error opening " << ofs_filename << "...\n";
-                if (ifs_filename == "-") {
-                    std::exit(EXIT_FAILURE);
-                }
-                else {
-                    std::cerr << "Enter alternative filename: ";
-                    std::cin >> ofs_filename;
-                    ofs.open(ofs_filename);
-                }
-            }
-            ofs << "RAWB" << (is_bsdf ? 'S' : 'H');
-            ofs << "10A Layered-SQT\n";
-            ofs << "1 0.5\n";
-            ofs << wo_count;
-            for (int wo_index = 0; 
-                     wo_index < wo_count; wo_index++) {
-                ofs << ' ';
-                ofs << raw_thetao[wo_index];
-            }
-            ofs << '\n';
-            for (int wo_index = 0; 
-                     wo_index < wo_count; wo_index++) {
-                for (int wi_index = 0; 
-                         wi_index < wi_count; wi_index++) {
-                    ofs << wo_index << ' ';
-                    ofs << raw_wi[wo_index * wi_count + wi_index][0] << ' ';
-                    ofs << raw_wi[wo_index * wi_count + wi_index][1] << ' ';
-                    ofs << raw_wi[wo_index * wi_count + wi_index][2] << ' ';
-                    ofs << raw_f[wo_index * wi_count + wi_index] << '\n';
-                }
-            }
-        }
-
-        // Delete raw BSDFs.
-        delete[] raw_f;
-
-        // Delete raw incident directions.
-        delete[] raw_wi;
-
-        // Delete raw outgoing directions.
-        delete[] raw_wo;
-
-        // Delete raw outgoing angles.
-        delete[] raw_thetao;
     }
-#endif
 
     return EXIT_SUCCESS;
 }

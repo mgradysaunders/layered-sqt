@@ -84,6 +84,9 @@ public:
          *
          * @param[inout] istr
          * Input stream.
+         *
+         * @note
+         * This is only intended for use in `FileData::readLss()`.
          */
         void readLss(std::istream& istr);
 
@@ -92,6 +95,9 @@ public:
          *
          * @param[inout] ostr
          * Output stream.
+         *
+         * @note
+         * This is only intended for use in `FileData::writeLss()`.
          */
         void writeLss(std::ostream& ostr) const;
 
