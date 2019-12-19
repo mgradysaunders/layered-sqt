@@ -72,4 +72,5 @@ var menudata={children:[
 {text:"t",url:"functions_vars.html#index_t"},
 {text:"u",url:"functions_vars.html#index_u"},
 {text:"v",url:"functions_vars.html#index_v"},
-{text:"z",url:"functions_vars.html#index_z"}]}]}]}]}
+{text:"z",url:"functions_vars.html#index_z"}]},
+{text:"Related Functions",url:"functions_rela.html"}]}]}]}
