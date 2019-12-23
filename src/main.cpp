@@ -27,10 +27,8 @@
  */
 /*+-+*/
 #include <fstream>
-#include <preform/misc_float.hpp>
 #include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
-#include <preform/bash_format.hpp>
 #include <layered-sqt/common.hpp>
 #include <layered-sqt/medium.hpp>
 #include <layered-sqt/layer.hpp>
@@ -48,7 +46,7 @@ int main(int argc, char** argv)
     int wo_count = 12;
     int wi_count = 80;
     int rrss_oversampling = 4;
-    int rrss_path_count = 2000;
+    int rrss_path_count = 6000;
     int thread_count = 0;
     std::string ifs_filename;
     std::string ofs_filename = "Layered.raw";
@@ -180,7 +178,7 @@ int main(int argc, char** argv)
                     .append(")"));
         }
     })
-    << "Specify RRSS path count. By default, 2000.\n"
+    << "Specify RRSS path count. By default, 6000.\n"
        "This is the number of paths to use to estimate the emergent\n"
        "BRDF/BSDF when forming the Redundancy-Reduced Sample Set (RRSS) of\n"
        "incident directions for each outgoing direction.\n";
