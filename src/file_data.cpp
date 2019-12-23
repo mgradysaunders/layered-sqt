@@ -145,12 +145,19 @@ void FileData::writeSqtRaw(std::ostream& ostr) const
         int wi_count = slice.incident_dirs.size();
         for (int wi_index = 0;
                  wi_index < wi_count; wi_index++) {
-            ostr << wo_index << ' ';
-            ostr << slice.incident_dirs[wi_index][0] << ' ';
-            ostr << slice.incident_dirs[wi_index][1] << ' ';
-            ostr << slice.incident_dirs[wi_index][2] << ' ';
-            ostr << slice.bsdf_averages[wi_index] /
-                    pr::fabs(slice.incident_dirs[wi_index][2]) << '\n';
+            // Get incident direction and BSDF average.
+            auto incident_dir = slice.incident_dirs[wi_index];
+            auto bsdf_average = slice.bsdf_averages[wi_index];
+
+            // SQT expects non-cosine-weighted BSDF.
+            bsdf_average /= pr::fabs(incident_dir[2]);
+            if (pr::isfinite(bsdf_average)) {
+                ostr << wo_index << ' ';
+                ostr << incident_dir[0] << ' ';
+                ostr << incident_dir[1] << ' ';
+                ostr << incident_dir[2] << ' ';
+                ostr << bsdf_average << '\n';
+            }
         }
         wo_index++;
     }
@@ -259,26 +266,20 @@ void FileData::Slice::computeIncidentDirs(
     // Incident direction count.
     int wi_count = incident_dirs.size();
 
-    // Incident directions.
-    Vec3<Float>* wi = incident_dirs.data();
-
     // RRSS incident direction count.
     int rrss_wi_count = 
         rrss_oversampling * wi_count;
 
     // RRSS incident directions.
     Vec3<Float>* rrss_wi = new Vec3<Float>[rrss_wi_count];
-
-    // Initialize incident directions.
     for (int rrss_wi_index = 0;
-             rrss_wi_index < rrss_wi_count; rrss_wi_index++) {
-    
+             rrss_wi_index < rrss_wi_count; 
+             rrss_wi_index++) {
+
+        // Initialize.
         rrss_wi[rrss_wi_index] = 
         layered_assembly.randomScatterDirection(path_pcg, outgoing_dir); 
     }
-
-    // BSDFs.
-    Float* f = bsdf_averages.data();
 
     // RRSS BSDFs.
     Float* rrss_f = new Float[rrss_wi_count];
@@ -310,10 +311,6 @@ void FileData::Slice::computeIncidentDirs(
                 curr_path_count);
     }
 
-    // RRSS samples.
-    std::vector<Rrss::Sample> rrss_samples;
-    rrss_samples.reserve(rrss_wi_count);
-
     // RRSS BSDF integral.
     Float rrss_f_int = 0;
 
@@ -321,17 +318,11 @@ void FileData::Slice::computeIncidentDirs(
              rrss_wi_index < rrss_wi_count; 
              rrss_wi_index++) {
 
-        // Push sample.
-        rrss_samples.push_back(
-        Rrss::Sample{
-            rrss_wi[rrss_wi_index],
-            rrss_f [rrss_wi_index] // BSDF as initial PDF.
-        });
-
         // BSDF integral term.
         Float f_int = 
-            rrss_f[rrss_wi_index] /
-            rrss_f_pdf[rrss_wi_index];
+            rrss_f[rrss_wi_index] / 
+            rrss_f_pdf[rrss_wi_index] /
+            pr::fabs(rrss_wi[rrss_wi_index][2]); // Non-cosine-weighted
 
         // BSDF integral term okay?
         if (pr::isfinite(f_int)) {
@@ -343,46 +334,45 @@ void FileData::Slice::computeIncidentDirs(
         }
     }
 
+    // RRSS samples.
+    std::vector<Rrss::Sample> rrss_samples;
+    rrss_samples.reserve(rrss_wi_count);
+
     // BSDF integral okay?
     if (rrss_f_int > 0 &&
         pr::isfinite(rrss_f_int)) {
 
-        // Normalize.
-        for (Rrss::Sample& rrss_sample : rrss_samples) {
-            rrss_sample.pdf /= rrss_f_int;
+        for (int rrss_wi_index = 0;
+                 rrss_wi_index < rrss_wi_count;
+                 rrss_wi_index++) {
+
+            // Set target PDF to normalized non-cosine-weighted BSDF.
+            Rrss::Sample rrss_sample;
+            rrss_sample.dir = rrss_wi[rrss_wi_index];
+            rrss_sample.val = rrss_f [rrss_wi_index];
+            rrss_sample.pdf = rrss_f [rrss_wi_index] / rrss_f_int /
+                pr::fabs(rrss_wi[rrss_wi_index][2]);
+
+            // Push sample.
+            rrss_samples.push_back(rrss_sample);
         }
     }
     else {
 
-        // Default to BSDF-PDF.
-        int rrss_wi_index = 0;
-        for (Rrss::Sample& rrss_sample : rrss_samples) {
-            rrss_sample.pdf = rrss_f_pdf[rrss_wi_index++];
+        for (int rrss_wi_index = 0;
+                 rrss_wi_index < rrss_wi_count;
+                 rrss_wi_index++) {
+
+            // Set target PDF to BSDF-PDF by default.
+            Rrss::Sample rrss_sample;
+            rrss_sample.dir = rrss_wi[rrss_wi_index];
+            rrss_sample.val = rrss_f [rrss_wi_index];
+            rrss_sample.pdf = rrss_f_pdf[rrss_wi_index];
+
+            // Push sample.
+            rrss_samples.push_back(rrss_sample);
         }
     }
-
-    // Redundancy-reduced sample set.
-    Rrss rrss(rrss_samples);
-    if (!rrss.disableUntil(wi_count)) {
-        // Unreachable?
-    }
-
-    // Initialize incident directions and BSDF averages.
-    int wi_index = 0;
-    for (int rrss_wi_index = 0;
-             rrss_wi_index < rrss_wi_count; rrss_wi_index++) {
-
-        // Is sample enabled?
-        if (rrss.samples()[rrss_wi_index].is_enabled) {
-
-            // Use incident direction and BSDF average.
-            wi[wi_index] = rrss_wi[rrss_wi_index];
-            f [wi_index] = rrss_f [rrss_wi_index]; wi_index++;
-        }
-    }
-
-    // Initialize path count.
-    path_count = rrss_path_count;
 
     // Delete RRSS BSDF-PDFs.
     delete[] rrss_f_pdf;
@@ -392,6 +382,27 @@ void FileData::Slice::computeIncidentDirs(
 
     // Delete RRSS incident directions.
     delete[] rrss_wi;
+
+    // Redundancy-reduced sample set.
+    Rrss rrss(rrss_samples);
+    if (!rrss.disableUntil(wi_count)) {
+        // Unreachable?
+        // TODO Throw
+    }
+
+    // Initialize incident directions and BSDF averages.
+    incident_dirs.clear();
+    bsdf_averages.clear();
+    for (const Rrss::Sample& rrss_sample : rrss.samples()) {
+        // Is sample enabled?
+        if (rrss_sample.is_enabled) {
+            incident_dirs.push_back(rrss_sample.dir);
+            bsdf_averages.push_back(rrss_sample.val);
+        }
+    }
+
+    // Initialize path count.
+    path_count = rrss_path_count;
 }
 
 // Compute BSDF averages.

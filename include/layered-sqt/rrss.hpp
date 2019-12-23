@@ -113,16 +113,21 @@ public:
     public:
 
         /**
-         * @brief Direction.
+         * @brief Sample direction.
          */
         Vec3<Float> dir;
+
+        /**
+         * @brief Sample value.
+         */
+        Float val = 0;
         
         /**
          * @brief Target probability density.
          */
         Float pdf = 0;
 
-        /**
+        /*
          * @brief Redundancy.
          */
         Float redundancy = 1;
@@ -139,6 +144,7 @@ public:
          */
         Sample() = default;
 
+#if 0
         /**
          * @brief Constructor.
          *
@@ -148,9 +154,11 @@ public:
          * @param[in] pdf
          * Target probability density.
          */
-        Sample(const Vec3<Float>& dir, Float pdf) : dir(dir), pdf(pdf)
+        Sample(const Vec3<Float>& dir, 
+               Float pdf, Float val) : dir(dir), pdf(pdf), val(val)
         {
         }
+#endif
     };
 
 public:
