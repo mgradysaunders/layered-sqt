@@ -11,6 +11,41 @@
             style=numeric-comp]{biblatex}
 \renewcommand*\bibfont{\small}
 \addbibresource{References.bib}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codeforeground}{rgb}{0.22,0.22,0.25}
+\definecolor{codebackground}{rgb}{1,1,1}%{0.94,0.94,0.98}
+\definecolor{codeblue}{rgb}{0,0.42,0.72}
+\definecolor{codepurple}{rgb}{0.28,0.0,0.82}
+\lstdefinelanguage{LSQT}{
+    classoffset=1,
+    morekeywords={Medium, Layer},
+    keywordstyle=\color{codeblue},
+    classoffset=2,
+    morekeywords={
+        HenyeyGreensteinPhase, 
+        RayleighPhase,
+        NullBsdf,
+        LambertianBsdf,
+        MicrosurfaceLambertianBrdf,
+        MicrosurfaceDielectricBsdf,
+        OrenNayarDiffuseBrdf
+    },
+    keywordstyle=\color{codepurple},
+    classoffset=0
+}
+\newcommand\namett[2]{{\color{code#1}\texttt{#2}}}
+\lstset{
+    language=LSQT,
+    basicstyle=\color{codeforeground}\ttfamily,
+    backgroundcolor=\color{codebackground},
+    breakatwhitespace=true,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
 \raggedbottom
 \begin{document}
 \title{Layered-SQT usage}
@@ -127,44 +162,87 @@ is equivalent to just passing \texttt{example.lsqt}.
 
 A medium is characterized by its 
 absolute index of refraction $\eta \ge 1$, its absorption coefficient 
-$\mu_a \ge 0 $, its scattering coefficient $\mu_s \ge 0$, and a 
-Henyey-Greenstein phase function
+$\mu_a \ge 0 $, its scattering coefficient $\mu_s \ge 0$, and a local
+phase function model.
+
+To specify a medium, simply type the name \namett{blue}{Medium} followed
+by (optional) keywords arguments \texttt{eta}, \texttt{mua}, and
+\texttt{mus} for $\eta$, $\mu_a$, and $\mu_s$ respectively. Keyword 
+arguments for a medium have default values \texttt{eta=1}, \texttt{mua=0}, 
+\texttt{mus=0}, such that any may be omitted for brevity.
+If $\mu_s > 0$, the keyword arguments must be followed by the name 
+of the desired phase function, followed by any keyword arguments for the 
+phase function. If $\mu_s = 0$, it is not necessary to specify a phase function
+since no scattering occurs.
+
+As the defaults may suggest, \texttt{layered-sqt} considers that vacuuum 
+is just a medium with refractive index 1 which neither absorbs nor scatters. 
+So,
+\begin{lstlisting}
+Medium
+\end{lstlisting}
+specifies vacuum. Note---the implementation requires that top and 
+bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
+and issues an error if this requirement is not met.
+
+\subsection{Henyey-Greenstein phase}
+
+The Henyey-Greenstein phase function is given by 
 \begin{equation*}
     p(\omega_o\to\omega_i) = 
     \frac{1}{4\pi}
-    \frac{1-g^2}{\parens{1+g^2+2g\omega_o\cdot\omega_i}^{3/2}}
+    \frac{1-g^2}{(1+g^2+2g\omega_o\cdot\omega_i)^{3/2}}
 \end{equation*}
 with shape parameter $g\in(-1,1)$. It may be helpful to note 
 that $g$ is the mean cosine of the scattered direction with respect to the 
 incident direction, such that $p$ becomes forward scattering as $g\to1$, 
 backward scattering as $g\to-1$, and uniformly/isotropically scattering 
-as $g\to0$. Of course, the Henyey-Greenstein phase is neither the only 
-nor the canonical phase function. However, it is intuitive and often 
-good enough to reproduce phenomenology. So, at least for the time being, 
-it is hard-coded into \texttt{layered-sqt}.
+as $g\to0$.
 
-\subsection{LSQT format}
+To specify the Henyey-Greenstein phase in LSQT format, use the name
+\namett{purple}{HenyeyGreensteinPhase} followed by the (optional) keyword 
+argument \texttt{g} for $g$, which is zero by default. For example,
+\begin{lstlisting}
+Medium mus=1 HenyeyGreensteinPhase g=-0.22
+\end{lstlisting}
+specifies a moderately back-scattering medium.
 
-To specify a medium, simply type the name \texttt{Medium} followed 
-by (optional) keywords arguments \texttt{eta}, \texttt{mua}, 
-\texttt{mus}, and \texttt{g} for $\eta$, $\mu_a$, $\mu_s$, and $g$
-respectively. Keyword 
-arguments for a medium have default values \texttt{eta=1}, \texttt{mua=0}, 
-\texttt{mus=0}, \texttt{g=0}, such that any may be omitted for brevity.
-So, for example,
-\begin{verbatim}
-Medium eta=1.2 mus=0.7 g=-0.2
-\end{verbatim}
-specifies a medium with refractive index 1.2 which is non-absorbing and 
-somewhat back-scattering. As the defaults may suggest, \texttt{layered-sqt}
-considers that vacuuum is just a medium with refractive index 1 which neither
-absorbs nor scatters. So,
-\begin{verbatim}
-Medium
-\end{verbatim}
-specifies vacuum. Note---the implementation requires that top and 
-bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
-and issues an error if this requirement is not met.
+\subsection{Rayleigh phase}
+The general form of the Rayleigh phase function is given by
+\begin{equation*}
+    p(\omega_o\to\omega_i) = 
+    \frac{3}{16\pi}
+    \bracks{
+        \frac{1 + 3\gamma}{1 + 2\gamma} +
+        \frac{1 -  \gamma}{1 + 2\gamma} (\omega_o\cdot\omega_i)^2}
+\end{equation*}
+where
+\begin{equation*}
+    \gamma = \frac{\rho}{2 - \rho}
+\end{equation*}
+where, in turn, $\rho \in [-1, 1]$ is a shaping parameter known as 
+the \emph{depolarization factor}. The simpler, more common form of the
+Rayleigh phase function is given by
+\begin{equation*}
+    p(\omega_o\to\omega_i) = \frac{3}{16\pi}(1 + (\omega_o\cdot\omega_i)^2),
+\end{equation*}
+which is obtained by setting $\rho = 0$. 
+
+The Rayleigh phase function prefers parallel scattering
+to perpendicular scattering. That is to say, scattering in directions 
+perpendicular to the direction of propagation is diminished, and scattering 
+is symmetric in terms of forward- versus back-scattering. This effect is 
+maximized as $\rho \to -1$ and minimized as $\rho \to +1$. Note that $p$ 
+becomes uniformly/isotropically scattering in the limiting case $\rho = +1$.
+
+To specify the Rayleigh phase function in LSQT format, use the name 
+\namett{purple}{RayleighPhase} followed by the (optional) keyword argument
+\texttt{rho} for $\rho$, which is zero by default. For example,
+\begin{lstlisting}
+Medium mus=1 RayleighPhase rho=-0.5
+\end{lstlisting}
+specifies a medium with an exaggerated ``Rayleigh effect'' relative to the
+common form where $\rho=0$.
 
 \section{Layers}
 
@@ -173,15 +251,14 @@ a local BSDF model. As different BSDF models require different
 parameters, there is a different ``type'' of layer for each 
 BSDF model implemented in \texttt{layered-sqt}. 
 
-\subsection{LSQT format (common to all layers)}
-
+%\paragraph{LSQT format.}
 Every layer accepts $z$-height as a parameter, so every line describing a 
-layer must begin with the name \texttt{Layer} followed by the (required) 
+layer must begin with the name \namett{blue}{Layer} followed by the (required)
 keyword argument \texttt{z}. This is followed in turn by the name of the 
 desired BSDF, followed by any keyword arguments for the BSDF. For example,
-\begin{verbatim}
+\begin{lstlisting}
 Layer z=1 NullBsdf
-\end{verbatim}
+\end{lstlisting}
 specifies a layer at $z$-height 1 with a null BSDF. As explained in 
 the next sub-section, a null BSDF is a special case which accepts no additional
 keyword arguments.
@@ -195,19 +272,19 @@ is violated, the implementation issues an error and exits.
 
 It is occasionally desirable to separate media 
 \emph{without} scattering at a layer. This is possible in
-\texttt{layered-sqt} by assigning a null BSDF (with name 
-\texttt{NullBsdf}), which may be interpreted as a 100\% transmissive 
-directional delta function aligned to the direction a ray is already 
-traveling. This is useful, for example, to model a layer of dust on 
-top of a surface. To do so, we might specify the following
-LSQT file
-\begin{verbatim}
+\texttt{layered-sqt} by assigning a null BSDF with name 
+\namett{purple}{NullBsdf}, which may be interpreted as a 100\% 
+transmissive directional delta function aligned to the direction a 
+ray is already traveling. This is useful, for example, to model a 
+layer of dust on top of a surface. To do so, we might specify the 
+following LSQT file
+\begin{lstlisting}
 Medium
 Layer z=1 NullBsdf
-Medium g=0.2 mus=1
+Medium mus=1 HenyeyGreensteinPhase g=0.2
 Layer z=0 LambertianBsdf fR=1 fT=0
 Medium
-\end{verbatim}
+\end{lstlisting}
 which describes a layer of forward-scattering ``dust'' on top 
 of a 100\% reflective Lambertian surface.
 
@@ -247,17 +324,15 @@ be non-negative numbers such that $f_R + f_T \le 1$ for this to be
 physically plausible. In the event that $f_R + f_T = 1$, this is
 perfectly energy-conserving.
 
-\subsubsection{LSQT format}
-
 To specify the Lambertian BSDF in LSQT format, use the name
-\texttt{LambertianBsdf} followed by keyword arguments \texttt{fR}
-and \texttt{fT} for $f_R$ and $f_T$ respectively. The implementation
-requires that the values of \texttt{fR} and \texttt{fT} be physically
-plausible, i.e., non-negative numbers whose sum does not exceed 1.
+\namett{purple}{LambertianBsdf} followed by keyword arguments 
+\texttt{fR} and \texttt{fT} for $f_R$ and $f_T$ respectively. The 
+implementation requires that the values of \texttt{fR} and \texttt{fT} 
+be physically plausible, i.e., non-negative numbers whose sum does not exceed 1.
 For example,
-\begin{verbatim}
+\begin{lstlisting}
 Layer z=2.2 LambertianBsdf fR=0.8 fT=0.1
-\end{verbatim}
+\end{lstlisting}
 specifies a Lambertian surface at $z$-height 2.2 which is 80\% reflective,
 10\% transmissive, and 10\% absorptive. 
 
@@ -286,27 +361,26 @@ iterations $n_{\text{iter}} \ge 1$. For rougher microsurfaces
 (say, $\alpha > 0.4$), it is typically more efficient to increase 
 $n_{\text{iter}}$ rather than the global path count.
 
-\subsubsection{LSQT format}
-
-To specify the microsurface Lambertian BRDF in LSQT format, use the 
-name 
-\begin{verbatim}
-MicrosurfaceLambertianBsdf
-\end{verbatim}
+To specify the microsurface Lambertian BRDF 
+in LSQT format, use the name 
+\begin{lstlisting}
+MicrosurfaceLambertianBrdf
+\end{lstlisting}
 followed by (optional) keyword arguments 
 \texttt{alpha}, \texttt{fR}, and \texttt{iter\_count} for $\alpha$,
 $f_R$, and $n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
 \texttt{fR=1}, and \texttt{iter\_count} is chosen to be 1, 2, 4, or 6 
-depending on \texttt{alpha}. Furthermore, multiple scattering may be 
-disabled by the keyword argument
-\begin{verbatim}
+depending on \texttt{alpha}. For reference, $\alpha < 0.1$ is very smooth, 
+$0.1 < \alpha < 0.8$ is somewhat rough, and $0.8 < \alpha$ is very rough.
+Furthermore, multiple scattering may be disabled by the keyword argument
+\begin{lstlisting}
 use_multiple_scattering=false
-\end{verbatim}
+\end{lstlisting}
 in which case only the single scattering term is computed. It is 
 important to note that, if multiple-scattering interactions are 
 ignored, then setting \texttt{fR=1} does not guarantee that the BRDF 
 is perfectly energy conserving. 
-For small roughness values (say, $\alpha < 0.05$), the energy carried by 
+For small roughness values (say, $\alpha < 0.1$), the energy carried by 
 multiple scattering interations is insignificant, and so this may not be a
 concern. For large roughness values however, multiple scattering is important
 to prevent energy loss.
@@ -321,20 +395,20 @@ factor for the Fresnel mirror BRDF $k_R \in [0, 1]$, a scaling factor for
 the Fresnel mirror BTDF $k_T \in [0, 1]$, and the number of local stochastic 
 process iterations $n_{\text{iter}} \ge 1$.
 
-\subsubsection{LSQT format}
-To specify the microsurface dielectric BSDF in LSQT format, use the name
-\begin{verbatim}
+To specify the microsurface dielectric BSDF 
+in LSQT format, use the name
+\begin{lstlisting}
 MicrosurfaceDielectricBsdf
-\end{verbatim}
+\end{lstlisting}
 followed by (optional) keyword arguments \texttt{alpha}, \texttt{kR},
 \texttt{kT}, and \texttt{iter\_count} for $\alpha$, $k_R$, $k_T$, and 
 $n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
 \texttt{kR=1}, \texttt{kT=1}, and \texttt{iter\_count} is chosen to 
-be 1, 2, 4, or 6 depending on \texttt{alpha}. As in the Lambertian case,
+be 1, 2, 4, or 6 depending on \texttt{alpha}. As in the Lambertian case, 
 multiple-scattering may be disabled by the keyword argument
-\begin{verbatim}
+\begin{lstlisting}
 use_multiple_scattering=false
-\end{verbatim}
+\end{lstlisting}
 so that only the single-scattering term is computed. Unlike the
 Lambertian case however, the single-scattering term is directly 
 computable (without a stochastic process) due to the delta function 
