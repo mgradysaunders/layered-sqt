@@ -219,6 +219,10 @@ public:
         friend class TriFileData;
     };
 
+    /**
+     * @brief Render sphere example.
+     */
+    void renderSphereExample(int image_dim, Float* image_pixels) const;
 
 private:
 

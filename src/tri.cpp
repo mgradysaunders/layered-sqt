@@ -27,6 +27,9 @@
  */
 /*+-+*/
 #include <preform/delaunay.hpp>
+#include <preform/image2.hpp>
+#include <preform/image_filters.hpp>
+#include <preform/float_interval.hpp>
 #include <layered-sqt/tri.hpp>
 
 namespace ls {
@@ -134,15 +137,15 @@ Float TriFileData::value(
                 const Vec3<Float>& wi) const
 {
     Float cos_thetao = wo[2];
-    Float cos2_thetao = cos_thetao * cos_thetao;
-    cos2_thetao = pr::fmin(cos2_thetao, Float(+1));
-    cos2_thetao = pr::fmax(cos2_thetao, Float(-1));
-    Float sin2_thetao = 1 - cos2_thetao;
-    Float sin_thetao = pr::sqrt(sin2_thetao);
+    cos_thetao = pr::fmin(cos_thetao, Float(+1));
+    cos_thetao = pr::fmax(cos_thetao, Float(-1));
+//    Float cos2_thetao = cos_thetao * cos_thetao;
+//    Float sin2_thetao = 1 - cos2_thetao;
+//  Float sin_thetao = pr::sqrt(sin2_thetao);
+    Float sin_thetao = pr::hypot(wo[0], wo[1]);
     Float cos_phio = wo[0] / sin_thetao;
     Float sin_phio = wo[1] / sin_thetao;
-    if (!(pr::isfinite(cos_phio) && 
-          pr::isfinite(sin_phio))) {
+    if (sin_thetao < 0.000001) {
         cos_phio = 1;
         sin_phio = 0;
     }
@@ -168,19 +171,19 @@ Float TriFileData::value(
         if (slice_itr == slices_.end()) {
             slice_itr--;
         }
-        return slice_itr->value(wi_local).value_or(0);
+        return slice_itr->value(wi_local).value_or(0) * pr::fabs(wi[2]);
     }
     else {
         const Slice& slice1 = *slice_itr--;
         const Slice& slice0 = *slice_itr;
         Float val0 = slice0.value(wi_local).value_or(0);
         Float val1 = slice1.value(wi_local).value_or(0);
-        if (val0 == 0) return val1;
-        if (val1 == 0) return val0;
+        if (val0 == 0) return val1 * pr::fabs(wi[2]);
+        if (val1 == 0) return val0 * pr::fabs(wi[2]);
         Float cos_thetao0 = slice0.outgoing_dirz_;
         Float cos_thetao1 = slice1.outgoing_dirz_;
         Float fac = (cos_thetao - cos_thetao0) / (cos_thetao1 - cos_thetao0);
-        return (1 - fac) * val0 + fac * val1;
+        return ((1 - fac) * val0 + fac * val1) * pr::fabs(wi[2]);
     }
 }
 
@@ -201,26 +204,172 @@ void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
     auto bsdf_average = file_data_slice.bsdf_averages.begin();
     for (; bsdf_average < file_data_slice.bsdf_averages.end();) {
 
+        Vec3<Float> wi = *incident_dir++;
+        Float f = *bsdf_average++ / pr::fabs(wi[2]);
+        if (!pr::isfinite(f)) {
+            continue;
+        }
+
         // In upper hemisphere?
-        if ((*incident_dir)[2] > 0) {
+        if (wi[2] > 0) {
             // Add to upper hemisphere.
-            locs_upper.push_back(*incident_dir);
-            vals_upper.push_back(*bsdf_average);
+            locs_upper.push_back(wi);
+            vals_upper.push_back(f);
         }
         else {
             // Add to lower hemisphere.
-            locs_lower.push_back(*incident_dir);
-            vals_lower.push_back(*bsdf_average);
+            locs_lower.push_back(wi);
+            vals_lower.push_back(f);
         }
+    }
 
-        // Increment.
-        incident_dir++;
-        bsdf_average++;
+    for (int k = 0; k < 128; k++) {
+        Float phi = k / 128.0 * 
+            pr::numeric_constants<Float>::M_pi() * 2;
+        Vec2<Float> loc = {
+            pr::cos(phi),
+            pr::sin(phi)
+        };
+        locs_upper.push_back(loc);
+        locs_lower.push_back(loc);
+        Float val_upper = 0, tmp_upper = pr::numeric_limits<Float>::infinity();
+        Float val_lower = 0, tmp_lower = pr::numeric_limits<Float>::infinity();
+        for (int k = 0; k < int(vals_upper.size()); k++) {
+            Vec2<Float> dif = locs_upper[k] - loc;
+            if (tmp_upper > pr::dot(dif, dif)) {
+                tmp_upper = pr::dot(dif, dif);
+                val_upper = vals_upper[k];
+            }
+        }
+        for (int k = 0; k < int(vals_lower.size()); k++) {
+            Vec2<Float> dif = locs_lower[k] - loc;
+            if (tmp_lower > pr::dot(dif, dif)) {
+                tmp_lower = pr::dot(dif, dif);
+                val_lower = vals_lower[k];
+            }
+        }
+        vals_upper.push_back(val_upper);
+        vals_lower.push_back(val_lower);
     }
 
     // Initialize.
     bsdf_upper_.init(locs_upper, vals_upper);
     bsdf_lower_.init(locs_lower, vals_lower);
+}
+
+// Intersect unit sphere.
+static 
+bool intersectUnitSphere(Ray ray, Hit& hit)
+{
+    // Float interval.
+    typedef pr::float_interval<Float> FloatInterval;
+    FloatInterval t0;
+    FloatInterval t1;
+    FloatInterval::solve_poly2(
+            pr::dot(ray.pos, ray.pos) - 1,
+            pr::dot(ray.dir, ray.pos) * 2,
+            pr::dot(ray.dir, ray.dir),
+            t0, t1);
+    constexpr Float tmin = 0;
+    constexpr Float tmax = pr::numeric_limits<Float>::infinity();
+    if (!(t0.upper_bound() < tmax &&
+          t1.lower_bound() > tmin)) {
+        return false;
+    }
+
+    // Select root.
+    FloatInterval t = t0;
+    if (!(t.upper_bound() < tmax &&
+          t.lower_bound() > tmin)) {
+        t = t1;
+        if (!(t.upper_bound() < tmax &&
+              t.lower_bound() > tmin)) {
+            return false;
+        }
+    }
+
+    // Initialize hit.
+    hit.pos = pr::normalize_fast(ray.pos + ray.dir * t.value());
+    return true;
+}
+
+// Render sphere example.
+void TriFileData::renderSphereExample(int image_dim, Float* image_pixels) const
+{
+    if (!(image_dim > 0 && 
+          image_pixels)) {
+        throw std::invalid_argument(__PRETTY_FUNCTION__);
+    }
+
+    // 2-dimensional image with 1 channel.
+    typedef pr::image2<Float, Float, 1> Image;
+
+    // 2-dimensional Mitchell filter.
+    typedef pr::mitchell_filter2<Float> ImageFilter;
+
+    // Initialize image.
+    Image image;
+    image.resize(Vec2<int>{image_dim, image_dim});
+
+    // Initialize image filter.
+    ImageFilter image_filter;
+    Vec2<Float> image_filter_rad = {1, 1};
+
+    // Initialize light directions.
+    Vec3<Float> l0 = pr::normalize(Vec3<Float>{+5, -1, -4});
+    Vec3<Float> l1 = pr::normalize(Vec3<Float>{-1, -2, +2});
+
+    // Iterate pixels.
+    for (int i = 0; i < image_dim; i++)
+    for (int j = 0; j < image_dim; j++) {
+
+        // Iterate sub-pixel samples.
+        for (int k = 0; k < 3; k++)
+        for (int l = 0; l < 3; l++) {
+
+            // Image location.
+            Vec2<Float> image_loc = {
+                Float(i) + Float(k) / 3,
+                Float(j) + Float(l) / 3
+            };
+
+            // Ray end points.
+            Vec3<Float> pos0 = {0, 0, -4};
+            Vec3<Float> pos1 = {
+                3 * (image_loc[0] / image_dim - Float(0.5)),
+                3 * (image_loc[1] / image_dim - Float(0.5)),
+                0
+            };
+            Ray ray;
+            ray.pos = pos0;
+            ray.dir = pr::normalize(pos1 - pos0);
+
+            // Intersect unit sphere.
+            Hit hit;
+            if (intersectUnitSphere(ray, hit)) {
+
+                // Reconstruct image.
+                Mat3<Float> tbn = 
+                Mat3<Float>::build_onb(hit.pos);
+                Vec3<Float> wo = pr::dot(pr::transpose(tbn), -ray.dir);
+                Vec3<Float> wi0 = pr::dot(pr::transpose(tbn), l0);
+                Vec3<Float> wi1 = pr::dot(pr::transpose(tbn), l1);
+                Float f0 = value(wo, wi0);
+                Float f1 = value(wo, wi1);
+                image.reconstruct(
+                        {(2 * f0 + f1) / 9},
+                        image_loc,
+                        image_filter_rad,
+                        image_filter);
+            }
+        }
+    }
+
+    // Write image pixels.
+    for (int i = 0; i < image_dim; i++)
+    for (int j = 0; j < image_dim; j++) {
+        *image_pixels++ = image(i, j)[0];
+    }
 }
 
 } // namespace ls

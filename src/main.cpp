@@ -47,6 +47,7 @@ int main(int argc, char** argv)
     int wi_count = 80;
     int rrss_oversampling = 4;
     int rrss_path_count = 6000;
+    bool use_lss = true;
     int thread_count = 0;
     std::string ifs_filename;
     std::string ofs_filename = "Layered.raw";
@@ -183,6 +184,16 @@ int main(int argc, char** argv)
        "BRDF/BSDF when forming the Redundancy-Reduced Sample Set (RRSS) of\n"
        "incident directions for each outgoing direction.\n";
 
+    // --no-lss
+    opt_parser.on_option(nullptr, "--no-lss", 0,
+    [&](char**) {
+        use_lss = false;
+    })
+    << "Disable use of LSS files to store in-progress simulation data.\n"
+       "Note, this disables reading and writing of LSS files entirely. To\n"
+       "rewrite an LSS file from scratch, simply delete it, then rerun the\n"
+       "simulation as usual.\n";
+
     // -t/--thread-count
     opt_parser.on_option("-t", "--thread-count", 1,
     [&](char** argv) {
@@ -307,7 +318,7 @@ int main(int argc, char** argv)
     ls::FileData file_data;
 
     std::string lss_filename;
-    if (ifs_filename != "-") {
+    if (ifs_filename != "-" && use_lss) {
         lss_filename = ifs_filename + ".lss";
     }
 
