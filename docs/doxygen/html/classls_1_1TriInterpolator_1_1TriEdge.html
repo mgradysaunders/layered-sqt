@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.13"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Layered-SQT: ls::TriInterpolator::Tri Class Reference</title>
+<title>Layered-SQT: ls::TriInterpolator::TriEdge Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,49 +63,65 @@ $(function() {
 <div id="main-nav"></div>
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="namespacels.html">ls</a></li><li class="navelem"><a class="el" href="classls_1_1TriInterpolator.html">TriInterpolator</a></li><li class="navelem"><a class="el" href="classls_1_1TriInterpolator_1_1Tri.html">Tri</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacels.html">ls</a></li><li class="navelem"><a class="el" href="classls_1_1TriInterpolator.html">TriInterpolator</a></li><li class="navelem"><a class="el" href="classls_1_1TriInterpolator_1_1TriEdge.html">TriEdge</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="classls_1_1TriInterpolator_1_1Tri-members.html">List of all members</a>  </div>
+<a href="classls_1_1TriInterpolator_1_1TriEdge-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">ls::TriInterpolator::Tri Class Reference</div>  </div>
+<div class="title">ls::TriInterpolator::TriEdge Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Triangle.  
- <a href="classls_1_1TriInterpolator_1_1Tri.html#details">More...</a></p>
+<p>Triangle edge on convex hull.  
+ <a href="classls_1_1TriInterpolator_1_1TriEdge.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad8bb6620af54dd39c621df4e683d1d0e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1Tri.html#ad8bb6620af54dd39c621df4e683d1d0e">value</a> (const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;loc) const</td></tr>
-<tr class="memdesc:ad8bb6620af54dd39c621df4e683d1d0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interpolate value.  <a href="#ad8bb6620af54dd39c621df4e683d1d0e">More...</a><br /></td></tr>
-<tr class="separator:ad8bb6620af54dd39c621df4e683d1d0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12039182d51a6ec6eba013033b2ac5bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1TriEdge.html#a12039182d51a6ec6eba013033b2ac5bc">value</a> (const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;loc, <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &amp;val, <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &amp;min_dist) const</td></tr>
+<tr class="memdesc:a12039182d51a6ec6eba013033b2ac5bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interpolate value.  <a href="#a12039182d51a6ec6eba013033b2ac5bc">More...</a><br /></td></tr>
+<tr class="separator:a12039182d51a6ec6eba013033b2ac5bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:af695ef13313478d4532584749a452626"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classls_1_1TriInterpolator_1_1Vertex.html">Vertex</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1Tri.html#af695ef13313478d4532584749a452626">vertices</a> [3]</td></tr>
-<tr class="memdesc:af695ef13313478d4532584749a452626"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertices.  <a href="#af695ef13313478d4532584749a452626">More...</a><br /></td></tr>
-<tr class="separator:af695ef13313478d4532584749a452626"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf7b59f093636cb7c879d9dbec47e44e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classls_1_1TriInterpolator_1_1Vertex.html">Vertex</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1TriEdge.html#adf7b59f093636cb7c879d9dbec47e44e">vertices</a> [2]</td></tr>
+<tr class="memdesc:adf7b59f093636cb7c879d9dbec47e44e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertices.  <a href="#adf7b59f093636cb7c879d9dbec47e44e">More...</a><br /></td></tr>
+<tr class="separator:adf7b59f093636cb7c879d9dbec47e44e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Triangle. </p>
+<div class="textblock"><p>Triangle edge on convex hull. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ad8bb6620af54dd39c621df4e683d1d0e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad8bb6620af54dd39c621df4e683d1d0e">&#9670;&nbsp;</a></span>value()</h2>
+<a id="a12039182d51a6ec6eba013033b2ac5bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12039182d51a6ec6eba013033b2ac5bc">&#9670;&nbsp;</a></span>value()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::TriInterpolator::Tri::value </td>
+          <td class="memname">void ls::TriInterpolator::TriEdge::value </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>loc</em></td><td>)</td>
-          <td> const</td>
+          <td class="paramname"><em>loc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &amp;&#160;</td>
+          <td class="paramname"><em>val</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &amp;&#160;</td>
+          <td class="paramname"><em>min_dist</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -114,22 +130,23 @@ Public Attributes</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">loc</td><td>Location.</td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">val</td><td>Value.</td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">min_dist2</td><td>Minimum distance square so far. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>If location is outside triangle, returns <code>std::nullopt</code>. </dd></dl>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="af695ef13313478d4532584749a452626"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af695ef13313478d4532584749a452626">&#9670;&nbsp;</a></span>vertices</h2>
+<a id="adf7b59f093636cb7c879d9dbec47e44e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf7b59f093636cb7c879d9dbec47e44e">&#9670;&nbsp;</a></span>vertices</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classls_1_1TriInterpolator_1_1Vertex.html">Vertex</a> ls::TriInterpolator::Tri::vertices[3]</td>
+          <td class="memname"><a class="el" href="classls_1_1TriInterpolator_1_1Vertex.html">Vertex</a> ls::TriInterpolator::TriEdge::vertices[2]</td>
         </tr>
       </table>
 </div><div class="memdoc">

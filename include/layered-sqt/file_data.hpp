@@ -150,6 +150,11 @@ public:
                 int path_count_to_add_per_iter = 4096);
 
         /**
+         * @brief Normalize BSDF to be non-absorbing.
+         */
+        void normalizeBsdf();
+
+        /**
          * @brief Any transmitted directions?
          */
         bool anyTransmitted() const

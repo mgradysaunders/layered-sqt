@@ -2,14 +2,19 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Project.
-project(layered-sqt VERSION 0.1 LANGUAGES CXX)
+project(layered-sqt VERSION 0.1 LANGUAGES C CXX)
 
 # Set release.
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# Set compile flags.
+# Set C compile flags.
+set(CMAKE_C_FLAGS "-Wall -Wextra -march=native -mtune=native")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
+
+# Set C++ compile flags.
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -march=native -mtune=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
@@ -56,6 +61,15 @@ set(CORE_SOURCES
     )
 
 # Add library.
+add_library(stbiw STATIC "${CMAKE_CURRENT_SOURCE_DIR}/src/stb_image_write.c")
+set_target_properties(
+    stbiw
+    PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED True
+    )
+
+# Add library.
 add_library(layered-sqt-core STATIC ${CORE_SOURCES})
 set_target_cxx17(layered-sqt-core)
 set_target_common_include_directories(layered-sqt-core)
@@ -87,3 +101,4 @@ add_executable(
 set_target_cxx17(layered-sqt-lssview)
 set_target_common_include_directories(layered-sqt-lssview)
 target_link_libraries(layered-sqt-lssview layered-sqt-core)
+target_link_libraries(layered-sqt-lssview stbiw)

@@ -53,8 +53,11 @@ void TriInterpolator::init(
         }
     }
 
+    // Delaunay triangulation.
     DelaunayTriangulation delaunay;
     delaunay.init(locs.begin(), locs.end());
+
+    // Add triangles.
     tris_.reserve(delaunay.triangles().size());
     for (const auto& index_tri : delaunay.triangles()) {
         Tri tri;
@@ -63,6 +66,17 @@ void TriInterpolator::init(
             tri.vertices[k].val = vals[index_tri[k]];
         }
         tris_.push_back(tri);
+    }
+
+    // Add triangle edges on convex hull.
+    tri_edges_.reserve(delaunay.boundary_edges().size());
+    for (const auto& boundary_edge : delaunay.boundary_edges()) {
+        TriEdge tri_edge;
+        tri_edge.vertices[0].loc = locs[boundary_edge.a];
+        tri_edge.vertices[0].val = vals[boundary_edge.a];
+        tri_edge.vertices[1].loc = locs[boundary_edge.b];
+        tri_edge.vertices[1].val = vals[boundary_edge.b];
+        tri_edges_.push_back(tri_edge);
     }
 }
 
@@ -101,14 +115,55 @@ std::optional<Float> TriInterpolator::Tri::value(const Vec2<Float>& loc) const
     return std::make_optional(val);
 }
 
-// Value.
-std::optional<Float> TriInterpolator::value(const Vec2<Float>& loc) const
+// Interpolate value.
+void TriInterpolator::TriEdge::value(
+                const Vec2<Float>& loc, 
+                Float& val,
+                Float& min_dist2) const
 {
-    std::optional<Float> val = std::nullopt;
+    // Segment locations.
+    const Vec2<Float>& seg_loc0 = vertices[0].loc;
+    const Vec2<Float>& seg_loc1 = vertices[1].loc;
+    Vec2<Float> seg_vec = seg_loc1 - seg_loc0;
+
+    // Find nearest location on segment.
+    Float u = 
+        pr::dot(seg_vec, loc - seg_loc0) / 
+        pr::dot(seg_vec, seg_vec);
+    u = pr::fmin(u, Float(1));
+    u = pr::fmax(u, Float(0));
+    Vec2<Float> seg_loc = (1 - u) * seg_loc0 + u * seg_loc1;
+    Float cur_dist2 = pr::dot(loc - seg_loc, loc - seg_loc);
+    if (!(cur_dist2 < min_dist2)) {
+        return;
+    }
+    else {
+        // Update minimum distance square.
+        min_dist2 = cur_dist2;
+
+        // Update value.
+        const Float& seg_val0 = vertices[0].val;
+        const Float& seg_val1 = vertices[1].val;
+        val = (1 - u) * seg_val0 + u * seg_val1;
+    }
+}
+
+// Value.
+Float TriInterpolator::value(const Vec2<Float>& loc) const
+{
+    // Interpolate.
     for (Tri tri : tris_) {
+        std::optional<Float> val = std::nullopt;
         if ((val = tri.value(loc)).has_value()) {
-            break;
+            return val.value();
         }
+    }
+
+    // Location is outside convex hull.
+    Float val = 0;
+    Float min_dist2 = pr::numeric_limits<Float>::infinity();
+    for (TriEdge tri_edge : tri_edges_) {
+        tri_edge.value(loc, val, min_dist2);
     }
     return val;
 }
@@ -139,9 +194,6 @@ Float TriFileData::value(
     Float cos_thetao = wo[2];
     cos_thetao = pr::fmin(cos_thetao, Float(+1));
     cos_thetao = pr::fmax(cos_thetao, Float(-1));
-//    Float cos2_thetao = cos_thetao * cos_thetao;
-//    Float sin2_thetao = 1 - cos2_thetao;
-//  Float sin_thetao = pr::sqrt(sin2_thetao);
     Float sin_thetao = pr::hypot(wo[0], wo[1]);
     Float cos_phio = wo[0] / sin_thetao;
     Float sin_phio = wo[1] / sin_thetao;
@@ -171,15 +223,13 @@ Float TriFileData::value(
         if (slice_itr == slices_.end()) {
             slice_itr--;
         }
-        return slice_itr->value(wi_local).value_or(0) * pr::fabs(wi[2]);
+        return slice_itr->value(wi_local) * pr::fabs(wi[2]);
     }
     else {
         const Slice& slice1 = *slice_itr--;
         const Slice& slice0 = *slice_itr;
-        Float val0 = slice0.value(wi_local).value_or(0);
-        Float val1 = slice1.value(wi_local).value_or(0);
-        if (val0 == 0) return val1 * pr::fabs(wi[2]);
-        if (val1 == 0) return val0 * pr::fabs(wi[2]);
+        Float val0 = slice0.value(wi_local);
+        Float val1 = slice1.value(wi_local);
         Float cos_thetao0 = slice0.outgoing_dirz_;
         Float cos_thetao1 = slice1.outgoing_dirz_;
         Float fac = (cos_thetao - cos_thetao0) / (cos_thetao1 - cos_thetao0);
@@ -204,52 +254,23 @@ void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
     auto bsdf_average = file_data_slice.bsdf_averages.begin();
     for (; bsdf_average < file_data_slice.bsdf_averages.end();) {
 
-        Vec3<Float> wi = *incident_dir++;
-        Float f = *bsdf_average++ / pr::fabs(wi[2]);
-        if (!pr::isfinite(f)) {
+        Vec3<Float> loc = *incident_dir++;
+        Float val = *bsdf_average++ / pr::fabs(loc[2]);
+        if (!pr::isfinite(val)) {
             continue;
         }
 
         // In upper hemisphere?
-        if (wi[2] > 0) {
+        if (!pr::signbit(loc[2])) {
             // Add to upper hemisphere.
-            locs_upper.push_back(wi);
-            vals_upper.push_back(f);
+            locs_upper.push_back(loc);
+            vals_upper.push_back(val);
         }
         else {
             // Add to lower hemisphere.
-            locs_lower.push_back(wi);
-            vals_lower.push_back(f);
+            locs_lower.push_back(loc);
+            vals_lower.push_back(val);
         }
-    }
-
-    for (int k = 0; k < 128; k++) {
-        Float phi = k / 128.0 * 
-            pr::numeric_constants<Float>::M_pi() * 2;
-        Vec2<Float> loc = {
-            pr::cos(phi),
-            pr::sin(phi)
-        };
-        locs_upper.push_back(loc);
-        locs_lower.push_back(loc);
-        Float val_upper = 0, tmp_upper = pr::numeric_limits<Float>::infinity();
-        Float val_lower = 0, tmp_lower = pr::numeric_limits<Float>::infinity();
-        for (int k = 0; k < int(vals_upper.size()); k++) {
-            Vec2<Float> dif = locs_upper[k] - loc;
-            if (tmp_upper > pr::dot(dif, dif)) {
-                tmp_upper = pr::dot(dif, dif);
-                val_upper = vals_upper[k];
-            }
-        }
-        for (int k = 0; k < int(vals_lower.size()); k++) {
-            Vec2<Float> dif = locs_lower[k] - loc;
-            if (tmp_lower > pr::dot(dif, dif)) {
-                tmp_lower = pr::dot(dif, dif);
-                val_lower = vals_lower[k];
-            }
-        }
-        vals_upper.push_back(val_upper);
-        vals_lower.push_back(val_lower);
     }
 
     // Initialize.
@@ -294,7 +315,7 @@ bool intersectUnitSphere(Ray ray, Hit& hit)
 }
 
 // Render sphere example.
-void TriFileData::renderSphereExample(int image_dim, Float* image_pixels) const
+void TriFileData::renderSphereExample(int image_dim, float* image_pixels) const
 {
     if (!(image_dim > 0 && 
           image_pixels)) {
@@ -302,7 +323,7 @@ void TriFileData::renderSphereExample(int image_dim, Float* image_pixels) const
     }
 
     // 2-dimensional image with 1 channel.
-    typedef pr::image2<Float, Float, 1> Image;
+    typedef pr::image2<Float, float, 1> Image;
 
     // 2-dimensional Mitchell filter.
     typedef pr::mitchell_filter2<Float> ImageFilter;
@@ -316,8 +337,9 @@ void TriFileData::renderSphereExample(int image_dim, Float* image_pixels) const
     Vec2<Float> image_filter_rad = {1, 1};
 
     // Initialize light directions.
-    Vec3<Float> l0 = pr::normalize(Vec3<Float>{+5, -1, -4});
-    Vec3<Float> l1 = pr::normalize(Vec3<Float>{-1, -2, +2});
+    Vec3<Float> l0 = pr::normalize(Vec3<Float>{-5, +2, -4});
+    Vec3<Float> l1 = pr::normalize(Vec3<Float>{+1, +2, +2});
+    Vec3<Float> l2 = pr::normalize(Vec3<Float>{+2, -3, 0});
 
     // Iterate pixels.
     for (int i = 0; i < image_dim; i++)
@@ -336,8 +358,8 @@ void TriFileData::renderSphereExample(int image_dim, Float* image_pixels) const
             // Ray end points.
             Vec3<Float> pos0 = {0, 0, -4};
             Vec3<Float> pos1 = {
-                3 * (image_loc[0] / image_dim - Float(0.5)),
-                3 * (image_loc[1] / image_dim - Float(0.5)),
+                -3 * (image_loc[1] / image_dim - Float(0.5)),
+                -3 * (image_loc[0] / image_dim - Float(0.5)),
                 0
             };
             Ray ray;
@@ -354,10 +376,12 @@ void TriFileData::renderSphereExample(int image_dim, Float* image_pixels) const
                 Vec3<Float> wo = pr::dot(pr::transpose(tbn), -ray.dir);
                 Vec3<Float> wi0 = pr::dot(pr::transpose(tbn), l0);
                 Vec3<Float> wi1 = pr::dot(pr::transpose(tbn), l1);
-                Float f0 = value(wo, wi0);
+                Vec3<Float> wi2 = pr::dot(pr::transpose(tbn), l2);
+                Float f0 = value(wo, wi0) * 2;
                 Float f1 = value(wo, wi1);
+                Float f2 = value(wo, wi2) * Float(0.08);
                 image.reconstruct(
-                        {(2 * f0 + f1) / 9},
+                        {(f0 + f1 + f2) / 9},
                         image_loc,
                         image_filter_rad,
                         image_filter);

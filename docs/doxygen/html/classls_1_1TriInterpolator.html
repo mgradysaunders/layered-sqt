@@ -85,6 +85,12 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1Tri.html">Tri</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangle.  <a href="classls_1_1TriInterpolator_1_1Tri.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1TriEdge.html">TriEdge</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangle edge on convex hull.  <a href="classls_1_1TriInterpolator_1_1TriEdge.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator_1_1Vertex.html">Vertex</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertex.  <a href="classls_1_1TriInterpolator_1_1Vertex.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -94,21 +100,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a454fc2464f4010382bc431bce686a21b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#a454fc2464f4010382bc431bce686a21b">init</a> (const std::vector&lt; <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&gt; &amp;locs, const std::vector&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;vals)</td></tr>
 <tr class="memdesc:a454fc2464f4010382bc431bce686a21b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize.  <a href="#a454fc2464f4010382bc431bce686a21b">More...</a><br /></td></tr>
 <tr class="separator:a454fc2464f4010382bc431bce686a21b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa46c53ed4d7a05eee49b78d1237e0dab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#aa46c53ed4d7a05eee49b78d1237e0dab">init</a> (const std::vector&lt; <a class="el" href="classls_1_1TriInterpolator_1_1Tri.html">Tri</a> &gt; &amp;tris)</td></tr>
-<tr class="memdesc:aa46c53ed4d7a05eee49b78d1237e0dab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize directly.  <a href="#aa46c53ed4d7a05eee49b78d1237e0dab">More...</a><br /></td></tr>
-<tr class="separator:aa46c53ed4d7a05eee49b78d1237e0dab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a647c8185e23b59d03eadeaa30ab32aca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#a647c8185e23b59d03eadeaa30ab32aca">clear</a> ()</td></tr>
-<tr class="memdesc:a647c8185e23b59d03eadeaa30ab32aca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear.  <a href="#a647c8185e23b59d03eadeaa30ab32aca">More...</a><br /></td></tr>
-<tr class="separator:a647c8185e23b59d03eadeaa30ab32aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3cdc3dc25600140725097273473795c"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#ab3cdc3dc25600140725097273473795c">value</a> (const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;loc) const</td></tr>
-<tr class="memdesc:ab3cdc3dc25600140725097273473795c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interpolate value.  <a href="#ab3cdc3dc25600140725097273473795c">More...</a><br /></td></tr>
-<tr class="separator:ab3cdc3dc25600140725097273473795c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a39ac88026643cffcfa58ec14cbbcb3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#a9a39ac88026643cffcfa58ec14cbbcb3">value</a> (const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;loc) const</td></tr>
+<tr class="memdesc:a9a39ac88026643cffcfa58ec14cbbcb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interpolate value.  <a href="#a9a39ac88026643cffcfa58ec14cbbcb3">More...</a><br /></td></tr>
+<tr class="separator:a9a39ac88026643cffcfa58ec14cbbcb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
 <tr class="memitem:afffd6f11353f097ede12f80e17fbcee5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classls_1_1TriInterpolator_1_1Tri.html">Tri</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#afffd6f11353f097ede12f80e17fbcee5">tris_</a></td></tr>
 <tr class="memdesc:afffd6f11353f097ede12f80e17fbcee5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangles.  <a href="#afffd6f11353f097ede12f80e17fbcee5">More...</a><br /></td></tr>
 <tr class="separator:afffd6f11353f097ede12f80e17fbcee5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba6778c7d2526d28865ca0d82a1e296c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classls_1_1TriInterpolator_1_1TriEdge.html">TriEdge</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html#aba6778c7d2526d28865ca0d82a1e296c">tri_edges_</a></td></tr>
+<tr class="memdesc:aba6778c7d2526d28865ca0d82a1e296c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangle edges on convex hull.  <a href="#aba6778c7d2526d28865ca0d82a1e296c">More...</a><br /></td></tr>
+<tr class="separator:aba6778c7d2526d28865ca0d82a1e296c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Triangle interpolator. </p>
@@ -142,7 +145,7 @@ Private Attributes</h2></td></tr>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a454fc2464f4010382bc431bce686a21b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a454fc2464f4010382bc431bce686a21b">&#9670;&nbsp;</a></span>init() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a454fc2464f4010382bc431bce686a21b">&#9670;&nbsp;</a></span>init()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -171,82 +174,21 @@ Private Attributes</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">locs</td><td>Locations.</td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">vals</td><td>Values. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">vals</td><td>Values at each location. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="aa46c53ed4d7a05eee49b78d1237e0dab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa46c53ed4d7a05eee49b78d1237e0dab">&#9670;&nbsp;</a></span>init() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ls::TriInterpolator::init </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="classls_1_1TriInterpolator_1_1Tri.html">Tri</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>tris</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Initialize directly. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">tris</td><td>Triangles. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a647c8185e23b59d03eadeaa30ab32aca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a647c8185e23b59d03eadeaa30ab32aca">&#9670;&nbsp;</a></span>clear()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ls::TriInterpolator::clear </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Clear. </p>
-
-</div>
-</div>
-<a id="ab3cdc3dc25600140725097273473795c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab3cdc3dc25600140725097273473795c">&#9670;&nbsp;</a></span>value()</h2>
+<a id="a9a39ac88026643cffcfa58ec14cbbcb3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a39ac88026643cffcfa58ec14cbbcb3">&#9670;&nbsp;</a></span>value()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::TriInterpolator::value </td>
+          <td class="memname"><a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> ls::TriInterpolator::value </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>loc</em></td><td>)</td>
@@ -287,6 +229,30 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Triangles. </p>
+
+</div>
+</div>
+<a id="aba6778c7d2526d28865ca0d82a1e296c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba6778c7d2526d28865ca0d82a1e296c">&#9670;&nbsp;</a></span>tri_edges_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="classls_1_1TriInterpolator_1_1TriEdge.html">TriEdge</a>&gt; ls::TriInterpolator::tri_edges_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Triangle edges on convex hull. </p>
 
 </div>
 </div>

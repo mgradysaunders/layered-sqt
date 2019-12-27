@@ -52,29 +52,29 @@ class TriInterpolator
 public:
 
     /**
+     * @brief Vertex.
+     */
+    class Vertex 
+    {
+    public:
+
+        /**
+         * @brief Location.
+         */
+        Vec2<Float> loc;
+
+        /**
+         * @brief Value.
+         */
+        Float val = 0;
+    };
+
+    /**
      * @brief Triangle.
      */
     class Tri
     {
     public:
-
-        /**
-         * @brief Vertex.
-         */
-        class Vertex 
-        {
-        public:
-
-            /**
-             * @brief Location.
-             */
-            Vec2<Float> loc;
-
-            /**
-             * @brief Value.
-             */
-            Float val = 0;
-        };
 
         /**
          * @brief Vertices.
@@ -86,8 +86,41 @@ public:
          *
          * @param[in] loc
          * Location.
+         *
+         * @note
+         * If location is outside triangle, returns `std::nullopt`.
          */
         std::optional<Float> value(const Vec2<Float>& loc) const;
+    };
+
+    /**
+     * @brief Triangle edge on convex hull.
+     */
+    class TriEdge
+    {
+    public:
+
+        /**
+         * @brief Vertices.
+         */
+        Vertex vertices[2];
+
+        /**
+         * @brief Interpolate value.
+         *
+         * @param[in] loc
+         * Location.
+         *
+         * @param[inout] val
+         * Value.
+         *
+         * @param[inout] min_dist2
+         * Minimum distance square so far.
+         */
+        void value(
+                const Vec2<Float>& loc, 
+                Float& val,
+                Float& min_dist) const;
     };
 
     /**
@@ -102,29 +135,24 @@ public:
      * Locations.
      *
      * @param[in] vals
-     * Values.
+     * Values at each location.
      */
     void init(const std::vector<Vec2<Float>>& locs,
               const std::vector<Float>& vals);
 
-    /**
-     * @brief Initialize directly.
-     *
-     * @param[in] tris
-     * Triangles.
-     */
-    void init(const std::vector<Tri>& tris)
-    {
-        tris_ = tris;
-    }
-
+#if 0
     /**
      * @brief Clear.
      */
     void clear()
     {
+        // Clear triangles.
         tris_.clear();
+
+        // Clear triangle edges on convex hull.
+        tri_edges_.clear();
     }
+#endif
 
     /**
      * @brief Interpolate value.
@@ -132,7 +160,7 @@ public:
      * @param[in] loc
      * Location.
      */
-    std::optional<Float> value(const Vec2<Float>& loc) const;
+    Float value(const Vec2<Float>& loc) const;
 
 private:
 
@@ -140,6 +168,11 @@ private:
      * @brief Triangles.
      */
     std::vector<Tri> tris_;
+
+    /**
+     * @brief Triangle edges on convex hull.
+     */
+    std::vector<TriEdge> tri_edges_;
 };
 
 /**
@@ -191,7 +224,7 @@ public:
          * @param[in] dir
          * Direction.
          */
-        std::optional<Float> value(const Vec3<Float>& dir) const
+        Float value(const Vec3<Float>& dir) const
         {
             return dir[2] > 0 ?
                     bsdf_upper_.value(Vec2<Float>(dir)) :
@@ -222,7 +255,7 @@ public:
     /**
      * @brief Render sphere example.
      */
-    void renderSphereExample(int image_dim, Float* image_pixels) const;
+    void renderSphereExample(int image_dim, float* image_pixels) const;
 
 private:
 
