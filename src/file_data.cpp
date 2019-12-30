@@ -51,7 +51,7 @@ void FileData::basicInit(int wo_count, int wi_count, int seed)
         // Outgoing angle.
         Float thetao = 
             wo_index / Float(wo_count) * 
-            pr::numeric_constants<Float>::M_pi_2();
+            pr::numeric_constants<Float>::M_pi_2() * Float(0.99);
 
         // Initialize outgoing direction.
         slice.outgoing_angle = thetao;

@@ -149,10 +149,12 @@ public:
                 int path_count_to_add,
                 int path_count_to_add_per_iter = 4096);
 
+#if 0
         /**
          * @brief Normalize BSDF to be non-absorbing.
          */
         void normalizeBsdf();
+#endif
 
         /**
          * @brief Any transmitted directions?

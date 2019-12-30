@@ -221,14 +221,18 @@ public:
         /**
          * @brief Value.
          *
-         * @param[in] dir
-         * Direction.
+         * @param[in] loc
+         * Warped location.
+         *
+         * @param[in] dirz
+         * Direction component in Z.
          */
-        Float value(const Vec3<Float>& dir) const
+        Float value(const Vec2<Float>& loc, Float dirz) const
         {
-            return dir[2] > 0 ?
-                    bsdf_upper_.value(Vec2<Float>(dir)) :
-                    bsdf_lower_.value(Vec2<Float>(dir));
+            return (dirz > 0 ?
+                    bsdf_upper_.value(Vec2<Float>(loc)) :
+                    bsdf_lower_.value(Vec2<Float>(loc))) * 
+                    pr::fabs(dirz);
         }
 
     private:

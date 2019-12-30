@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     bool use_lss = true;
     int thread_count = 0;
     std::string ifs_filename;
-    std::string ofs_filename = "Layered.raw";
+    std::string ofs_filename;
 
     // -s/--seed
     opt_parser.on_option("-s", "--seed", 1,
@@ -220,7 +220,9 @@ int main(int argc, char** argv)
     [&](char** argv) {
         ofs_filename = argv[0];
     })
-    << "Specify output filename. By default, Layered.raw.\n";
+    << "Specify output filename. By default, formed by adding \".raw\"\n"
+       "to input filename. If input filename is \"-\" to indicate standard\n"
+       "input, then is \"Layered.raw\" by default.\n";
 
     // -h/--help
     opt_parser.on_option("-h", "--help", 0,
@@ -255,6 +257,14 @@ int main(int argc, char** argv)
     if (ifs_filename.empty()) {
         std::cout << opt_parser << std::endl;
         std::exit(EXIT_SUCCESS);
+    }
+    else if (ofs_filename.empty()) {
+        if (ifs_filename == "-") {
+            ofs_filename = "Layered.raw";
+        }
+        else {
+            ofs_filename = ifs_filename + ".raw";
+        }
     }
 
     // Hardware concurrency unavailable?

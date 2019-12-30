@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
+#include <cctype>
 #include <fstream>
 #include <preform/color.hpp>
 #include <preform/option_parser.hpp>
@@ -33,9 +34,130 @@
 #include <layered-sqt/file_data.hpp>
 #include <layered-sqt/tri.hpp>
 
+// Get filename extension in lowercase.
+std::string getFilenameExtension(const std::string& filename)
+{
+    std::size_t pos = filename.find_last_of('.');
+    if (pos == std::string::npos) {
+        return std::string();
+    }
+    else {
+        std::string ext = filename.substr(pos);
+        std::transform(
+                ext.begin(), ext.end(), 
+                ext.begin(),
+                [](unsigned char c) {
+                    return std::tolower(c);
+                });
+        return ext;
+    }
+}
+
 extern "C" {
-extern int stbi_write_png(const char*, int, int, int, const void*, int);
+
+typedef void stbi_write_func(void*, void*, int);
+
+extern 
+int stbi_write_png_to_func(
+    stbi_write_func*, void*, int, int, int, const void*, int);
+
+extern 
+int stbi_write_bmp_to_func(
+    stbi_write_func*, void*, int, int, int, const void*);
+
+extern 
+int stbi_write_tga_to_func(
+    stbi_write_func*, void*, int, int, int, const void*);
+
+extern 
+int stbi_write_jpg_to_func(
+    stbi_write_func*, void*, int, int, int, const void*, int);
+
+void ofsWriter(void* ofs, void* data, int data_size)
+{
+    static_cast<std::ofstream*>(ofs)->write(
+    static_cast<char*>(data), data_size);
+}
+
 } // extern "C"
+
+void stbiWriteImage(
+        const std::string& ofs_filename,
+        int image_sizex, 
+        int image_sizey,
+        int image_comp,
+        const std::uint8_t* image_data)
+{
+    std::ofstream ofs(
+            ofs_filename,
+            std::ios_base::out |
+            std::ios_base::binary);
+    if (!ofs.is_open() || 
+        !ofs.good()) {
+        throw 
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": can't open file"));
+
+    }
+
+    int err = 0;
+    std::string ext = getFilenameExtension(ofs_filename);
+    if (ext == ".png") {
+        err =
+        stbi_write_png_to_func(
+                ofsWriter, 
+                static_cast<void*>(&ofs),
+                image_sizex,
+                image_sizey,
+                image_comp,
+                image_data,
+                image_sizex * image_comp);
+    }
+    else if (ext == ".bmp") {
+        err =
+        stbi_write_bmp_to_func(
+                ofsWriter, 
+                static_cast<void*>(&ofs),
+                image_sizex,
+                image_sizey,
+                image_comp,
+                image_data);
+    }
+    else if (ext == ".tga") {
+        err =
+        stbi_write_tga_to_func(
+                ofsWriter, 
+                static_cast<void*>(&ofs),
+                image_sizex,
+                image_sizey,
+                image_comp,
+                image_data);
+    }
+    else if (ext == ".jpg") {
+        err =
+        stbi_write_jpg_to_func(
+                ofsWriter, 
+                static_cast<void*>(&ofs),
+                image_sizex,
+                image_sizey,
+                image_comp,
+                image_data, 90);
+    }
+    else {
+        throw 
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": unknown extension"));
+    }
+
+    if (err == 0 || !ofs.good()) {
+        throw
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": write failure"));
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -44,7 +166,7 @@ int main(int argc, char** argv)
     int image_dim = 512;
     float image_mul = 1.0f;
     std::string ifs_filename;
-    std::string ofs_filename = "preview.png";
+    std::string ofs_filename;
 
     // --image-dim
     opt_parser.on_option(nullptr, "--image-dim", 1,
@@ -89,9 +211,29 @@ int main(int argc, char** argv)
     // -o/--output
     opt_parser.on_option("-o", "--output", 1,
     [&](char** argv) {
-        ofs_filename = argv[0];
+        try {
+            // Must have 5 or more characters. 
+            ofs_filename = argv[0];
+            std::string ext = getFilenameExtension(ofs_filename);
+            if (ext != ".png" &&
+                ext != ".tga" &&
+                ext != ".bmp" && 
+                ext != ".jpg") {
+                throw std::exception();
+            }
+        }
+        catch (const std::exception&) {
+            throw
+                std::runtime_error(
+                std::string("-o/--output expects string ending with ")
+                    .append("\".png\", \".tga\", \".bmp\", or \".jpg\" ")
+                    .append("(can't parse ").append(argv[0])
+                    .append(")"));
+        }
     })
-    << "Specify output filename. By default, preview.png.\n";
+    << "Specify output filename. By default, formed by adding \".png\"\n"
+       "to input filename. Note, if this filename is specified, it must end\n"
+       "with \".png\", \".bmp\", \".tga\", or \".jpg\".\n";
 
     // -h/--help
     opt_parser.on_option("-h", "--help", 0,
@@ -125,6 +267,9 @@ int main(int argc, char** argv)
     if (ifs_filename.empty()) {
         std::cout << opt_parser << std::endl;
         std::exit(EXIT_SUCCESS);
+    }
+    else if (ofs_filename.empty()) {
+        ofs_filename = ifs_filename + ".png";
     }
 
     ls::FileData file_data;
@@ -189,30 +334,18 @@ int main(int argc, char** argv)
         std::cout << "Writing " << ofs_filename << "...\n";
         std::cout.flush();
 
-#if 0
-        // Open filestream.
-        std::ofstream ofs(ofs_filename);
-
-        // Write header.
-        ofs << "P2\n";
-        ofs << image_dim << ' ';
-        ofs << image_dim << '\n';
-        ofs << "255\n";
-
-        // Write pixels.
-        for (int j = 0; j < image_dim; j++)
-        for (int i = 0; i < image_dim; i++) {
-            ofs << int(image_pixu8[i * image_dim + j]) << ' ';
+        try {
+            stbiWriteImage(
+                    ofs_filename, 
+                    image_dim, 
+                    image_dim, 
+                    1,
+                    image_pixu8);
         }
-#else
-        // TODO Error handling
-        stbi_write_png(
-                ofs_filename.c_str(), 
-                image_dim, 
-                image_dim, 
-                1,
-                image_pixu8, image_dim);
-#endif
+        catch (const std::exception& exception) {
+            std::cerr << "Unhandled exception!\n";
+            std::cerr << "exception.what(): " << exception.what() << "\n";
+        }
 
         // Done.
         std::cout << "Done.\n\n";
