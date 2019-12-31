@@ -44,7 +44,8 @@
     showspaces=false,
     showstringspaces=false,
     showtabs=false,
-    tabsize=2
+    tabsize=2,
+    frame=single
 }
 \raggedbottom
 \begin{document}
@@ -158,7 +159,77 @@ $ cat example.lsqt | \
 \end{verbatim}
 is equivalent to just passing \texttt{example.lsqt}.
 
-\section{Participating media}
+\section{Tutorial}
+
+This section provides a series of progressively more interesting
+``learn-by-doing'' tutorials, which should naturally introduce the
+concepts and features in \texttt{layered-sqt}. To get started, create
+a working directory \texttt{lsqt-tutorial} and link the relevant programs
+for easy access. From your home directory on one of the Carlson CIS servers, 
+type the following commands:
+\begin{verbatim}
+$ mkdir lsqt-tutorial && cd lsqt-tutorial
+$ BIN_LSQT=/cis/phd/mgs8033/layered-sqt/bin
+$ ln -s $TMP_PATH/layered-sqt
+$ ln -s $TMP_PATH/layered-sqt-lssview
+$ ln -s /dirs/pkg/dirsig/bin/raw2sqt
+\end{verbatim}
+
+\subsection{Hello, world}
+
+Let's start with something mind-numbingly simple---a 100\% reflective
+Lambertian surface.
+
+% TODO
+
+\section{Documentation}
+\label{sec:doc}
+
+This section documents the properties of participating media and 
+scattering layers in more detail, and enumerates the available 
+scattering models for media and layers, and how to specify them in 
+LSQT format. Note that ``phase function'', ``BRDF'', and ``BSDF'' are
+specific types of scattering models. In particular,
+\begin{itemize}
+    \item a \emph{phase function} is a scattering model which accounts
+        for volume-scattering within a participating medium,
+    \item a \emph{BRDF}, i.e., a \emph{Bidirectional Reflectance Distribution 
+        Function}, is a scattering model which accounts for only reflection at 
+        a surface, and
+    \item a \emph{BSDF}, i.e., a \emph{Bidirectional Scattering Distribution 
+        Function}, is a scattering model which accounts for reflection and 
+        transmission at a surface.
+\end{itemize}
+
+Note that phase functions are normalized by 
+definition, as volume-absorbtion is accounted for by a separate parameter. 
+BRDFs and BSDFs, however, account for absorption as well as scattering, 
+and so are only normalized if the model is non-absorbing (in other words,
+perfectly energy conserving). To state all of this more rigorously, a
+phase function $p$ is normalized with respect to integration over 
+incident directions $\omega_i$, such that
+\begin{equation*}
+    \int_{\mathcal{S}^2} p(\omega_o\to\omega_i) \diff{\omega_i} = 1.
+\end{equation*}
+However, a BRDF/BSDF $f$ is only normalized as such if it is 
+non-absorbing,
+\begin{equation*}
+    \int_{\mathcal{S}^2} f(\omega_o\to\omega_i) \diff{\omega_i} = 1
+    \iff \text{$f$ is non-absorbing.}
+\end{equation*}
+
+As this ought to suggest---this document follows the convention that BRDFs 
+and BSDFs contain an implicit cosine-weighting with respect to incident
+direction. This is often written explicitly elsewhere in the literature,
+such that the above normalization condition is written as
+\begin{equation*}
+    \int_{\mathcal{S}^2} f(\omega_o\to\omega_i) \verts{\cos{\theta_i}}
+    \diff{\omega_i} = 1.
+\end{equation*}
+We effectively make the substitution $f\gets f|{\cos{\theta_i}}|$.
+
+\subsection{Participating media}
+\label{sec:doc-participating-media}
 
 A medium is characterized by its 
 absolute index of refraction $\eta \ge 1$, its absorption coefficient 
@@ -185,7 +256,7 @@ specifies vacuum. Note---the implementation requires that top and
 bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
 and issues an error if this requirement is not met.
 
-\subsection{Henyey-Greenstein phase}
+\subsubsection{Henyey-Greenstein phase}
 
 The Henyey-Greenstein phase function is given by 
 \begin{equation*}
@@ -207,7 +278,7 @@ Medium mus=1 HenyeyGreensteinPhase g=-0.22
 \end{lstlisting}
 specifies a moderately back-scattering medium.
 
-\subsection{Rayleigh phase}
+\subsubsection{Rayleigh phase}
 The general form of the Rayleigh phase function is given by
 \begin{equation*}
     p(\omega_o\to\omega_i) = 
@@ -244,14 +315,14 @@ Medium mus=1 RayleighPhase rho=-0.5
 specifies a medium with an exaggerated ``Rayleigh effect'' relative to the
 common form where $\rho=0$.
 
-\section{Layers}
+\subsection{Layers}
+\label{sec:doc-layers}
 
 A layer is characterized by its $z$-height and 
 a local BSDF model. As different BSDF models require different 
 parameters, there is a different ``type'' of layer for each 
 BSDF model implemented in \texttt{layered-sqt}. 
 
-%\paragraph{LSQT format.}
 Every layer accepts $z$-height as a parameter, so every line describing a 
 layer must begin with the name \namett{blue}{Layer} followed by the (required)
 keyword argument \texttt{z}. This is followed in turn by the name of the 
@@ -268,13 +339,13 @@ such that the $z$-heights of subsequent layers in an LSQT file are
 strictly decreasing. If this condition 
 is violated, the implementation issues an error and exits.
 
-\subsection{Null BSDF}
+\subsubsection{Null BSDF}
 
-It is occasionally desirable to separate media 
+At times, it is desirable to separate participating media 
 \emph{without} scattering at a layer. This is possible in
 \texttt{layered-sqt} by assigning a null BSDF with name 
 \namett{purple}{NullBsdf}, which may be interpreted as a 100\% 
-transmissive directional delta function aligned to the direction a 
+transmissive directional delta function in the direction a 
 ray is already traveling. This is useful, for example, to model a 
 layer of dust on top of a surface. To do so, we might specify the 
 following LSQT file
@@ -305,7 +376,7 @@ of a 100\% reflective Lambertian surface.
 \end{center}
 \end{figure*}
 
-\subsection{Lambertian BSDF}
+\subsubsection{Lambertian BSDF}
 
 The Lambertian BSDF models a uniformly scattering surface which 
 may reflect, transmit, or both. That is, the (cosine-weighted)
@@ -336,7 +407,7 @@ Layer z=2.2 LambertianBsdf fR=0.8 fT=0.1
 specifies a Lambertian surface at $z$-height 2.2 which is 80\% reflective,
 10\% transmissive, and 10\% absorptive. 
 
-\subsection{Microsurface Lambertian BRDF}
+\subsubsection{Microsurface Lambertian BRDF}
 
 A microsurface is thought 
 to be an infinitesimally thin cloud of microfacets, where each facet 
@@ -385,7 +456,7 @@ multiple scattering interations is insignificant, and so this may not be a
 concern. For large roughness values however, multiple scattering is important
 to prevent energy loss.
 
-\subsection{Microsurface dielectric BSDF}
+\subsubsection{Microsurface dielectric BSDF}
 
 The microsurface dielectric BSDF follows the same logical construction as 
 the microsurface Lambertian BRDF, except the constituent BSDF assigned to the
@@ -417,7 +488,7 @@ in the Fresnel mirror BSDF---such that disabling multiple-scattering makes
 simulations, though still at the cost of significant
 energy loss for rough surfaces.
 
-\subsection{Oren-Nayar diffuse BRDF}
+\subsubsection{Oren-Nayar diffuse BRDF}
 
 TODO
 
