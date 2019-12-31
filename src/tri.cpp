@@ -186,6 +186,33 @@ void TriFileData::init(const FileData& file_data)
         });
 }
 
+// Polar warping.
+static Vec2<Float> polarLoc(const Vec3<Float>& wi)
+{
+    Float cos_thetai = pr::fabs(wi[2]);
+    Float sin_thetai = pr::hypot(wi[0], wi[1]);
+    cos_thetai = pr::fmin(cos_thetai, Float(1));
+    sin_thetai = pr::fmin(sin_thetai, Float(1));
+    Float thetai;
+    if (cos_thetai < sin_thetai) {
+        thetai = pr::acos(cos_thetai);
+    }
+    else {
+        thetai = pr::asin(sin_thetai);
+    }
+    Float cos_phii = wi[0] / sin_thetai;
+    Float sin_phii = wi[1] / sin_thetai;
+    if (!pr::isfinite(cos_phii) ||
+        !pr::isfinite(sin_phii)) {
+        cos_phii = 1;
+        sin_phii = 0;
+    }
+    return {
+        thetai * cos_phii,
+        thetai * sin_phii
+    };
+}
+
 // Value.
 Float TriFileData::value(
                 const Vec3<Float>& wo, 
@@ -210,34 +237,7 @@ Float TriFileData::value(
     };
 
     // Apply warping.
-    Vec2<Float> wi_loc;
-    Float cos_thetai = wi[2];
-    cos_thetai = pr::fmin(cos_thetai, Float(+1));
-    cos_thetai = pr::fmax(cos_thetai, Float(-1));
-    if (pr::fabs(cos_thetai) > Float(0.70710678)) {
-        wi_loc[0] = wi[0];
-        wi_loc[1] = wi[1];
-    }
-    else {
-        Float sin_thetai = pr::hypot(wi[0], wi[1]);
-        Float cos_phii = wi[0] / sin_thetai;
-        Float sin_phii = wi[1] / sin_thetai;
-        if (sin_thetai < 0.000001) {
-            cos_phii = 1;
-            sin_phii = 0;
-        }
-        Float r = 
-            Float(2) *
-            pr::numeric_constants<Float>::M_1_pi() *
-            pr::numeric_constants<Float>::M_sqrt2() * 
-            pr::asin(sin_thetai);
-        wi_loc[0] = r * cos_phii;
-        wi_loc[1] = r * sin_phii;
-        if (!(pr::isfinite(wi_loc[0]) && 
-              pr::isfinite(wi_loc[1]))) {
-            return 0;
-        }
-    }
+    Vec2<Float> wi_loc = polarLoc(wi);
 
     auto slice_itr = 
     std::lower_bound(
@@ -284,41 +284,13 @@ void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
     for (; bsdf_average < file_data_slice.bsdf_averages.end();) {
 
         Vec3<Float> wi = *incident_dir++;
-        Vec2<Float> wi_loc;
         Float wi_val = *bsdf_average++ / pr::fabs(wi[2]);
         if (!pr::isfinite(wi_val)) {
             continue;
         }
 
-        // Apply warping.
-        Float cos_thetai = wi[2];
-        cos_thetai = pr::fmin(cos_thetai, Float(+1));
-        cos_thetai = pr::fmax(cos_thetai, Float(-1));
-        if (pr::fabs(cos_thetai) > Float(0.70710678)) {
-            wi_loc[0] = wi[0];
-            wi_loc[1] = wi[1];
-        }
-        else {
-            Float sin_thetai = pr::hypot(wi[0], wi[1]);
-            Float cos_phii = wi[0] / sin_thetai;
-            Float sin_phii = wi[1] / sin_thetai;
-            if (sin_thetai < 0.000001) {
-                cos_phii = 1;
-                sin_phii = 0;
-                continue;
-            }
-            Float r = 
-                Float(2) *
-                pr::numeric_constants<Float>::M_1_pi() *
-                pr::numeric_constants<Float>::M_sqrt2() * 
-                pr::asin(sin_thetai);
-            wi_loc[0] = r * cos_phii;
-            wi_loc[1] = r * sin_phii;
-            if (!(pr::isfinite(wi_loc[0]) &&
-                  pr::isfinite(wi_loc[1]))) {
-                continue;
-            }
-        }
+        // Warping.
+        Vec2<Float> wi_loc = polarLoc(wi);
 
         // In upper hemisphere?
         if (!pr::signbit(wi[2])) {
