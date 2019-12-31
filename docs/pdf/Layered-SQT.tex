@@ -165,11 +165,11 @@ This section provides a series of progressively more interesting
 ``learn-by-doing'' tutorials, which should naturally introduce the
 concepts and features in \texttt{layered-sqt}. To get started, create
 a working directory \texttt{lsqt-tutorial} and link the relevant programs
-for easy access. From your home directory on one of the Carlson CIS servers, 
+for easy access. From one of the Carlson CIS servers, 
 type the following commands:
 \begin{verbatim}
 $ mkdir lsqt-tutorial && cd lsqt-tutorial
-$ BIN_LSQT=/cis/phd/mgs8033/layered-sqt/bin
+$ TMP_PATH=/cis/phd/mgs8033/layered-sqt/bin
 $ ln -s $TMP_PATH/layered-sqt
 $ ln -s $TMP_PATH/layered-sqt-lssview
 $ ln -s /dirs/pkg/dirsig/bin/raw2sqt
@@ -177,10 +177,66 @@ $ ln -s /dirs/pkg/dirsig/bin/raw2sqt
 
 \subsection{Hello, world}
 
-Let's start with something mind-numbingly simple---a 100\% reflective
-Lambertian surface.
+Let's start with something mind-numbingly simple---a 100\% 
+reflective Lambertian surface. First, create and enter a 
+sub-directory \texttt{tutorial1},
+\begin{verbatim}
+$ mkdir tutorial1 && cd tutorial1
+\end{verbatim}
+Using whatever text-editing program you prefer, create a 
+plain-text LSQT file $\texttt{Lambertian.lsqt}$ with three lines:
+\begin{lstlisting}
+Medium
+Layer z=0 LambertianBsdf fR=1 fT=0
+Medium
+\end{lstlisting}
+As an aside, LSQT format input is syntax-highlighted in this 
+document. However, syntax-highlighting files/add-ons are not
+available (yet) for any text editor.
 
-% TODO
+Now, run \texttt{layered-sqt} on \texttt{Lambertian.lsqt}, 
+\begin{verbatim}
+$ ../layered-sqt Lambertian.lsqt
+\end{verbatim}
+which should write two new files: \texttt{Lambertian.lsqt.lss} and
+\texttt{Lambertian.lsqt.raw}. As stated in the introduction, we may
+convert the plain-text RAW file to a binary SQT file for use with 
+DIRSIG by running \texttt{raw2sqt},
+\begin{verbatim}
+$ ../raw2sqt Lambertian.lsqt.raw
+\end{verbatim}
+which generates the final SQT file \texttt{Lambertian.lsqt.sqt}
+suitable for use in a DIRSIG scene.
+
+Now, what is the LSS file?
+\emph{LSS} is an initialism for \emph{LSQT-Slice}, which is the
+name of the internal file format \texttt{layered-sqt} uses to store 
+simulation data, and it is useful 1) for previewing the layered BSDF
+\emph{without setting up and rendering a DIRSIG scene}, and 2) for
+simulating a layered BSDF progressively, with multiple runs of 
+\texttt{layered-sqt}.
+
+Run \texttt{layered-sqt-lssview} to preview the Lambertian BRDF.
+\begin{verbatim}
+$ ../layered-sqt-lssview Lambertian.lsqt.lss
+\end{verbatim}
+This should write a new file, \texttt{Lambertian.lsqt.lss.png}, which 
+is a 512x512 rendering of the BSDF applied to a ball. When connected 
+to the CIS server with X-window support (from a Linux machine, log-in 
+with \texttt{ssh -X}), this image may be viewed by running \texttt{eog}.
+\begin{verbatim}
+$ eog Lambertian.lsqt.lss.png
+\end{verbatim}
+
+Importantly, \texttt{layered-sqt-lssview} is \emph{not} a full-blown
+path-tracer, and may not perfectly represent how the BSDF will appear
+in DIRSIG. It only accounts for the direct (first bounce) contributions 
+of a few directional light sources, and it further uses tone-mapping and
+sRGB correction, such that the output image is not suitable for any
+radiometric analysis. The intended use of this preview image is to 
+determine if a simulated BSDF is suitably convergent/noise-free.
+
+TODO
 
 \section{Documentation}
 \label{sec:doc}
