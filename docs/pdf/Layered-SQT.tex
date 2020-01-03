@@ -176,10 +176,11 @@ $ ln -s /dirs/pkg/dirsig/bin/raw2sqt
 \end{verbatim}
 
 \subsection{Hello, world}
+\label{sec:tutorial1}
 
-Let's start with something mind-numbingly simple---a 100\% 
+Let's start with something mind-numbingly simple---a 60\% 
 reflective Lambertian surface. First, create and enter a 
-sub-directory \texttt{tutorial1},
+sub-directory \texttt{tutorial1}.
 \begin{verbatim}
 $ mkdir tutorial1 && cd tutorial1
 \end{verbatim}
@@ -187,7 +188,7 @@ Using whatever text-editing program you prefer, create a
 plain-text LSQT file $\texttt{Lambertian.lsqt}$ with three lines:
 \begin{lstlisting}
 Medium
-Layer z=0 LambertianBsdf fR=1 fT=0
+Layer z=0 LambertianBsdf fR=0.6 fT=0
 Medium
 \end{lstlisting}
 As an aside, LSQT format input is syntax-highlighted in this 
@@ -216,12 +217,23 @@ simulation data, and it is useful 1) for previewing the layered BSDF
 simulating a layered BSDF progressively, with multiple runs of 
 \texttt{layered-sqt}.
 
+\begin{figure}
+\begin{center}
+    \includegraphics[width=0.75\columnwidth]{tutorial1.png}
+    \caption{Image preview of a 60\% reflective Lambertian BRDF 
+    output by \texttt{layered-sqt-lssview}, as in tutorial
+    \S\ref{sec:tutorial1}.
+    \label{fig:tutorial1}}
+\end{center}
+\end{figure}
+
 Run \texttt{layered-sqt-lssview} to preview the Lambertian BRDF.
 \begin{verbatim}
 $ ../layered-sqt-lssview Lambertian.lsqt.lss
 \end{verbatim}
 This should write a new file, \texttt{Lambertian.lsqt.lss.png}, which 
-is a 512x512 rendering of the BSDF applied to a ball. When connected 
+is a 512x512 rendering of the BSDF applied to a ball, shown
+in figure \ref{fig:tutorial1}. When connected 
 to the CIS server with X-window support (from a Linux machine, log-in 
 with \texttt{ssh -X}), this image may be viewed by running \texttt{eog}.
 \begin{verbatim}
@@ -236,7 +248,63 @@ sRGB correction, such that the output image is not suitable for any
 radiometric analysis. The intended use of this preview image is to 
 determine if a simulated BSDF is suitably convergent/noise-free.
 
-TODO
+For more information on the Lambertian BSDF, refer to 
+the documentation in \S\ref{sec:doc-layers-lambertian}.
+
+\subsection{Hello, world, with roughness}
+\label{sec:tutorial2}
+
+Let's expand on \S\ref{sec:tutorial1} by simulating a 60\% reflective
+Lambertian BRDF with a rough microsurface---we assume that, microscopically,
+the surface geometry is not perfectly smooth, but is instead characterized by 
+a distribution of normals about the primary surface normal. See the 
+documentation in \S\ref{sec:doc-layers-microsurface-lambertian} for a 
+more detailed explanation.
+
+First, return to the \texttt{lsqt-tutorial} directory, and create
+and enter a new subdirectory \texttt{tutorial2}.
+\begin{verbatim}
+$ cd ..
+$ mkdir tutorial2 && cd tutorial2
+\end{verbatim}
+As before, create a new plain-text LSQT file \texttt{Rough.lsqt} 
+with three lines:
+\begin{lstlisting}
+Medium
+Layer z=0 MicrosurfaceLambertianBrdf fR=0.6 alpha=2.4
+Medium
+\end{lstlisting}
+Above, \texttt{fR=0.6} specifies that the Lambertian BRDF is 60\% 
+reflective, and \texttt{alpha=2.4} sets the roughness parameter
+$\alpha$ to be 2.4---this is very rough. Note that setting 
+\texttt{alpha=0} is effectively equivalent to using 
+\namett{purple}{LambertianBsdf} with \texttt{fR=0.6} 
+and \texttt{fT=0}.
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=0.75\columnwidth]{tutorial2.png}
+    \caption{Image preview of a 60\% reflective Lambertian BRDF
+    with a rough microsurface output by \texttt{layered-sqt-lssview}, as 
+    in tutorial \S\ref{sec:tutorial2}.
+    \label{fig:tutorial2}}
+\end{center}
+\end{figure}
+
+Now, run \texttt{layered-sqt} on \texttt{Rough.lsqt} to generate
+files \texttt{Rough.lsqt.lss} and \texttt{Rough.lsqt.raw}. This should take
+longer to simulate than before, due to the computational complexity of the
+microsurface model.
+\begin{verbatim}
+$ ../layered-sqt Rough.lsqt
+\end{verbatim}
+When this is complete, use \texttt{layered-sqt-lssview} to generate 
+\texttt{Rough.lsqt.lss.png}, shown in figure \ref{fig:tutorial2}.
+\begin{verbatim}
+$ ../layered-sqt-lssview Rough.lsqt.lss
+\end{verbatim}
+Notice that the microsurface roughness causes increased reflectance at 
+grazing angles, and decreased reflectance elsewhere.
 
 \section{Documentation}
 \label{sec:doc}
@@ -285,7 +353,7 @@ such that the above normalization condition is written as
 We effectively make the substitution $f\gets f|{\cos{\theta_i}}|$.
 
 \subsection{Participating media}
-\label{sec:doc-participating-media}
+\label{sec:doc-media}
 
 A medium is characterized by its 
 absolute index of refraction $\eta \ge 1$, its absorption coefficient 
@@ -313,6 +381,7 @@ bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
 and issues an error if this requirement is not met.
 
 \subsubsection{Henyey-Greenstein phase}
+\label{sec:doc-media-henyey-greenstein}
 
 The Henyey-Greenstein phase function is given by 
 \begin{equation*}
@@ -335,6 +404,8 @@ Medium mus=1 HenyeyGreensteinPhase g=-0.22
 specifies a moderately back-scattering medium.
 
 \subsubsection{Rayleigh phase}
+\label{sec:doc-media-rayleigh}
+
 The general form of the Rayleigh phase function is given by
 \begin{equation*}
     p(\omega_o\to\omega_i) = 
@@ -396,6 +467,7 @@ strictly decreasing. If this condition
 is violated, the implementation issues an error and exits.
 
 \subsubsection{Null BSDF}
+\label{sec:doc-layers-null}
 
 At times, it is desirable to separate participating media 
 \emph{without} scattering at a layer. This is possible in
@@ -417,8 +489,9 @@ of a 100\% reflective Lambertian surface.
 
 \begin{figure*}
 \begin{center}
-    \includegraphics[width=0.4\linewidth]{example1.png}\hspace{0.05\linewidth}%
-    \includegraphics[width=0.4\linewidth]{example2.png}
+    \includegraphics[width=0.75\columnwidth]{example1.png}%
+    \hspace{0.05\linewidth}%
+    \includegraphics[width=0.75\columnwidth]{example2.png}
     \caption{A sphere with an LSQT BRDF on a Lambertian ground plane 
         rendered from above with DIRSIG5. The LSQT BRDF models a
         dusty dielectric substrate---from top to bottom, we have a 
@@ -433,6 +506,7 @@ of a 100\% reflective Lambertian surface.
 \end{figure*}
 
 \subsubsection{Lambertian BSDF}
+\label{sec:doc-layers-lambertian}
 
 The Lambertian BSDF models a uniformly scattering surface which 
 may reflect, transmit, or both. That is, the (cosine-weighted)
@@ -464,6 +538,7 @@ specifies a Lambertian surface at $z$-height 2.2 which is 80\% reflective,
 10\% transmissive, and 10\% absorptive. 
 
 \subsubsection{Microsurface Lambertian BRDF}
+\label{sec:doc-layers-microsurface-lambertian}
 
 A microsurface is thought 
 to be an infinitesimally thin cloud of microfacets, where each facet 
@@ -513,6 +588,7 @@ concern. For large roughness values however, multiple scattering is important
 to prevent energy loss.
 
 \subsubsection{Microsurface dielectric BSDF}
+\label{sec:doc-layers-microsurface-dielectric}
 
 The microsurface dielectric BSDF follows the same logical construction as 
 the microsurface Lambertian BRDF, except the constituent BSDF assigned to the
