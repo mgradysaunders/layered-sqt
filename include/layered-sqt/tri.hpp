@@ -82,6 +82,11 @@ public:
         Vertex vertices[3];
 
         /**
+         * @brief Is open on first edge?
+         */
+        bool is_open = false;
+
+        /**
          * @brief Interpolate value.
          *
          * @param[in] loc
@@ -91,36 +96,6 @@ public:
          * If location is outside triangle, returns `std::nullopt`.
          */
         std::optional<Float> value(const Vec2<Float>& loc) const;
-    };
-
-    /**
-     * @brief Triangle edge on convex hull.
-     */
-    class TriEdge
-    {
-    public:
-
-        /**
-         * @brief Vertices.
-         */
-        Vertex vertices[2];
-
-        /**
-         * @brief Interpolate value.
-         *
-         * @param[in] loc
-         * Location.
-         *
-         * @param[inout] val
-         * Value.
-         *
-         * @param[inout] min_dist2
-         * Minimum distance square so far.
-         */
-        void value(
-                const Vec2<Float>& loc, 
-                Float& val,
-                Float& min_dist) const;
     };
 
     /**
@@ -140,7 +115,6 @@ public:
     void init(const std::vector<Vec2<Float>>& locs,
               const std::vector<Float>& vals);
 
-#if 0
     /**
      * @brief Clear.
      */
@@ -148,11 +122,7 @@ public:
     {
         // Clear triangles.
         tris_.clear();
-
-        // Clear triangle edges on convex hull.
-        tri_edges_.clear();
     }
-#endif
 
     /**
      * @brief Interpolate value.
@@ -168,11 +138,6 @@ private:
      * @brief Triangles.
      */
     std::vector<Tri> tris_;
-
-    /**
-     * @brief Triangle edges on convex hull.
-     */
-    std::vector<TriEdge> tri_edges_;
 };
 
 /**
@@ -238,9 +203,9 @@ public:
     private:
 
         /**
-         * @brief Outgoing direction Z-component.
+         * @brief Outgoing angle.
          */
-        Float outgoing_dirz_ = 0;
+        Float outgoing_angle_ = 0;
 
         /**
          * @brief Triangulated BSDF upper hemisphere.

@@ -68,39 +68,34 @@ void TriInterpolator::init(
         tris_.push_back(tri);
     }
 
-    // Add triangle edges on convex hull.
-    tri_edges_.reserve(delaunay.boundary_edges().size());
-    for (const auto& boundary_edge : delaunay.boundary_edges()) {
-        TriEdge tri_edge;
-        tri_edge.vertices[0].loc = locs[boundary_edge.a];
-        tri_edge.vertices[0].val = vals[boundary_edge.a];
-        tri_edge.vertices[1].loc = locs[boundary_edge.b];
-        tri_edge.vertices[1].val = vals[boundary_edge.b];
-        tri_edges_.push_back(tri_edge);
+    // Set open triangles.
+    for (const auto& edge : delaunay.boundary_edges()) {
+        tris_[delaunay.boundary_edge_to_triangle(edge)].is_open = true;
     }
 }
 
 // Value.
 std::optional<Float> TriInterpolator::Tri::value(const Vec2<Float>& loc) const
 {
+    // Barycentric coordinates.
     Vec2<float> h0 = vertices[0].loc - loc;
     Vec2<float> h1 = vertices[1].loc - loc;
     Vec2<float> h2 = vertices[2].loc - loc;
-    float b0 = h1[1] * h2[0] - h1[0] * h2[1];
-    float b1 = h2[1] * h0[0] - h2[0] * h0[1];
-    float b2 = h0[1] * h1[0] - h0[0] * h1[1];
+    float b0 = h1[0] * h2[1] - h1[1] * h2[0];
+    float b1 = h2[0] * h0[1] - h2[1] * h0[0];
+    float b2 = h0[0] * h1[1] - h0[1] * h1[0];
     if (b0 == 0.f ||
         b1 == 0.f ||
         b2 == 0.f) {
-        b0 = double(h1[1]) * double(h2[0]) - double(h1[0]) * double(h2[1]);
-        b1 = double(h2[1]) * double(h0[0]) - double(h2[0]) * double(h0[1]);
-        b2 = double(h0[1]) * double(h1[0]) - double(h0[0]) * double(h1[1]);
+        b0 = double(h1[0]) * double(h2[1]) - double(h1[1]) * double(h2[0]);
+        b1 = double(h2[0]) * double(h0[1]) - double(h2[1]) * double(h0[0]);
+        b2 = double(h0[0]) * double(h1[1]) - double(h0[1]) * double(h1[0]);
     }
-    if ((b0 < 0.f || b1 < 0.f || b2 < 0.f) &&
-        (b0 > 0.f || b1 > 0.f || b2 > 0.f)) {
+    if (b0 < 0.f || b1 < 0.f || (!is_open && b2 < 0.f)) {
         return std::nullopt;
     }
 
+    // Normalize.
     float q = b0 + b1 + b2;
     if (q == 0.f) {
         return std::nullopt;
@@ -108,43 +103,29 @@ std::optional<Float> TriInterpolator::Tri::value(const Vec2<Float>& loc) const
     b0 /= q;
     b1 /= q;
     b2 /= q;
-    Float val = 
-        Float(b0) * vertices[0].val + 
-        Float(b1) * vertices[1].val + 
-        Float(b2) * vertices[2].val;
-    return std::make_optional(val);
-}
 
-// Interpolate value.
-void TriInterpolator::TriEdge::value(
-                const Vec2<Float>& loc, 
-                Float& val,
-                Float& min_dist2) const
-{
-    // Segment locations.
-    const Vec2<Float>& seg_loc0 = vertices[0].loc;
-    const Vec2<Float>& seg_loc1 = vertices[1].loc;
-    Vec2<Float> seg_vec = seg_loc1 - seg_loc0;
-
-    // Find nearest location on segment.
-    Float u = 
-        pr::dot(seg_vec, loc - seg_loc0) / 
-        pr::dot(seg_vec, seg_vec);
-    u = pr::fmin(u, Float(1));
-    u = pr::fmax(u, Float(0));
-    Vec2<Float> seg_loc = (1 - u) * seg_loc0 + u * seg_loc1;
-    Float cur_dist2 = pr::dot(loc - seg_loc, loc - seg_loc);
-    if (!(cur_dist2 < min_dist2)) {
-        return;
+    // Is inside triangle?
+    if (b2 > 0.f) {
+        Float val = 
+            Float(b0) * vertices[0].val + 
+            Float(b1) * vertices[1].val + 
+            Float(b2) * vertices[2].val;
+       return std::make_optional(val);
     }
     else {
-        // Update minimum distance square.
-        min_dist2 = cur_dist2;
+        // Segment locations.
+        const Vec2<Float>& seg_loc0 = vertices[0].loc;
+        const Vec2<Float>& seg_loc1 = vertices[1].loc;
+        Vec2<Float> seg_vec = seg_loc1 - seg_loc0;
 
-        // Update value.
-        const Float& seg_val0 = vertices[0].val;
-        const Float& seg_val1 = vertices[1].val;
-        val = (1 - u) * seg_val0 + u * seg_val1;
+        // Find nearest location on segment.
+        Float u =
+            pr::dot(seg_vec, loc - seg_loc0) / 
+            pr::dot(seg_vec, seg_vec);
+        u = pr::fmin(u, Float(1));
+        u = pr::fmax(u, Float(0));
+        Float val = (1 - u) * vertices[0].val + u * vertices[1].val; 
+        return std::make_optional(val);
     }
 }
 
@@ -159,13 +140,7 @@ Float TriInterpolator::value(const Vec2<Float>& loc) const
         }
     }
 
-    // Location is outside convex hull.
-    Float val = 0;
-    Float min_dist2 = pr::numeric_limits<Float>::infinity();
-    for (TriEdge tri_edge : tri_edges_) {
-        tri_edge.value(loc, val, min_dist2);
-    }
-    return val;
+    return 0;
 }
 
 // Initialize.
@@ -181,8 +156,8 @@ void TriFileData::init(const FileData& file_data)
     // Sort by outgoing angle.
     slices_.sort(
         [=](const Slice& lhs, const Slice& rhs) {
-            return lhs.outgoing_dirz_ < 
-                   rhs.outgoing_dirz_;
+            return lhs.outgoing_angle_ < 
+                   rhs.outgoing_angle_;
         });
 }
 
@@ -228,6 +203,10 @@ Float TriFileData::value(
         cos_phio = 1;
         sin_phio = 0;
     }
+    Float thetao = 
+        pr::fabs(cos_thetao) < sin_thetao ?
+        pr::acos(cos_thetao) :
+        pr::asin(sin_thetao);
 
     // Local direction.
     Vec3<Float> wi = {
@@ -243,9 +222,9 @@ Float TriFileData::value(
     std::lower_bound(
             slices_.begin(),
             slices_.end(),
-            cos_thetao,
+            thetao,
             [=](const Slice& lhs, Float rhs) {
-                return lhs.outgoing_dirz_ < rhs;
+                return lhs.outgoing_angle_ < rhs;
             });
     if (slice_itr == slices_.begin() ||
         slice_itr == slices_.end()) {
@@ -259,9 +238,9 @@ Float TriFileData::value(
         const Slice& slice0 = *slice_itr;
         Float val0 = slice0.value(wi_loc, wi[2]);
         Float val1 = slice1.value(wi_loc, wi[2]);
-        Float cos_thetao0 = slice0.outgoing_dirz_;
-        Float cos_thetao1 = slice1.outgoing_dirz_;
-        Float fac = (cos_thetao - cos_thetao0) / (cos_thetao1 - cos_thetao0);
+        Float thetao0 = slice0.outgoing_angle_;
+        Float thetao1 = slice1.outgoing_angle_;
+        Float fac = (thetao - thetao0) / (thetao1 - thetao0);
         return (1 - fac) * val0 + fac * val1;
     }
 }
@@ -269,8 +248,8 @@ Float TriFileData::value(
 // Initialize.
 void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
 {
-    // Outgoing direction Z-component.
-    outgoing_dirz_ = file_data_slice.outgoing_dir[2];
+    // Outgoing angle.
+    outgoing_angle_ = file_data_slice.outgoing_angle;
 
     // Partition into upper/lower.
     std::vector<Vec2<Float>> locs_upper;

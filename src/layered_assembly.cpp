@@ -724,7 +724,7 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
             if (!layer_next) {
 
                 // Reject nearly parallel rays.
-                if (!(pr::fabs(ray.dir[2]) > Float(1e-2))) {
+                if (!(pr::fabs(ray.dir[2]) > Float(1e-3))) {
                     break;
                 }
                 // Exit.

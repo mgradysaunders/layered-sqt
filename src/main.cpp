@@ -46,7 +46,8 @@ int main(int argc, char** argv)
     int wo_count = 12;
     int wi_count = 80;
     int rrss_oversampling = 4;
-    int rrss_path_count = 6000;
+    int rrss_path_count = 0; // Not an option, determined by path fraction.
+    double rrss_path_frac = 0.8;
     bool use_lss = true;
     int thread_count = 0;
     std::string ifs_filename;
@@ -89,8 +90,8 @@ int main(int argc, char** argv)
        "This is the number of paths to use to estimate the emergent\n"
        "BRDF/BSDF for each outgoing direction.\n";
 
-    // --wo-count
-    opt_parser.on_option(nullptr, "--wo-count", 1,
+    // -wo/--wo-count
+    opt_parser.on_option("-wo", "--wo-count", 1,
     [&](char** argv) {
         try {
             wo_count = std::stoi(argv[0]); // This may throw.
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--wo-count expects 1 integer in [4, 1024] ")
+                std::string("-wo/--wo-count expects 1 integer in [4, 1024] ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
@@ -113,8 +114,8 @@ int main(int argc, char** argv)
        "uniformly distributed in zenith. As the emergent BRDF/BSDF must be\n"
        "isotropic, the implementation does not sample in azimuth.\n";
 
-    // --wi-count
-    opt_parser.on_option(nullptr, "--wi-count", 1,
+    // -wi/--wi-count
+    opt_parser.on_option("-wi", "--wi-count", 1,
     [&](char** argv) {
         try {
             wi_count = std::stoi(argv[0]); // This may throw.
@@ -127,7 +128,7 @@ int main(int argc, char** argv)
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--wi-count expects 1 integer in [16, 1024] ")
+                std::string("-wi/--wi-count expects 1 integer in [16, 1024] ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
@@ -137,8 +138,8 @@ int main(int argc, char** argv)
        "sampled via a Redundancy-Reduced Sample Set (RRSS) to match the\n"
        "scattering distribution of the emergent BRDF/BSDF.\n";
 
-    // --rrss-oversampling
-    opt_parser.on_option(nullptr, "--rrss-oversampling", 1,
+    // -rx/--rrss-oversampling
+    opt_parser.on_option("-rx", "--rrss-oversampling", 1,
     [&](char** argv) {
         try {
             rrss_oversampling = std::stoi(argv[0]); // This may throw.
@@ -151,7 +152,8 @@ int main(int argc, char** argv)
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--rrss-oversampling expects 1 integer in [2, 8] ")
+                std::string("-rx/--rrss-oversampling expects 1 "
+                            "integer in [2, 8] ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
@@ -161,12 +163,13 @@ int main(int argc, char** argv)
        "when forming the Redundancy-Reduced Sample Set (RRSS) of incident\n"
        "directions for each outgoing direction.\n";
 
-    // --rrss-path-count
-    opt_parser.on_option(nullptr, "--rrss-path-count", 1,
+    // -rp/--rrss-path-frac
+    opt_parser.on_option("-rp", "--rrss-path-frac", 1,
     [&](char** argv) {
         try {
-            rrss_path_count = std::stoi(argv[0]); // This may throw.
-            if (!(rrss_path_count > 0)) {
+            rrss_path_frac = std::stod(argv[0]); // This may throw.
+            if (!(rrss_path_frac > 0 &&
+                  rrss_path_frac <= 1)) {
                 // Trigger catch block manually.
                 throw std::exception();
             }
@@ -174,12 +177,12 @@ int main(int argc, char** argv)
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("--rrss-path-count expects 1 positive integer ")
+                std::string("-rp/--rrss-path-frac expects 1 float in (0, 1] ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
     })
-    << "Specify RRSS path count. By default, 6000.\n"
+    << "Specify RRSS path fraction. By default, 0.8.\n"
        "This is the number of paths to use to estimate the emergent\n"
        "BRDF/BSDF when forming the Redundancy-Reduced Sample Set (RRSS) of\n"
        "incident directions for each outgoing direction.\n";
@@ -265,6 +268,12 @@ int main(int argc, char** argv)
         else {
             ofs_filename = ifs_filename + ".raw";
         }
+    }
+
+    // RRSS path count.
+    rrss_path_count = int(rrss_path_frac * path_count);
+    if (rrss_path_count < 1) {
+        rrss_path_count = 1;
     }
 
     // Hardware concurrency unavailable?
@@ -368,11 +377,13 @@ int main(int argc, char** argv)
         // Initialize.
         file_data.basicInit(wo_count, wi_count, seed);
 
+#if 0
         // Check RRSS path count.
         if (path_count < rrss_path_count) {
             path_count = rrss_path_count;
             std::cerr << "Warning: path count less than RRSS path count\n";
         }
+#endif
     }
     else {
 
@@ -383,10 +394,10 @@ int main(int argc, char** argv)
         std::cout << "Note: using in-progress simulation, so the following\n";
         std::cout << "command line args are ignored:\n";
         std::cout << "    -s/--seed\n";
-        std::cout << "    --wo-count\n";
-        std::cout << "    --wi-count\n";
-        std::cout << "    --rrss-oversampling\n";
-        std::cout << "    --rrss-path-count\n\n";
+        std::cout << "    -wo/--wo-count\n";
+        std::cout << "    -wi/--wi-count\n";
+        std::cout << "    -rx/--rrss-oversampling\n";
+        std::cout << "    -rp/--rrss-path-frac\n\n";
         std::cout.flush();
     }
 
