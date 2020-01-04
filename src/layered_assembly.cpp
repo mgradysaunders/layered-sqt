@@ -32,6 +32,7 @@
 #include <layered-sqt/layer/lambertian.hpp>
 #include <layered-sqt/layer/microsurface_lambertian.hpp>
 #include <layered-sqt/layer/microsurface_dielectric.hpp>
+#include <layered-sqt/layer/microsurface_conductive.hpp>
 #include <layered-sqt/layer/oren_nayar_diffuse.hpp>
 #include <layered-sqt/medium/henyey_greenstein.hpp>
 #include <layered-sqt/medium/rayleigh.hpp>
@@ -100,8 +101,8 @@ void LayeredAssembly::init(std::istream& is)
                 }
 
                 const char* error_message = nullptr;
-                if (!(eta >= 1)) {
-                    error_message = ": eta is less than 1";
+                if (!(eta >= 0)) {
+                    error_message = ": eta is less than 0";
                 }
                 else
                 if (!(mua >= 0)) {
@@ -204,6 +205,10 @@ void LayeredAssembly::init(std::istream& is)
                     layers_.push_back(new MicrosurfaceDielectricBsdfLayer());
                 }
                 else
+                if (str == "MicrosurfaceConductiveBrdf") {
+                    layers_.push_back(new MicrosurfaceConductiveBrdfLayer());
+                }
+                else
                 if (str == "OrenNayarDiffuseBrdf") {
                     layers_.push_back(new OrenNayarDiffuseBrdfLayer());
                 }
@@ -246,11 +251,19 @@ void LayeredAssembly::init(std::istream& is)
         error_message = ": no layers";
     }
     else
+#if 0
     // Boundary medium scatters or absorbs?
     if (mediums_.front()->mu != 0 ||
         mediums_.back()->mu != 0) {
         error_message = ": boundary medium scatters or absorbs";
     }
+#else
+    // Boundary medium scatters?
+    if (mediums_.front()->mus != 0 ||
+        mediums_.back()->mus != 0) {
+        error_message = ": boundary medium scatters";
+    }
+#endif
 
     // Error?
     if (error_message) {
