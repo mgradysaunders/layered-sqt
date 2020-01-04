@@ -47,6 +47,7 @@ set(CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/file_data.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/layer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/layer/lambertian.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/layer/microsurface_conductive.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/layer/microsurface_dielectric.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/layer/microsurface_lambertian.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/layer/null.cpp"
