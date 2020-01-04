@@ -101,8 +101,8 @@ void LayeredAssembly::init(std::istream& is)
                 }
 
                 const char* error_message = nullptr;
-                if (!(eta >= 0)) {
-                    error_message = ": eta is less than 0";
+                if (!(eta > 0)) {
+                    error_message = ": eta is non-positive";
                 }
                 else
                 if (!(mua >= 0)) {

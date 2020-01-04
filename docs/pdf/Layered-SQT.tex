@@ -306,6 +306,149 @@ $ ../layered-sqt-lssview Rough.lsqt.lss
 Notice that the microsurface roughness causes increased reflectance at 
 grazing angles, and decreased reflectance elsewhere.
 
+\subsection{A simple substrate}
+\label{sec:tutorial3}
+
+Let's now consider a simple two-layer assembly to model a substrate. 
+We imagine a 60\% reflective diffuse Lambertian surface with a glossy 
+dielectric coating. Before continuing, again return to the 
+\texttt{lsqt-tutorial} directory, and create and enter a new 
+subdirectory \texttt{tutorial3}.
+\begin{verbatim}
+$ cd ..
+$ mkdir tutorial3 && cd tutorial3
+\end{verbatim}
+
+Then create a new plain-text LSQT file \texttt{Substr.lsqt} with
+five lines as below:
+\begin{lstlisting}
+Medium
+Layer z=1 MicrosurfaceDielectricBsdf alpha=0.2 use_multiple_scattering=false
+Medium eta=1.4
+Layer z=0 LambertianBsdf fR=0.6 fT=0
+Medium
+\end{lstlisting}
+This assembly has two layers, appearing on lines 2 and 4. 
+The first layer is positioned at $z$-height 1 with a 
+\namett{purple}{MicrosurfaceDielectricBsdf}---this is similar to 
+\namett{purple}{MicrosurfaceLambertianBrdf}, 
+but it applies 
+the microsurface ideology to the dielectric Fresnel mirror BSDF instead of 
+the Lambertian BRDF. This layer forms the surface of our glossy dielectric 
+coating.
+The second layer is positioned at $z$-height 0 with a 
+\namett{purple}{LambertianBsdf} as in tutorial \S\ref{sec:tutorial1}.
+
+The medium between these layers (on line 3) is attributed a
+refractive index $\eta$ of $1.4$. Note that \emph{every} medium in an LSQT
+file has a refractive index, which defaults to 1 if left unspecfied. 
+Note also that \namett{purple}{MicrosurfaceDielectricBsdf} depends on the
+refractive indices of the media above and below the layer to which it is
+assigned, as it generalizes the dielectric Fresnel mirror BSDF.
+
+Run \texttt{layered-sqt} as usual and preview the resulting LSS 
+file with \texttt{layered-sqt-lssview}.
+\begin{verbatim}
+$ ../layered-sqt Substr.lsqt
+$ ../layered-sqt-lssview Substr.lsqt.lss
+\end{verbatim}
+Now, upon viewing \texttt{Substr.lsqt.lss.png}, we might suspect that 
+something has gone wrong. As shown in figure \ref{fig:tutorial3-1},
+there is quite a bit of low frequency noise and artifacting. What is
+going on?
+
+Behind the scenes, \texttt{layered-sqt} estimates values of the emergent 
+BSDF at a finite number of sample directions using Monte Carlo integration, 
+i.e., integration by averaging random evaluations. So, two central parameters 
+controlling simulation fidelity are 1) the number of sample directions and 2) 
+the number of random evaluations used to estimate the BSDF at each sample 
+direction. By default, \texttt{layered-sqt} uses 80 sample directions and
+10,000 random evaluations of potential light paths to estimate the 
+emergent BSDF. 
+
+We can change the number of directions $\omega_i$ on the command line 
+using the flag \texttt{-wi} (or \texttt{--wi-count}), and we can change the
+number of paths using the flag \texttt{-p} (or \texttt{--path-count}).
+In general, we should think to increase the number of directions
+to increase \emph{resolution}, and we should think to increase the number 
+of paths to reduce \emph{noise}.
+
+In the case of our simple substrate BRDF, let's increase the number 
+of directions from 80 to 200, and the number of paths from 10,000 to 
+100,000. Enter the following three shell commands:
+\begin{verbatim}
+$ rm Substr.lsqt.lss
+$ ../layered-sqt \
+  -wi=200 \
+  -p=100000 -rp=0.2 Substr.lsqt
+$ ../layered-sqt-lssview Substr.lsqt.lss
+\end{verbatim}
+We first remove the existing LSS file with \texttt{rm}. This 
+is necessary to regenerate sample directions---so long as this file exists, 
+\texttt{layered-sqt} will ignore all flags except 
+\texttt{-p/--path-count}, and add this number of paths to the existing 
+simulation data. Then we run \texttt{layered-sqt} with flags \texttt{-wi=200},
+\texttt{-p=100000}, and \texttt{-rp=0.2} (more on this flag in a moment).
+This should take a minute or two to compute. Upon previewing the BRDF with
+\texttt{layered-sqt-lssview}, we see something much more sensible, as shown
+in figure \ref{fig:tutorial3-2}.
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=0.75\columnwidth]{tutorial3-1.png}
+    \caption{Image preview of the simple substrate BRDF in tutorial 
+    \S\ref{sec:tutorial3}, as output from running \texttt{layered-sqt} with
+    default settings. As is evident, the BRDF would benefit from more
+    samples (higher resolution), and more simulated paths (less noise).
+    \label{fig:tutorial3-1}}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=0.75\columnwidth]{tutorial3-2.png}
+    \caption{Image preview of the simple substrate BRDF in tutorial
+    \S\ref{sec:tutorial3}, as output from running \texttt{layered-sqt} with
+    higher settings. In particular, this uses 200 incident directions (instead
+    of the default 80) and 100,000 paths (instead of the default 10,000).
+    \label{fig:tutorial3-2}}
+\end{center}
+\end{figure}
+
+We have specified the number of sample directions with \texttt{-wi}, but 
+it remains a non-trivial problem to determine what these directions ought to 
+be---\texttt{layered-sqt} implements 
+a presumably novel algorithm to form a so-called \emph{Redundancy Reduced
+Sample Set (RRSS)} of directions by initially sampling \emph{more} directions 
+than the user requests, then choosing the subset of those directions that 
+minimizes a quantitative measure of ``redundancy'' with respect to a desirable 
+density, being the normalization of the non-cosine-weighted BSDF. 
+
+The flag \texttt{-rp} (or \texttt{--rrss-path-frac}) thus specifies
+the fraction of paths (as specified by \texttt{-p}) used to initially
+estimate the emergent BSDF in forming the RRSS of directions $\omega_i$. 
+There is also the flag \texttt{-rx} (or \texttt{--rrss-oversampling}), 
+which specifies the oversampling multiplier. 
+For example, 
+\begin{verbatim}
+$ layered-sqt \
+  -wi=100 -p=20000 -rp=0.25 -rx=5 File.lsqt
+\end{verbatim}
+samples $100\times5=500$ directions initially, and uses
+$20000\times0.25=5000$ paths to estimate the emergent BSDF at each of 
+these 500 directions, then forms an RRSS containing 100 of these 500 
+directions, and lastly uses $20000-5000=15000$ paths to improve the 
+estimates of the emergent BSDF at each of these 100 directions (such that
+the total number of paths is $20000$).
+
+In general, increasing \texttt{-rp} and $\texttt{-rx}$ leads to better
+sample placement, at the (potentially extreme) cost of computation time.
+We discuss practical simulation strategies using these flags, including 
+incremental simulation with multiple runs of \texttt{layered-sqt}, over
+the remaining tutorial sections.
+
+TODO
+
 \section{Documentation}
 \label{sec:doc}
 
@@ -356,7 +499,7 @@ We effectively make the substitution $f\gets f|{\cos{\theta_i}}|$.
 \label{sec:doc-media}
 
 A medium is characterized by its 
-absolute index of refraction $\eta \ge 1$, its absorption coefficient 
+absolute index of refraction $\eta > 0$, its absorption coefficient 
 $\mu_a \ge 0 $, its scattering coefficient $\mu_s \ge 0$, and a local
 phase function model.
 
@@ -376,9 +519,11 @@ So,
 \begin{lstlisting}
 Medium
 \end{lstlisting}
-specifies vacuum. Note---the implementation requires that top and 
-bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
-and issues an error if this requirement is not met.
+specifies vacuum. 
+% TODO No longer required?
+% Note---the implementation requires that top and 
+% bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
+% and issues an error if this requirement is not met.
 
 \subsubsection{Henyey-Greenstein phase}
 \label{sec:doc-media-henyey-greenstein}
