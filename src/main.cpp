@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     int rrss_oversampling = 4;
     int rrss_path_count = 0; // Not an option, determined by path fraction.
     double rrss_path_frac = 0.8;
-    bool use_lss = true;
+    bool restart = false;
     int thread_count = 0;
     std::string ifs_filename;
     std::string ofs_filename;
@@ -187,15 +187,12 @@ int main(int argc, char** argv)
        "BRDF/BSDF when forming the Redundancy-Reduced Sample Set (RRSS) of\n"
        "incident directions for each outgoing direction.\n";
 
-    // --no-lss
-    opt_parser.on_option(nullptr, "--no-lss", 0,
+    // -R/--restart
+    opt_parser.on_option("-R", "--restart", 0,
     [&](char**) {
-        use_lss = false;
+        restart = true;
     })
-    << "Disable use of LSS files to store in-progress simulation data.\n"
-       "Note, this disables reading and writing of LSS files entirely. To\n"
-       "rewrite an LSS file from scratch, simply delete it, then rerun the\n"
-       "simulation as usual.\n";
+    << "Ignore LSS file if it exists, effectively restarting simulation.\n";
 
     // -t/--thread-count
     opt_parser.on_option("-t", "--thread-count", 1,
@@ -337,13 +334,13 @@ int main(int argc, char** argv)
     ls::FileData file_data;
 
     std::string lss_filename;
-    if (ifs_filename != "-" && use_lss) {
+    if (ifs_filename != "-") {
         lss_filename = ifs_filename + ".lss";
     }
 
     // Read in-progress simulation if available.
     bool has_lss = false;
-    if (!lss_filename.empty()) {
+    if (!lss_filename.empty() && !restart) {
         std::ifstream ifs(
                 lss_filename,
                 std::ios_base::in |
