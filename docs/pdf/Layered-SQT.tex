@@ -29,6 +29,7 @@
         LambertianBsdf,
         MicrosurfaceLambertianBrdf,
         MicrosurfaceDielectricBsdf,
+        MicrosurfaceConductiveBrdf,
         OrenNayarDiffuseBrdf
     },
     keywordstyle=\color{codepurple},
@@ -45,7 +46,8 @@
     showstringspaces=false,
     showtabs=false,
     tabsize=2,
-    frame=single
+    frame=single,
+    numberstyle=\footnotesize\ttfamily
 }
 \raggedbottom
 \begin{document}
@@ -185,8 +187,8 @@ sub-directory \texttt{tutorial1}.
 $ mkdir tutorial1 && cd tutorial1
 \end{verbatim}
 Using whatever text-editing program you prefer, create a 
-plain-text LSQT file $\texttt{Lambertian.lsqt}$ with three lines:
-\begin{lstlisting}
+plain-text LSQT file $\texttt{Lambertian.lsqt}$ with three lines.
+\begin{lstlisting}[numbers=left]
 Medium
 Layer z=0 LambertianBsdf fR=0.6 fT=0
 Medium
@@ -268,8 +270,8 @@ $ cd ..
 $ mkdir tutorial2 && cd tutorial2
 \end{verbatim}
 As before, create a new plain-text LSQT file \texttt{Rough.lsqt} 
-with three lines:
-\begin{lstlisting}
+with three lines.
+\begin{lstlisting}[numbers=left]
 Medium
 Layer z=0 MicrosurfaceLambertianBrdf fR=0.6 alpha=2.4
 Medium
@@ -320,8 +322,8 @@ $ mkdir tutorial3 && cd tutorial3
 \end{verbatim}
 
 Then create a new plain-text LSQT file \texttt{Substr.lsqt} with
-five lines as below:
-\begin{lstlisting}
+five lines as below.
+\begin{lstlisting}[numbers=left]
 Medium
 Layer z=1 MicrosurfaceDielectricBsdf alpha=0.2 use_multiple_scattering=false
 Medium eta=1.4
@@ -339,8 +341,9 @@ coating.
 The second layer is positioned at $z$-height 0 with a 
 \namett{purple}{LambertianBsdf} as in tutorial \S\ref{sec:tutorial1}.
 
-The medium between these layers (on line 3) is attributed a
-refractive index $\eta$ of $1.4$. Note that \emph{every} medium in an LSQT
+The medium between these layers on line 3 is attributed a
+refractive index $\eta$ (\texttt{eta}) of $1.4$. Note that 
+\emph{every} medium in an LSQT
 file has a refractive index, which defaults to 1 if left unspecfied. 
 Note also that \namett{purple}{MicrosurfaceDielectricBsdf} depends on the
 refractive indices of the media above and below the layer to which it is
@@ -375,23 +378,21 @@ of paths to reduce \emph{noise}.
 
 In the case of our simple substrate BRDF, let's increase the number 
 of directions from 80 to 200, and the number of paths from 10,000 to 
-100,000. Enter the following three shell commands:
+100,000. Run \texttt{layered-sqt} with the following flags:
 \begin{verbatim}
-$ rm Substr.lsqt.lss
-$ ../layered-sqt \
-  -wi=200 \
+$ ../layered-sqt -R -wi=200 \
   -p=100000 -rp=0.2 Substr.lsqt
-$ ../layered-sqt-lssview Substr.lsqt.lss
 \end{verbatim}
-We first remove the existing LSS file with \texttt{rm}. This 
-is necessary to regenerate sample directions---so long as this file exists, 
-\texttt{layered-sqt} will ignore all flags except 
-\texttt{-p/--path-count}, and add this number of paths to the existing 
-simulation data. Then we run \texttt{layered-sqt} with flags \texttt{-wi=200},
-\texttt{-p=100000}, and \texttt{-rp=0.2} (more on this flag in a moment).
 This should take a minute or two to compute. Upon previewing the BRDF with
 \texttt{layered-sqt-lssview}, we see something much more sensible, as shown
 in figure \ref{fig:tutorial3-2}.
+
+The flag \texttt{-R} (or \texttt{--restart}) tells \texttt{layered-sqt}
+to ignore the LSS file and restart the simulation from scratch. 
+If the LSS file exists, then \texttt{layered-sqt} will ignore all flags except 
+\texttt{-p/--path-count} by default, and add this number of paths to the existing
+simulation data (it will also display a message to remind us that is doing
+this). So, \texttt{-R} is necessary to regenerate sample directions. 
 
 \begin{figure}
 \begin{center}
@@ -428,7 +429,9 @@ The flag \texttt{-rp} (or \texttt{--rrss-path-frac}) thus specifies
 the fraction of paths (as specified by \texttt{-p}) used to initially
 estimate the emergent BSDF in forming the RRSS of directions $\omega_i$. 
 There is also the flag \texttt{-rx} (or \texttt{--rrss-oversampling}), 
-which specifies the oversampling multiplier. 
+to specify the RRSS oversampling multiplier. (We discuss this flag for 
+completeness, but in practice it is never really necessary to specify 
+\texttt{-rx}, as the default of 4 is generally sufficient.)
 For example, 
 \begin{verbatim}
 $ layered-sqt \
@@ -441,13 +444,78 @@ directions, and lastly uses $20000-5000=15000$ paths to improve the
 estimates of the emergent BSDF at each of these 100 directions (such that
 the total number of paths is $20000$).
 
-In general, increasing \texttt{-rp} and $\texttt{-rx}$ leads to better
+In general, increasing \texttt{-rp} and \texttt{-rx} leads to better
 sample placement, at the (potentially extreme) cost of computation time.
 We discuss practical simulation strategies using these flags, including 
 incremental simulation with multiple runs of \texttt{layered-sqt}, over
-the remaining tutorial sections.
+the remaining tutorial sections. 
+
+\subsection{Adding dust}
+\label{sec:tutorial4}
+
+Let's now add a layer of back-scattering dust to the surface
+of the substrate BRDF in tutorial \S\ref{sec:tutorial3}. As usual, return
+to the \texttt{lsqt-tutorial} directory, and create and enter a new 
+subdirectory \texttt{tutorial4}.
+\begin{verbatim}
+$ cd ..
+$ mkdir tutorial4 && cd tutorial4
+\end{verbatim}
+
+Next create another plain-text LSQT file \texttt{Dusty.lsqt} with three 
+layers and thus seven lines.
+\begin{lstlisting}[numbers=left]
+Medium
+Layer z=2 NullBsdf
+Medium mus=0.2 HenyeyGreensteinPhase g=-0.4
+Layer z=1 MicrosurfaceDielectricBsdf alpha=0.2 use_multiple_scattering=false
+Medium eta=1.4
+Layer z=0 LambertianBsdf fR=0.2 fT=0
+Medium
+\end{lstlisting}
+We attribute a \namett{purple}{NullBsdf} to the topmost layer appearing
+on line 2, such that this layer only exists to separate media, and 
+no scattering happens at the layer itself. The medium above on line 1 
+is vacuum as usual. The medium below on line 3 models our layer of dust.
+
+Similarly to refractive index $\eta$ (\texttt{eta}), \emph{every} 
+medium in an LSQT file has two volume scattering parameters---the 
+scattering coefficient $\mu_s$ (\texttt{mus}) and the absorption 
+coefficient $\mu_a$ (\texttt{mua}), which default to zero if 
+left unspecified. Scattering and absorption events happen according
+to Beer's Law in a homogeneous medium. That is, the probability of 
+scattering within a particular distance $d$ is given by an exponential 
+distribution $1 - \exp{(-\mu_s d)}$, where $\mu_s$ is the distribution 
+parameter, and analogously for absorbing within a particular distance 
+$d$ and $\mu_a$. We thus identify the units of $\mu_s$ and $\mu_a$ as 
+``inverse distance'', and we interpret the reciprocals $1/\mu_s$ and 
+$1/\mu_a$ as the mean distances between scattering and absorption events
+respectively. Note that in the limit $\mu_s = \mu_a = 0$ (the default values),
+the mean distances tend to infinity, such that scattering and absorption events
+cease to exist.
+
+To simulate a thin layer of back-scattering dust, 
+we attribute a scattering coefficient $\mu_s$ (\texttt{mus}) of $0.2$ and 
+a \namett{purple}{HenyeyGreensteinPhase} with shape parameter $g$ of $-0.4$
+(more on this in a moment). We choose $\mu_s$ to be $0.2$ such that the mean 
+distance between scattering events is $1/\mu_s = 5$ units. This is somewhat 
+large in comparison to the thickness of the dust layer, which is 1 unit 
+(the difference of the $z$-heights of layers on lines 2 and 4), so the dust
+appears suitably ``thin''. When plucking this number out of the sky, this is 
+the line of reasoning to use. 
 
 TODO
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=0.75\columnwidth]{tutorial4-1.png}
+    \caption{Image preview of the modified simple substrate BRDF with 
+    back-scattering
+    dust in tutorial \S\ref{sec:tutorial4}, where the bottom Lambertian BRDF 
+    layer is reduced to 20\% reflectance to exaggerate the dust effect.
+    \label{fig:tutorial4-1}}
+\end{center}
+\end{figure}
 
 \section{Documentation}
 \label{sec:doc}
@@ -622,7 +690,7 @@ transmissive directional delta function in the direction a
 ray is already traveling. This is useful, for example, to model a 
 layer of dust on top of a surface. To do so, we might specify the 
 following LSQT file
-\begin{lstlisting}
+\begin{lstlisting}[numbers=left]
 Medium
 Layer z=1 NullBsdf
 Medium mus=1 HenyeyGreensteinPhase g=0.2
@@ -765,7 +833,13 @@ in the Fresnel mirror BSDF---such that disabling multiple-scattering makes
 simulations, though still at the cost of significant
 energy loss for rough surfaces.
 
+\subsubsection{Microsurface conductive BRDF}
+\label{sec:doc-layers-microsurface-conductive}
+
+TODO
+
 \subsubsection{Oren-Nayar diffuse BRDF}
+\label{sec:doc-layers-oren-nayar-diffuse}
 
 TODO
 
