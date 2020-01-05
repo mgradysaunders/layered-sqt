@@ -409,6 +409,12 @@ void LayeredAssembly::compute(
             assert(ray.medium->layer_above);
             assert(ray.medium->layer_below);
 
+            // Path absorbed?
+            if (tau == 0) {
+                // Terminate.
+                break;
+            }
+
             // Update hit.
             hit.pos = ray.pos + ray.dir * d;
 
@@ -753,6 +759,12 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
             Float dmax = pr::length(hit.pos - ray.pos);
             Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
             if (!(d == dmax)) {
+
+                // Path absorbed?
+                if (tau == 0) {
+                    // Terminate.
+                    break;
+                }
 
                 // Update ray.
                 ray.pos = ray.pos + ray.dir * d;
