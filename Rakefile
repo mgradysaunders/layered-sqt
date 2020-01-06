@@ -136,7 +136,7 @@ HPP
     # Update license boilerplate.
     desc "Update license boilerplate."
     task :update_license do |task|
-        for fname in Rake::FileList.new(*GLOBS.all_hpp)
+        for fname in Rake::FileList.new(*GLOBS.all)
 
             # Read file.
             text = File.read fname
