@@ -92,6 +92,11 @@ public:
     void init(const std::string& arg);
 
     /**
+     * @copydoc Layer::validate()
+     */
+    void validate() const;
+
+    /**
      * @copydoc Layer::bsdf()
      */
     Float bsdf(

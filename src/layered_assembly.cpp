@@ -254,20 +254,6 @@ void LayeredAssembly::init(std::istream& is)
     if (layers_.empty()) {
         error_message = ": no layers";
     }
-    else
-#if 0
-    // Boundary medium scatters or absorbs?
-    if (mediums_.front()->mu != 0 ||
-        mediums_.back()->mu != 0) {
-        error_message = ": boundary medium scatters or absorbs";
-    }
-#else
-    // Boundary medium scatters?
-    if (mediums_.front()->mus != 0 ||
-        mediums_.back()->mus != 0) {
-        error_message = ": boundary medium scatters";
-    }
-#endif
 
     // Error?
     if (error_message) {
@@ -284,6 +270,11 @@ void LayeredAssembly::init(std::istream& is)
         mediums_[pos + 1]->layer_above = layers_[pos];
         layers_[pos]->medium_above = mediums_[pos + 0];
         layers_[pos]->medium_below = mediums_[pos + 1];
+    }
+
+    // Validate layers.
+    for (const Layer* layer : layers_) {
+        layer->validate();
     }
 
     // Find non-null BSDF layer at top.

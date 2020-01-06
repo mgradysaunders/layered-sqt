@@ -46,6 +46,7 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
             const Vec3<Float>& wi,
             Float* f_pdf) const
 {
+    (void) pcg;
     // Surface.
     MicrosurfaceConductiveBrdf surf = {
         wo[2] > 0 ?
@@ -55,6 +56,7 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
                 this->medium_below->eta,
                 this->medium_below->mua} :
             // Interpret medium_above->mua as absorption coefficient.
+            // Shouldn't happen?
             std::complex<Float>{
                 this->medium_above->eta,
                 this->medium_above->mua} / 
@@ -103,6 +105,7 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
                 this->medium_below->eta,
                 this->medium_below->mua} :
             // Interpret medium_above->mua as absorption coefficient.
+            // Shouldn't happen?
             std::complex<Float>{
                 this->medium_above->eta,
                 this->medium_above->mua} / 
@@ -129,7 +132,7 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fs(uk, wo, wi, 0, 0, iter_count, &f_pdf);
+            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -244,6 +247,17 @@ void MicrosurfaceConductiveBrdfLayer::init(const std::string& arg)
         iter_count = 128;
         std::cerr << "from " << __PRETTY_FUNCTION__ << ": ";
         std::cerr << "Warning, clamping iter_count to maximum of 128\n";
+    }
+}
+
+// Validate.
+void MicrosurfaceConductiveBrdfLayer::validate() const
+{
+    if (this->medium_below->mua == 0) {
+        throw 
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": no absorption in medium below"));
     }
 }
 

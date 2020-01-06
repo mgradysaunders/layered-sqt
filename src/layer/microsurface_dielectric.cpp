@@ -109,7 +109,7 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fs(uk, wo, wi, 0, 0, iter_count, &f_pdf);
+            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -238,6 +238,18 @@ void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
         iter_count = 128;
         std::cerr << "from " << __PRETTY_FUNCTION__ << ": ";
         std::cerr << "Warning, clamping iter_count to maximum of 128\n";
+    }
+}
+
+// Validate.
+void MicrosurfaceDielectricBsdfLayer::validate() const
+{
+    if (this->medium_above->eta == 
+        this->medium_below->eta) {
+        throw 
+            std::runtime_error(
+            std::string(__PRETTY_FUNCTION__)
+                .append(": no change in eta across boundary"));
     }
 }
 

@@ -88,6 +88,14 @@ public:
     void init(const std::string& arg) = 0;
 
     /**
+     * @brief Validate.
+     */
+    virtual
+    void validate() const
+    {
+    }
+
+    /**
      * @brief BSDF.
      *
      * @param[inout] pcg 
