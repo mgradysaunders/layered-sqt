@@ -477,6 +477,9 @@ We attribute a \namett{purple}{NullBsdf} to the topmost layer appearing
 on line 2, such that this layer only exists to separate media, and 
 no scattering happens at the layer itself. The medium above on line 1 
 is vacuum as usual. The medium below on line 3 models our layer of dust.
+Lines 4 through 7 are just lines 2 through 5 from the previous
+section, except we have reduced $f_R$ from 60\% to 20\% to exaggerate
+the dust effect.
 
 Similarly to refractive index $\eta$ (\texttt{eta}), \emph{every} 
 medium in an LSQT file has two volume scattering parameters---the 
@@ -504,16 +507,34 @@ large in comparison to the thickness of the dust layer, which is 1 unit
 appears suitably ``thin''. When plucking this number out of the sky, this is 
 the line of reasoning to use. 
 
-TODO
+The Henyey-Greenstein phase function is widely used in computer graphics
+due to its simplicity and intuitive parameterization (although it was 
+originally intended to model scattering of interstellar dust clouds). The
+phase function is equipped with a single shape parameter $g \in (-1, +1)$,
+which is identically the mean scattering cosine. That is, it tends to
+forward scatter as $g \to +1$ and back scatter as $g \to -1$. See the
+documentation in \S\ref{sec:doc-media-henyey-greenstein} for more
+information.
+
+Now run \texttt{layered-sqt} on \texttt{Dusty.lsqt} with the same flags as in
+the previous section.
+\begin{verbatim}
+$ ../layered-sqt -wi=200 \
+  -p=100000 -rp=0.2 Dusty.lsqt
+\end{verbatim}
+Notice that we do not need \texttt{-R} this time because no LSS file 
+exists yet. As before, this should take a minute or two to compute.
+The image preview as output by \texttt{layered-sqt-lssview} is shown in
+figure \ref{fig:tutorial4}.
 
 \begin{figure}
 \begin{center}
-    \includegraphics[width=0.75\columnwidth]{tutorial4-1.png}
+    \includegraphics[width=0.75\columnwidth]{tutorial4.png}
     \caption{Image preview of the modified simple substrate BRDF with 
     back-scattering
     dust in tutorial \S\ref{sec:tutorial4}, where the bottom Lambertian BRDF 
     layer is reduced to 20\% reflectance to exaggerate the dust effect.
-    \label{fig:tutorial4-1}}
+    \label{fig:tutorial4}}
 \end{center}
 \end{figure}
 
