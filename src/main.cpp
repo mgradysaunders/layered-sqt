@@ -26,6 +26,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <fstream>
 #include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
@@ -35,6 +38,20 @@
 #include <layered-sqt/layered_assembly.hpp>
 #include <layered-sqt/progress_bar.hpp>
 #include <layered-sqt/file_data.hpp>
+
+static std::int64_t getFileModificationTime(const std::string& filename)
+{
+    struct stat statbuf;
+    int err = stat(filename.c_str(), &statbuf);
+    if (err == 0) {
+        return
+            std::int64_t(statbuf.st_mtim.tv_sec) * 1000000000LL +
+            std::int64_t(statbuf.st_mtim.tv_nsec);
+    }
+    else {
+        return -1;
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -341,6 +358,18 @@ int main(int argc, char** argv)
     // Read in-progress simulation if available.
     bool has_lss = false;
     if (!lss_filename.empty() && !restart) {
+
+        // Verify file modification times.
+        std::int64_t ifs_mod_time = getFileModificationTime(ifs_filename);
+        std::int64_t lss_mod_time = getFileModificationTime(lss_filename);
+        if (!(lss_mod_time > ifs_mod_time) && lss_mod_time != -1) {
+            std::cerr << "Warning: ";
+            std::cerr << ifs_filename << " is newer than ";
+            std::cerr << lss_filename << ", did you mean to restart the ";
+            std::cerr << "simulation with -R/--restart?\n\n";
+            std::cerr.flush();
+        }
+
         std::ifstream ifs(
                 lss_filename,
                 std::ios_base::in |
@@ -374,13 +403,6 @@ int main(int argc, char** argv)
         // Initialize.
         file_data.basicInit(wo_count, wi_count, seed);
 
-#if 0
-        // Check RRSS path count.
-        if (path_count < rrss_path_count) {
-            path_count = rrss_path_count;
-            std::cerr << "Warning: path count less than RRSS path count\n";
-        }
-#endif
     }
     else {
 

@@ -203,12 +203,8 @@ void FileData::Slice::readLss(std::istream& istr)
     istr_le >> path_count;
 
     // Read path PCG.
-    std::uint64_t path_pcg_mem[2];
-    istr_le >> path_pcg_mem;
-    std::memcpy(
-            &path_pcg, 
-            &path_pcg_mem[0], sizeof(path_pcg_mem));
-    static_assert(sizeof(path_pcg) == sizeof(path_pcg_mem));
+    istr_le >> path_pcg.state_;
+    istr_le >> path_pcg.inc_;
 }
 
 // Write LSQT-slice binary format.
@@ -240,12 +236,8 @@ void FileData::Slice::writeLss(std::ostream& ostr) const
     ostr_le << path_count;
 
     // Write path PCG.
-    std::uint64_t path_pcg_mem[2];
-    std::memcpy(
-            &path_pcg_mem[0], 
-            &path_pcg, sizeof(path_pcg));
-    static_assert(sizeof(path_pcg) == sizeof(path_pcg_mem));
-    ostr_le << path_pcg_mem;
+    ostr_le << path_pcg.state_;
+    ostr_le << path_pcg.inc_;
 }
 
 // Compute incident directions.
