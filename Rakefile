@@ -52,9 +52,16 @@ def license_comment
 end
 
 # Default task.
-desc "Default task."
+desc "Default task (does nothing)."
 task :default do
     # nothing
+end
+
+# Build project with CMake.
+desc "Build project with CMake."
+task :build do
+    sh "rm -r -f bin"
+    sh "mkdir bin && cd bin && cmake .. && cmake --build ."
 end
 
 # Doxygen.
