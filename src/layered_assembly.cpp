@@ -1,4 +1,4 @@
-/* Copyright (c) 2019 M. Grady Saunders
+/* Copyright (c) 2019-20 M. Grady Saunders
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -111,6 +111,10 @@ void LayeredAssembly::init(std::istream& is)
                 else 
                 if (!(mus >= 0)) {
                     error_message = ": mus is negative";
+                }
+                else
+                if (mus > 0 && medium_phase.empty()) {
+                    error_message = ": mus is positive, but no phase";
                 }
                 // Error?
                 if (error_message) {

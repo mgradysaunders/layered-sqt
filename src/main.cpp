@@ -1,4 +1,4 @@
-/* Copyright (c) 2019 M. Grady Saunders
+/* Copyright (c) 2019-20 M. Grady Saunders
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -408,29 +408,35 @@ int main(int argc, char** argv)
         // Task.
         auto task = [&](int wo_index) {
             auto& slice = file_data.slices[wo_index];
+            try {
+                if (has_lss) {
+                    // Compute BSDF averages.
+                    slice.computeBsdfAverages(
+                            layered_assembly,
+                            progress_bar,
+                            path_count);
+                }
+                else {
+                    // Compute RRSS incident directions first.
+                    slice.computeIncidentDirs(
+                            layered_assembly,
+                            progress_bar,
+                            rrss_oversampling,
+                            rrss_path_count);
 
-            if (has_lss) {
-                
-                // Compute BSDF averages.
-                slice.computeBsdfAverages(
-                        layered_assembly,
-                        progress_bar,
-                        path_count);
+                    // Compute BSDF averages.
+                    slice.computeBsdfAverages(
+                            layered_assembly,
+                            progress_bar,
+                            path_count - rrss_path_count);
+                }
             }
-            else {
-
-                // Compute RRSS incident directions first.
-                slice.computeIncidentDirs(
-                        layered_assembly,
-                        progress_bar,
-                        rrss_oversampling,
-                        rrss_path_count);
-
-                // Compute BSDF averages.
-                slice.computeBsdfAverages(
-                        layered_assembly,
-                        progress_bar,
-                        path_count - rrss_path_count);
+            catch (const std::exception& exception) {
+                std::cerr << 
+                    std::string(
+                    "Unhandled exception on thread!\n"
+                    "exception.what(): ")
+                        .append(exception.what()).append("\n");
             }
         };
 
