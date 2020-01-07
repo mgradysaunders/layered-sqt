@@ -1,4 +1,5 @@
 <map id="ls::Medium" name="ls::Medium">
 <area shape="rect" id="node2" href="$classls_1_1HenyeyGreensteinPhaseMedium.html" title="Henyey&#45;Greenstein phase medium. " alt="" coords="5,80,191,121"/>
 <area shape="rect" id="node3" href="$classls_1_1RayleighPhaseMedium.html" title="Rayleigh phase medium. " alt="" coords="215,87,389,114"/>
+<area shape="rect" id="node4" href="$classls_1_1SggxPhaseMedium.html" title="SGGX phase medium. " alt="" coords="413,87,567,114"/>
 </map>

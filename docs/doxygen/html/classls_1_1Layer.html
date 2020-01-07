@@ -97,6 +97,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad28e4a93e72119032111de9885b8b433"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1Layer.html#ad28e4a93e72119032111de9885b8b433">init</a> (const std::string &amp;arg)=0</td></tr>
 <tr class="memdesc:ad28e4a93e72119032111de9885b8b433"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize from argument string.  <a href="#ad28e4a93e72119032111de9885b8b433">More...</a><br /></td></tr>
 <tr class="separator:ad28e4a93e72119032111de9885b8b433"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62d3eeb288d466be3db125b96ce3bbc2"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1Layer.html#a62d3eeb288d466be3db125b96ce3bbc2">validate</a> () const</td></tr>
+<tr class="memdesc:a62d3eeb288d466be3db125b96ce3bbc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validate.  <a href="#a62d3eeb288d466be3db125b96ce3bbc2">More...</a><br /></td></tr>
+<tr class="separator:a62d3eeb288d466be3db125b96ce3bbc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a448c7521b59e2ef824da5cb30d7eae3e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1Layer.html#a448c7521b59e2ef824da5cb30d7eae3e">bsdf</a> (<a class="el" href="group__common.html#gaf216083f271be0cc3df39fbc92e5f242">Pcg32</a> &amp;pcg, const <a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;wo, const <a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;wi, <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> *f_pdf=nullptr) const =0</td></tr>
 <tr class="memdesc:a448c7521b59e2ef824da5cb30d7eae3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">BSDF.  <a href="#a448c7521b59e2ef824da5cb30d7eae3e">More...</a><br /></td></tr>
 <tr class="separator:a448c7521b59e2ef824da5cb30d7eae3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -186,6 +189,35 @@ Public Attributes</h2></td></tr>
 </dl>
 
 <p>Implemented in <a class="el" href="classls_1_1MicrosurfaceDielectricBsdfLayer.html#a721cdea6d7b58e8dc1ef24a6c9852019">ls::MicrosurfaceDielectricBsdfLayer</a>, <a class="el" href="classls_1_1MicrosurfaceLambertianBrdfLayer.html#a21abd063c1d52c445a9b911c5a103d91">ls::MicrosurfaceLambertianBrdfLayer</a>, <a class="el" href="classls_1_1MicrosurfaceConductiveBrdfLayer.html#afcfca9d2a3a0867d25b1cd345d28bf8a">ls::MicrosurfaceConductiveBrdfLayer</a>, <a class="el" href="classls_1_1LambertianBsdfLayer.html#af1c766a2c1e172b3ba0278e03ddfc68b">ls::LambertianBsdfLayer</a>, <a class="el" href="classls_1_1OrenNayarDiffuseBrdfLayer.html#a405aeb9db8414f6dcf72146bfcad763f">ls::OrenNayarDiffuseBrdfLayer</a>, and <a class="el" href="classls_1_1NullBsdfLayer.html#ad4911cabf194d6056a2987f39a3005c3">ls::NullBsdfLayer</a>.</p>
+
+</div>
+</div>
+<a id="a62d3eeb288d466be3db125b96ce3bbc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62d3eeb288d466be3db125b96ce3bbc2">&#9670;&nbsp;</a></span>validate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void ls::Layer::validate </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Validate. </p>
+
+<p>Reimplemented in <a class="el" href="classls_1_1MicrosurfaceDielectricBsdfLayer.html#ab275ec6d6c9bf7c3ee2095f8cb36689b">ls::MicrosurfaceDielectricBsdfLayer</a>, and <a class="el" href="classls_1_1MicrosurfaceConductiveBrdfLayer.html#a81fc70f17e436cade2a482be857a1d85">ls::MicrosurfaceConductiveBrdfLayer</a>.</p>
 
 </div>
 </div>
