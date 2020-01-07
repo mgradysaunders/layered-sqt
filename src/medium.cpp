@@ -77,9 +77,11 @@ Float Medium::transmittanceSample(
 
 // Phase function.
 Float Medium::phase(
+        Pcg32& pcg,
         const Vec3<Float>& wo,
         const Vec3<Float>& wi) const
 {
+    (void) pcg;
     (void) wo;
     (void) wi;
     throw 

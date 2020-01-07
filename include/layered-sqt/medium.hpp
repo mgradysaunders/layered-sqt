@@ -70,13 +70,6 @@ public:
      */
     const Layer* layer_below = nullptr;
 
-#if 0
-    /**
-     * @brief Henyey-Greenstein parameter @f$ g \in (-1, 1) @f$.
-     */
-    Float g = 0;
-#endif
-
     /**
      * @brief Refractive index @f$ \eta @f$.
      */
@@ -139,6 +132,9 @@ public:
     /**
      * @brief Phase function.
      *
+     * @param[inout] pcg
+     * Generator.
+     *
      * @param[in] wo
      * Outgoing direction.
      *
@@ -147,6 +143,7 @@ public:
      */
     virtual 
     Float phase(
+            Pcg32& pcg, 
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const;
 

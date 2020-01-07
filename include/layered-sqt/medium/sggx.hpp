@@ -27,8 +27,8 @@
  */
 /*+-+*/
 #pragma once
-#ifndef LAYERED_SQT_MEDIUM_HENYEY_GREENSTEIN_HPP
-#define LAYERED_SQT_MEDIUM_HENYEY_GREENSTEIN_HPP
+#ifndef LAYERED_SQT_MEDIUM_SGGX_HPP
+#define LAYERED_SQT_MEDIUM_SGGX_HPP
 
 #include <layered-sqt/medium.hpp>
 
@@ -37,43 +37,49 @@ namespace ls {
 /**
  * @addtogroup mediums Mediums
  *
- * `<layered-sqt/medium/henyey_greenstein.hpp>`
+ * `<layered-sqt/medium/sggx.hpp>`
  */
 /**@{*/
 
 /**
- * @brief Henyey-Greenstein phase medium.
+ * @brief SGGX phase medium.
  */
-class HenyeyGreensteinPhaseMedium final : public Medium
+class SggxPhaseMedium final : public Medium
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    HenyeyGreensteinPhaseMedium() = default;
+    SggxPhaseMedium() = default;
 
     /**
-     * @brief Shape parameter @f$ g \in (-1, +1) @f$.
-     *
-     * @note 
-     * In mathematical terms, @f$ g @f$ is the mean scattering cosine 
-     * of the distribution. 
+     * @brief Type.
      */
-    Float g = 0;
+    enum Type {
+        eSpecular,
+        eDiffuse
+    };
+
+    /**
+     * @brief Type.
+     */
+    Type type = Type::eSpecular;
+
+    /**
+     * @brief @f$ A_{\parallel} @f$, projected area in X and Y.
+     */
+    Float Apara = 1;
+
+    /**
+     * @brief @f$ A_{\perp} @f$, projected area in Z.
+     */
+    Float Aperp = 1;
 
 public:
 
     /**
      * @copydoc Medium::init()
-     *
-     * Accepts arguments
-     * - `g=`(float).
-     *
-     * @throw std::runtime_error
-     * If
-     * - invalid argument, or
-     * - `g` is outside `(-1, 1)`.
      */
     void init(const std::string& arg);
 
@@ -98,4 +104,4 @@ public:
 
 } // namespace ls
 
-#endif // #ifndef LAYERED_SQT_MEDIUM_HENYEY_GREENSTEIN_HPP
+#endif // #ifndef LAYERED_SQT_MEDIUM_SGGX_HPP

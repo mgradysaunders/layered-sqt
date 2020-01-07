@@ -36,9 +36,11 @@ typedef pr::rayleigh_phase<Float> RayleighPhase;
 
 // Phase function.
 Float RayleighPhaseMedium::phase(
+            Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const
 {
+    (void) pcg;
     return RayleighPhase(rho).ps(wo, wi);
 }
 

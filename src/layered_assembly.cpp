@@ -36,6 +36,7 @@
 #include <layered-sqt/layer/oren_nayar_diffuse.hpp>
 #include <layered-sqt/medium/henyey_greenstein.hpp>
 #include <layered-sqt/medium/rayleigh.hpp>
+#include <layered-sqt/medium/sggx.hpp>
 
 namespace ls {
 
@@ -82,7 +83,8 @@ void LayeredAssembly::init(std::istream& is)
                         }
                         else {
                             if (str == "HenyeyGreensteinPhase" ||
-                                str == "RayleighPhase") {
+                                str == "RayleighPhase" ||
+                                str == "SggxPhase") {
                                 medium_phase = str;
                                 break;
                             }
@@ -134,6 +136,10 @@ void LayeredAssembly::init(std::istream& is)
                 else
                 if (medium_phase == "RayleighPhase") {
                     mediums_.push_back(new RayleighPhaseMedium());
+                }
+                else
+                if (medium_phase == "SggxPhase") {
+                    mediums_.push_back(new SggxPhaseMedium());
                 }
 
                 // Medium parameters.
@@ -422,7 +428,7 @@ void LayeredAssembly::compute(
                     if (pr::signbit(wi[j][2]) == 0) {
 
                         // Phase.
-                        Float ph = ray.medium->phase(wk, wi[j]);
+                        Float ph = ray.medium->phase(pcg, wk, wi[j]);
 
                         // Transmittance.
                         Float tr = 1;
@@ -459,7 +465,7 @@ void LayeredAssembly::compute(
                     if (pr::signbit(wi[j][2]) == 1) {
 
                         // Phase.
-                        Float ph = ray.medium->phase(wk, wi[j]);
+                        Float ph = ray.medium->phase(pcg, wk, wi[j]);
 
                         // Transmittance.
                         Float tr = 1;

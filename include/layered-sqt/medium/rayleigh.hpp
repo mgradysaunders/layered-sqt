@@ -77,6 +77,7 @@ public:
      * @copydoc Medium::phase()
      */
     Float phase(
+            Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const;
 

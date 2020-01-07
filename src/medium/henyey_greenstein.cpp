@@ -36,9 +36,11 @@ typedef pr::hg_phase<Float> HenyeyGreensteinPhase;
 
 // Phase function.
 Float HenyeyGreensteinPhaseMedium::phase(
+            Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const
 {
+    (void) pcg;
     return HenyeyGreensteinPhase(g).ps(wo, wi);
 }
 

@@ -56,6 +56,7 @@ set(CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/henyey_greenstein.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/rayleigh.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/sggx.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/progress_bar.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rrss.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tri.cpp"
