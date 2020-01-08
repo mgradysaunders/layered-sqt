@@ -64,7 +64,6 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
         Vec2<Float>{alpha, alpha}
     };
 
-#if 0
     // Use multiple scattering?
     if (use_multiple_scattering) {
 
@@ -77,7 +76,6 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
         return surf.fs(uk, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
-#endif
 
         if (f_pdf) {
             *f_pdf = surf.fs1_pdf(wo, wi);
@@ -85,9 +83,7 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
 
         // Single-scattering version.
         return surf.fs1(wo, wi);
-#if 0
     }
-#endif
 }
 
 // BSDF sample.
@@ -113,7 +109,6 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
         Vec2<Float>{alpha, alpha}
     };
 
-#if 0
     if (use_multiple_scattering) {
 
         // Function to generate canonical random numbers.
@@ -139,7 +134,6 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
         return wi;
     }
     else {
-#endif
 
         // Single-scattering version.
         Vec3<Float> wi = 
@@ -152,9 +146,7 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
             surf.fs1_pdf(wo, wi);
 
         return wi;
-#if 0
     }
-#endif
 }
 
 // Is transmissive?
