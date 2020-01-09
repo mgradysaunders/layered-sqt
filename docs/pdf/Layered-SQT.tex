@@ -25,6 +25,7 @@
     morekeywords={
         HenyeyGreensteinPhase, 
         RayleighPhase,
+        SggxPhase,
         NullBsdf,
         LambertianBsdf,
         MicrosurfaceLambertianBrdf,
@@ -626,8 +627,9 @@ The Henyey-Greenstein phase function is given by
 with shape parameter $g\in(-1,1)$. It may be helpful to note 
 that $g$ is the mean cosine of the scattered direction with respect to the 
 incident direction, such that $p$ becomes forward scattering as $g\to1$, 
-backward scattering as $g\to-1$, and uniformly/isotropically scattering 
-as $g\to0$.
+back scattering as $g\to-1$, and uniformly/isotropically scattering 
+as $g\to0$. See d'Eon's write-up
+\cite[p.~19]{dEon:16} for more information.
 
 To specify the Henyey-Greenstein phase in LSQT format, use the name
 \namett{purple}{HenyeyGreensteinPhase} followed by the (optional) keyword 
@@ -658,7 +660,8 @@ Rayleigh phase function is given by
 \begin{equation*}
     p(\omega_o\to\omega_i) = \frac{3}{16\pi}(1 + (\omega_o\cdot\omega_i)^2),
 \end{equation*}
-which is obtained by setting $\rho = 0$. 
+which is obtained by setting $\rho = 0$. See d'Eon's write-up
+\cite[p.~19]{dEon:16} for more information.
 
 The Rayleigh phase function prefers parallel scattering
 to perpendicular scattering. That is to say, scattering in directions 
@@ -675,6 +678,80 @@ Medium mus=1 RayleighPhase rho=-0.5
 \end{lstlisting}
 specifies a medium with an exaggerated ``Rayleigh effect'' relative to the
 common form where $\rho=0$.
+
+\subsubsection{SGGX phase}
+\label{sec:doc-media-sggx}
+
+The Symmetric GGX (SGGX) phase function, given by 
+Heitz et al. \cite{Heitz:15}, is based on \emph{microflake
+theory}, wherein we assume volume scattering happens due to surface 
+scattering with infinitely many microscopic disjoint flakes. 
+The general form of the phase function is 
+\begin{equation*}
+    p(\omega_o \to \omega_i) = 
+    \int_{\mathcal{S}^2} p_m(\omega_m, \omega_o \to \omega_i) 
+    D_{\omega_o}(\omega_m) \diff{\omega_m}
+\end{equation*}
+where $p_m$ is the microscopic phase function 
+assigned to each flake, and $D_{\omega_o}$ is the distribution of
+\emph{visible} flake normals for a particular viewing/outgoing direction 
+$\omega_o$.
+
+The distribution of flake normals $D$ is defined by its projected areas with 
+respect to three orthogonal directions. In particular,
+\begin{equation*}
+    D(\omega_m) = 
+    \frac{1}{\pi\sqrt{\det\mathbf{S}}(\omega_m\cdot\mathbf{S}^{-1}\omega_m)^2}
+\end{equation*}
+where $\mathbf{S}$ is a $3\times3$ real symmetric matrix. The eigenvalues of
+$\mathbf{S}$ are squared projected areas, and the eigenvectors of $\mathbf{S}$
+and the orthogonal coordinate directions. The distribution of \emph{visible}
+normals $D_{\omega_o}$ is obtained from $D$ as
+\begin{align*}
+    D_{\omega_o}(\omega_m) &= 
+        \frac{D(\omega_m)}{\sigma(\omega_o)}
+        \Angles{\omega_o, \omega_m}
+    \intertext{where $\sigma$ yields projected area along $\omega_o$ and}
+    \Angles{\omega_o, \omega_m} &= 
+    \begin{cases}
+        \omega_o \cdot \omega_m & 
+        \text{$(\omega_o, \omega_m)$ in same hemisphere,}\\
+        0 & \text{otherwise.}
+    \end{cases}
+\end{align*}
+So, unlike the phase functions in the previous sections, the SGGX phase
+function has a global orientation, meaning that $p$ depends on the specific
+values of directions $\omega_o$ and $\omega_i$, and not just
+on the angle between them. 
+
+Due to the constraint in \texttt{layered-sqt} that the emergent BSDF must be
+isotropic, we cannot allow all configurations of $\mathbf{S}$. If $\mathbf{S}$
+is written as the eigendecomposition
+$\mathbf{S} = \mathbf{Q}^\top \mathbf{\Lambda} \mathbf{Q}$,
+then 1) we fix $\mathbf{Q} = \mathbf{I}$, the identity matrix, and we 2) require
+that the eigenvalues of $\mathbf{\Lambda}$ describing projected area in the
+XY plane be identical. We thus obtain
+\begin{equation*}
+    \mathbf{S} = \begin{bmatrix}
+        A_{\parallel}^2 & 0 & 0 \\
+        0 & A_{\parallel}^2 & 0 \\
+        0 & 0 & A_{\perp}^2 
+    \end{bmatrix}
+\end{equation*}
+with free parameters $A_{\parallel} > 0$ and $A_{\perp} > 0$.
+
+To specify the SGGX phase function in LSQT format, use the name
+\namett{purple}{SggxPhase} followed by (optional) keyword arguments
+\texttt{Apara} for $A_{\parallel}$, \texttt{Aperp} for $A_{\perp}$, and
+\texttt{type} for the micro-phase function type (either \texttt{Specular} 
+or \texttt{Diffuse}). For example,
+\begin{lstlisting}
+Medium mus=1 SggxPhase Apara=0.5 type=Diffuse
+\end{lstlisting}
+By default, \texttt{Apara=1}, \texttt{Aperp=1}, and 
+\texttt{type=Specular}. Note that only the ratio of
+$A_{\parallel}$ to $A_{\perp}$ matters, so it always acceptable to fix
+$A_{\perp} = 1$ and just specify $A_{\parallel}$ (or vice versa).
 
 \subsection{Layers}
 \label{sec:doc-layers}
