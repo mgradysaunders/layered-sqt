@@ -32,40 +32,37 @@
 
 namespace ls {
 
-// Lambertian BRDF.
+// Microsurface from Lambertian BSDF.
 typedef 
-    pr::microsurface_lambertian_brdf<
+    pr::microsurface_lambertian_bsdf<
         Float,
         pr::microsurface_trowbridge_reitz_slope,
-        pr::microsurface_uniform_height> MicrosurfaceLambertianBrdf;
+        pr::microsurface_uniform_height> MicrosurfaceLambertianBsdf;
 
 // BSDF.
-Float MicrosurfaceLambertianBrdfLayer::bsdf(
+Float MicrosurfaceLambertianLayer::bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
             Float* f_pdf) const
 {
     // Surface.
-    MicrosurfaceLambertianBrdf surf = {
-        fR, // fT,
+    MicrosurfaceLambertianBsdf surf = {
+        fR, fT,
         Vec2<Float>{alpha, alpha}
     };
 
     // Use multiple scattering?
     if (use_multiple_scattering) {
 
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
         // Multiple-scattering version.
-        return surf.fs(uk, wo, wi, 0, 0, iter_count, f_pdf);
+        return surf.fs(pcg, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
         // Single-scattering version.
+        return surf.fs(pcg, wo, wi, 0, 1, iter_count, f_pdf);
+#if 0
         Float f = 0;
         for (int iter = 0;
                  iter < iter_count; iter++) {
@@ -76,32 +73,44 @@ Float MicrosurfaceLambertianBrdfLayer::bsdf(
             *f_pdf = surf.fs1_pdf(wo, wi);
         }
         return f;
+#endif
     }
 }
 
 // BSDF sample.
-Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
+Vec3<Float> MicrosurfaceLambertianLayer::bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
 {
     // Surface.
-    MicrosurfaceLambertianBrdf surf = {
-        fR, // fT,
+    MicrosurfaceLambertianBsdf surf = {
+        fR, fT,
         Vec2<Float>{alpha, alpha}
     };
 
+    int k; 
+    Vec3<Float> wi = surf.fs_pdf_sample(pcg, wo, k);
+
+    // If not perfectly energy-conserving, then BSDF
+    // is not identical to BSDF-PDF.
+    if (!(fR == 1)) {
+
+        // Update throughput.
+        Float f_pdf;
+        Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
+        tau *= f / f_pdf;
+    }
+
+    return wi;
+
+#if 0
     // Use multiple scattering?
     if (use_multiple_scattering) {
 
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
         // Multiple-scattering version.
         int k; 
-        Vec3<Float> wi = surf.fs_pdf_sample(uk, wo, k);
+        Vec3<Float> wi = surf.fs_pdf_sample(pcg, wo, k);
 
         // If not perfectly energy-conserving, then BSDF
         // is not identical to BSDF-PDF.
@@ -109,7 +118,7 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
+            Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -133,16 +142,17 @@ Vec3<Float> MicrosurfaceLambertianBrdfLayer::bsdfSample(
 
         return wi;
     }
+#endif
 }
 
 // Is transmissive?
-bool MicrosurfaceLambertianBrdfLayer::isTransmissive() const
+bool MicrosurfaceLambertianLayer::isTransmissive() const
 {
     return false;
 }
 
 // Initialize from argument string.
-void MicrosurfaceLambertianBrdfLayer::init(const std::string& arg)
+void MicrosurfaceLambertianLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;
@@ -154,6 +164,10 @@ void MicrosurfaceLambertianBrdfLayer::init(const std::string& arg)
         while (iss >> str) {
             if (!str.compare(0, 3, "fR=", 3)) {
                 fR = std::stod(str.substr(3));
+            }
+            else
+            if (!str.compare(0, 3, "fT=", 3)) {
+                fT = std::stod(str.substr(3));
             }
             else 
             if (!str.compare(0, 6, "alpha=", 6)) {
@@ -212,6 +226,14 @@ void MicrosurfaceLambertianBrdfLayer::init(const std::string& arg)
     const char* error_message = nullptr;
     if (!(fR >= 0 && fR <= 1)) {
         error_message = ": fR is outside [0, 1]";
+    }
+    else 
+    if (!(fT >= 0 && fT <= 1)) {
+        error_message = ": fT is outside [0, 1]";
+    }
+    else 
+    if (!(fR + fT <= 1)) {
+        error_message = ": fR + fT is greater than 1";
     }
     else 
     if (!(alpha > 0)) {

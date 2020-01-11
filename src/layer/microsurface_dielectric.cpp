@@ -32,7 +32,7 @@
 
 namespace ls {
 
-// Dielectric BSDF.
+// Microsurface from dielectric BSDF.
 typedef 
     pr::microsurface_dielectric_bsdf<
         Float,
@@ -40,7 +40,7 @@ typedef
         pr::microsurface_uniform_height> MicrosurfaceDielectricBsdf;
 
 // BSDF.
-Float MicrosurfaceDielectricBsdfLayer::bsdf(
+Float MicrosurfaceDielectricLayer::bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
@@ -57,13 +57,8 @@ Float MicrosurfaceDielectricBsdfLayer::bsdf(
     // Use multiple scattering?
     if (use_multiple_scattering) {
 
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
         // Multiple-scattering version.
-        return surf.fs(uk, wo, wi, 0, 0, iter_count, f_pdf);
+        return surf.fs(pcg, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
@@ -77,7 +72,7 @@ Float MicrosurfaceDielectricBsdfLayer::bsdf(
 }
 
 // BSDF sample.
-Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
+Vec3<Float> MicrosurfaceDielectricLayer::bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
@@ -92,15 +87,10 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 
     if (use_multiple_scattering) {
 
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
         // Multiple-scattering version.
         int k; 
         Vec3<Float> wi = 
-        surf.fs_pdf_sample(uk, wo, k);
+        surf.fs_pdf_sample(pcg, wo, k);
 
         // If not perfectly energy-conserving, then BSDF
         // is not identical to BSDF-PDF.
@@ -109,7 +99,7 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
+            Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -133,13 +123,13 @@ Vec3<Float> MicrosurfaceDielectricBsdfLayer::bsdfSample(
 }
 
 // Is transmissive?
-bool MicrosurfaceDielectricBsdfLayer::isTransmissive() const
+bool MicrosurfaceDielectricLayer::isTransmissive() const
 {
     return kT > 0;
 }
 
 // Initialize from argument string.
-void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
+void MicrosurfaceDielectricLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;
@@ -242,7 +232,7 @@ void MicrosurfaceDielectricBsdfLayer::init(const std::string& arg)
 }
 
 // Validate.
-void MicrosurfaceDielectricBsdfLayer::validate() const
+void MicrosurfaceDielectricLayer::validate() const
 {
     if (this->medium_above->eta == 
         this->medium_below->eta) {

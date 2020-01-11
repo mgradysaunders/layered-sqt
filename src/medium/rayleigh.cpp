@@ -35,7 +35,7 @@ namespace ls {
 typedef pr::rayleigh_phase<Float> RayleighPhase;
 
 // Phase function.
-Float RayleighPhaseMedium::phase(
+Float RayleighMedium::phase(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const
@@ -45,7 +45,7 @@ Float RayleighPhaseMedium::phase(
 }
 
 // Phase function sample.
-Vec3<Float> RayleighPhaseMedium::phaseSample(
+Vec3<Float> RayleighMedium::phaseSample(
             Pcg32& pcg,
             Float& tau,
             const Vec3<Float>& wo) const
@@ -55,7 +55,7 @@ Vec3<Float> RayleighPhaseMedium::phaseSample(
 }
 
 // Initialize from argument string.
-void RayleighPhaseMedium::init(const std::string& arg)
+void RayleighMedium::init(const std::string& arg)
 {
     std::stringstream iss(arg);
     std::string str;

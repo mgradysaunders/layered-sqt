@@ -42,16 +42,16 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Rayleigh phase medium.
+ * @brief Rayleigh medium.
  */
-class RayleighPhaseMedium final : public Medium
+class RayleighMedium final : public Medium
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    RayleighPhaseMedium() = default;
+    RayleighMedium() = default;
 
     /**
      * @brief Depolarization factor @f$ \rho \in (-1, +1) @f$.

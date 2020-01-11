@@ -40,7 +40,7 @@ typedef pr::microvolume_sggx_specular_phase<Float>
 typedef pr::microvolume_sggx_diffuse_phase<Float> 
         SggxDiffusePhase;
 
-Float SggxPhaseMedium::phase(
+Float SggxMedium::phase(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const
@@ -80,7 +80,7 @@ Float SggxPhaseMedium::phase(
     }
 }
 
-Vec3<Float> SggxPhaseMedium::phaseSample(
+Vec3<Float> SggxMedium::phaseSample(
             Pcg32& pcg,
             Float& tau,
             const Vec3<Float>& wo) const
@@ -126,7 +126,7 @@ Vec3<Float> SggxPhaseMedium::phaseSample(
 }
 
 // Initialize from argument string.
-void SggxPhaseMedium::init(const std::string& arg)
+void SggxMedium::init(const std::string& arg)
 {
     std::stringstream iss(arg);
     std::string str;

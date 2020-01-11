@@ -32,7 +32,7 @@
 
 namespace ls {
 
-// Conductive BRDF.
+// Microsurface from conductive BRDF.
 typedef 
     pr::microsurface_conductive_brdf<
         Float,
@@ -40,7 +40,7 @@ typedef
         pr::microsurface_uniform_height> MicrosurfaceConductiveBrdf;
 
 // BSDF.
-Float MicrosurfaceConductiveBrdfLayer::bsdf(
+Float MicrosurfaceConductiveLayer::bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
@@ -67,13 +67,8 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
     // Use multiple scattering?
     if (use_multiple_scattering) {
 
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
         // Multiple-scattering version.
-        return surf.fs(uk, wo, wi, 0, 0, iter_count, f_pdf);
+        return surf.fs(pcg, wo, wi, 0, 0, iter_count, f_pdf);
     }
     else {
 
@@ -87,7 +82,7 @@ Float MicrosurfaceConductiveBrdfLayer::bsdf(
 }
 
 // BSDF sample.
-Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
+Vec3<Float> MicrosurfaceConductiveLayer::bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
@@ -111,15 +106,10 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
 
     if (use_multiple_scattering) {
 
-        // Function to generate canonical random numbers.
-        auto uk = [&pcg]() {
-            return generateCanonical(pcg);
-        };
-
         // Multiple-scattering version.
         int k; 
         Vec3<Float> wi = 
-        surf.fs_pdf_sample(uk, wo, k);
+        surf.fs_pdf_sample(pcg, wo, k);
 
         // If not perfectly energy-conserving, then BSDF
         // is not identical to BSDF-PDF.
@@ -127,7 +117,7 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fs(uk, wo, wi, 0, 0, 1, &f_pdf);
+            Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -150,13 +140,13 @@ Vec3<Float> MicrosurfaceConductiveBrdfLayer::bsdfSample(
 }
 
 // Is transmissive?
-bool MicrosurfaceConductiveBrdfLayer::isTransmissive() const
+bool MicrosurfaceConductiveLayer::isTransmissive() const
 {
     return false;
 }
 
 // Initialize from argument string.
-void MicrosurfaceConductiveBrdfLayer::init(const std::string& arg)
+void MicrosurfaceConductiveLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;
@@ -243,7 +233,7 @@ void MicrosurfaceConductiveBrdfLayer::init(const std::string& arg)
 }
 
 // Validate.
-void MicrosurfaceConductiveBrdfLayer::validate() const
+void MicrosurfaceConductiveLayer::validate() const
 {
     if (this->medium_below->mua == 0) {
         throw 

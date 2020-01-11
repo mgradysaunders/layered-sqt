@@ -32,7 +32,7 @@
 namespace ls {
 
 // Initialize from argument string.
-void NullBsdfLayer::init(const std::string& arg)
+void NullLayer::init(const std::string& arg)
 {
     std::stringstream iss(arg);
     std::string str;
@@ -46,7 +46,7 @@ void NullBsdfLayer::init(const std::string& arg)
 }
 
 // BSDF.
-Float NullBsdfLayer::bsdf(
+Float NullLayer::bsdf(
             Pcg32&,
             const Vec3<Float>&,
             const Vec3<Float>&,
@@ -60,7 +60,7 @@ Float NullBsdfLayer::bsdf(
 }
 
 // BSDF sample.
-Vec3<Float> NullBsdfLayer::bsdfSample(
+Vec3<Float> NullLayer::bsdfSample(
             Pcg32&, 
             Float&,
             const Vec3<Float>& wo) const
@@ -69,13 +69,13 @@ Vec3<Float> NullBsdfLayer::bsdfSample(
 }
 
 // Is transmissive?
-bool NullBsdfLayer::isTransmissive() const
+bool NullLayer::isTransmissive() const
 {
     return true;
 }
 
 // Is null?
-bool NullBsdfLayer::isNull() const
+bool NullLayer::isNull() const
 {
     return true;
 }

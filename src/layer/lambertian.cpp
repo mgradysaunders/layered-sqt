@@ -32,7 +32,7 @@
 namespace ls {
 
 // BSDF.
-Float LambertianBsdfLayer::bsdf(
+Float LambertianLayer::bsdf(
             Pcg32&,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
@@ -54,7 +54,7 @@ Float LambertianBsdfLayer::bsdf(
 }
 
 // BSDF sample.
-Vec3<Float> LambertianBsdfLayer::bsdfSample(
+Vec3<Float> LambertianLayer::bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
@@ -75,13 +75,13 @@ Vec3<Float> LambertianBsdfLayer::bsdfSample(
 }
 
 // Is transmissive?
-bool LambertianBsdfLayer::isTransmissive() const
+bool LambertianLayer::isTransmissive() const
 {
     return fT > 0;
 }
 
 // Initialize from argument string.
-void LambertianBsdfLayer::init(const std::string& arg)
+void LambertianLayer::init(const std::string& arg)
 {
     std::stringstream iss(arg);
     std::string str;

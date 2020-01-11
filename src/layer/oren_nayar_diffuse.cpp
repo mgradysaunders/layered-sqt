@@ -35,7 +35,7 @@ namespace ls {
 typedef pr::oren_nayar_diffuse_brdf<Float> OrenNayarDiffuseBrdf;
 
 // BSDF.
-Float OrenNayarDiffuseBrdfLayer::bsdf(
+Float OrenNayarDiffuseLayer::bsdf(
             Pcg32&,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
@@ -59,7 +59,7 @@ Float OrenNayarDiffuseBrdfLayer::bsdf(
 }
 
 // BSDF sample.
-Vec3<Float> OrenNayarDiffuseBrdfLayer::bsdfSample(
+Vec3<Float> OrenNayarDiffuseLayer::bsdfSample(
             Pcg32& pcg, 
             Float& tau,
             const Vec3<Float>& wo) const
@@ -72,13 +72,13 @@ Vec3<Float> OrenNayarDiffuseBrdfLayer::bsdfSample(
 }
 
 // Is transmissive?
-bool OrenNayarDiffuseBrdfLayer::isTransmissive() const
+bool OrenNayarDiffuseLayer::isTransmissive() const
 {
     return false;
 }
 
 // Initialize from argument string.
-void OrenNayarDiffuseBrdfLayer::init(const std::string& arg)
+void OrenNayarDiffuseLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;

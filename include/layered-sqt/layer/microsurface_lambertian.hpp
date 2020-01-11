@@ -42,28 +42,26 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Microsurface Lambertian BRDF layer.
+ * @brief Microsurface Lambertian layer.
  */
-class MicrosurfaceLambertianBrdfLayer final : public Layer
+class MicrosurfaceLambertianLayer final : public Layer
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    MicrosurfaceLambertianBrdfLayer() = default;
+    MicrosurfaceLambertianLayer() = default;
 
     /**
      * @brief BRDF coefficient @f$ f_R @f$.
      */
     Float fR = 1;
 
-#if 0
     /**
      * @brief BTDF coefficient @f$ f_T @f$.
      */
     Float fT = 0;
-#endif
 
     /**
      * @brief Roughness @f$ \alpha @f$.
@@ -73,7 +71,7 @@ public:
     /**
      * @brief Use multiple scattering?
      */
-    bool use_multiple_scattering = true;
+    bool use_multiple_scattering = false;
 
     /**
      * @brief Number of stochastic process iterations.

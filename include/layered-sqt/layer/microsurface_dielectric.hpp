@@ -42,16 +42,16 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Microsurface dielectric BSDF layer.
+ * @brief Microsurface dielectric layer.
  */
-class MicrosurfaceDielectricBsdfLayer final : public Layer
+class MicrosurfaceDielectricLayer final : public Layer
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    MicrosurfaceDielectricBsdfLayer() = default;
+    MicrosurfaceDielectricLayer() = default;
 
     /**
      * @brief BRDF coefficient @f$ k_R @f$.
@@ -71,7 +71,7 @@ public:
     /**
      * @brief Use multiple scattering?
      */
-    bool use_multiple_scattering = true;
+    bool use_multiple_scattering = false;
 
     /**
      * @brief Number of stochastic process iterations.

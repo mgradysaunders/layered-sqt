@@ -42,16 +42,16 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Henyey-Greenstein phase medium.
+ * @brief Henyey-Greenstein medium.
  */
-class HenyeyGreensteinPhaseMedium final : public Medium
+class HenyeyGreensteinMedium final : public Medium
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    HenyeyGreensteinPhaseMedium() = default;
+    HenyeyGreensteinMedium() = default;
 
     /**
      * @brief Shape parameter @f$ g \in (-1, +1) @f$.

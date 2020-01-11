@@ -82,9 +82,9 @@ void LayeredAssembly::init(std::istream& is)
                             mus = std::stod(str.substr(4));
                         }
                         else {
-                            if (str == "HenyeyGreensteinPhase" ||
-                                str == "RayleighPhase" ||
-                                str == "SggxPhase") {
+                            if (str == "HenyeyGreenstein" ||
+                                str == "Rayleigh" ||
+                                str == "Sggx") {
                                 medium_phase = str;
                                 break;
                             }
@@ -130,16 +130,16 @@ void LayeredAssembly::init(std::istream& is)
                     mediums_.push_back(new Medium()); // Default.
                 }
                 else 
-                if (medium_phase == "HenyeyGreensteinPhase") {
-                    mediums_.push_back(new HenyeyGreensteinPhaseMedium());
+                if (medium_phase == "HenyeyGreenstein") {
+                    mediums_.push_back(new HenyeyGreensteinMedium());
                 }
                 else
-                if (medium_phase == "RayleighPhase") {
-                    mediums_.push_back(new RayleighPhaseMedium());
+                if (medium_phase == "Rayleigh") {
+                    mediums_.push_back(new RayleighMedium());
                 }
                 else
-                if (medium_phase == "SggxPhase") {
-                    mediums_.push_back(new SggxPhaseMedium());
+                if (medium_phase == "Sggx") {
+                    mediums_.push_back(new SggxMedium());
                 }
 
                 // Medium parameters.
@@ -199,28 +199,28 @@ void LayeredAssembly::init(std::istream& is)
 
                 // Read identifier.
                 iss >> str;
-                if (str == "NullBsdf") {
-                    layers_.push_back(new NullBsdfLayer());
+                if (str == "Null") {
+                    layers_.push_back(new NullLayer());
                 }
                 else
-                if (str == "LambertianBsdf") {
-                    layers_.push_back(new LambertianBsdfLayer());
+                if (str == "Lambertian") {
+                    layers_.push_back(new LambertianLayer());
                 }
                 else
-                if (str == "MicrosurfaceLambertianBrdf") {
-                    layers_.push_back(new MicrosurfaceLambertianBrdfLayer());
+                if (str == "MicrosurfaceLambertian") {
+                    layers_.push_back(new MicrosurfaceLambertianLayer());
                 }
                 else
-                if (str == "MicrosurfaceDielectricBsdf") {
-                    layers_.push_back(new MicrosurfaceDielectricBsdfLayer());
+                if (str == "MicrosurfaceDielectric") {
+                    layers_.push_back(new MicrosurfaceDielectricLayer());
                 }
                 else
-                if (str == "MicrosurfaceConductiveBrdf") {
-                    layers_.push_back(new MicrosurfaceConductiveBrdfLayer());
+                if (str == "MicrosurfaceConductive") {
+                    layers_.push_back(new MicrosurfaceConductiveLayer());
                 }
                 else
-                if (str == "OrenNayarDiffuseBrdf") {
-                    layers_.push_back(new OrenNayarDiffuseBrdfLayer());
+                if (str == "OrenNayarDiffuse") {
+                    layers_.push_back(new OrenNayarDiffuseLayer());
                 }
                 else {
                     // Runtime error.

@@ -42,9 +42,9 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Null BSDF layer.
+ * @brief Null layer.
  */
-class NullBsdfLayer final : public Layer
+class NullLayer final : public Layer
 {
 public:
 

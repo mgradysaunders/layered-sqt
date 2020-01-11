@@ -35,7 +35,7 @@ namespace ls {
 typedef pr::hg_phase<Float> HenyeyGreensteinPhase;
 
 // Phase function.
-Float HenyeyGreensteinPhaseMedium::phase(
+Float HenyeyGreensteinMedium::phase(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi) const
@@ -45,7 +45,7 @@ Float HenyeyGreensteinPhaseMedium::phase(
 }
 
 // Phase function sample.
-Vec3<Float> HenyeyGreensteinPhaseMedium::phaseSample(
+Vec3<Float> HenyeyGreensteinMedium::phaseSample(
             Pcg32& pcg,
             Float& tau,
             const Vec3<Float>& wo) const
@@ -55,7 +55,7 @@ Vec3<Float> HenyeyGreensteinPhaseMedium::phaseSample(
 }
 
 // Initialize from argument string.
-void HenyeyGreensteinPhaseMedium::init(const std::string& arg)
+void HenyeyGreensteinMedium::init(const std::string& arg)
 {
     std::stringstream iss(arg);
     std::string str;

@@ -42,26 +42,26 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Lambertian BSDF layer.
+ * @brief Lambertian layer.
  */
-class LambertianBsdfLayer final : public Layer
+class LambertianLayer final : public Layer
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    LambertianBsdfLayer() = default;
+    LambertianLayer() = default;
 
     /**
      * @brief BRDF coefficient @f$ f_R @f$.
      */
-    Float fR = 0.5;
+    Float fR = 1;
 
     /**
      * @brief BTDF coefficient @f$ f_T @f$.
      */
-    Float fT = 0.5;
+    Float fT = 0;
 
 public:
 

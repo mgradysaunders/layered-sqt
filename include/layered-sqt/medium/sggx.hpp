@@ -42,16 +42,16 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief SGGX phase medium.
+ * @brief SGGX medium.
  */
-class SggxPhaseMedium final : public Medium
+class SggxMedium final : public Medium
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    SggxPhaseMedium() = default;
+    SggxMedium() = default;
 
     /**
      * @brief Type.

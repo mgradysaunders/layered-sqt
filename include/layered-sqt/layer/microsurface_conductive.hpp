@@ -42,16 +42,16 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Microsurface conductive BRDF layer.
+ * @brief Microsurface conductive layer.
  */
-class MicrosurfaceConductiveBrdfLayer final : public Layer
+class MicrosurfaceConductiveLayer final : public Layer
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    MicrosurfaceConductiveBrdfLayer() = default;
+    MicrosurfaceConductiveLayer() = default;
 
     /**
      * @brief Roughness @f$ \alpha @f$.
@@ -61,7 +61,7 @@ public:
     /**
      * @brief Use multiple scattering?
      */
-    bool use_multiple_scattering = true;
+    bool use_multiple_scattering = false;
 
     /**
      * @brief Number of stochastic process iterations.

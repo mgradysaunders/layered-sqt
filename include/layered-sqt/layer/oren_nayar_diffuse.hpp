@@ -42,16 +42,16 @@ namespace ls {
 /**@{*/
 
 /**
- * @brief Oren-Nayar diffuse BRDF layer.
+ * @brief Oren-Nayar diffuse layer.
  */
-class OrenNayarDiffuseBrdfLayer final : public Layer
+class OrenNayarDiffuseLayer final : public Layer
 {
 public:
 
     /**
      * @brief Default constructor.
      */
-    OrenNayarDiffuseBrdfLayer() = default;
+    OrenNayarDiffuseLayer() = default;
 
     /**
      * @brief BRDF coefficient @f$ f_R @f$.
