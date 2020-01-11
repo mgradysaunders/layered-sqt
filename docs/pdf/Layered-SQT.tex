@@ -23,15 +23,15 @@
     keywordstyle=\color{codeblue},
     classoffset=2,
     morekeywords={
-        HenyeyGreensteinPhase, 
-        RayleighPhase,
-        SggxPhase,
-        NullBsdf,
-        LambertianBsdf,
-        MicrosurfaceLambertianBrdf,
-        MicrosurfaceDielectricBsdf,
-        MicrosurfaceConductiveBrdf,
-        OrenNayarDiffuseBrdf
+        HenyeyGreenstein, 
+        Rayleigh,
+        Sggx,
+        Null,
+        Lambertian,
+        MicrosurfaceLambertian,
+        MicrosurfaceDielectric,
+        MicrosurfaceConductive,
+        OrenNayarDiffuse
     },
     keywordstyle=\color{codepurple},
     classoffset=0
@@ -191,7 +191,7 @@ Using whatever text-editing program you prefer, create a
 plain-text LSQT file $\texttt{Lambertian.lsqt}$ with three lines.
 \begin{lstlisting}[numbers=left]
 Medium
-Layer z=0 LambertianBsdf fR=0.6 fT=0
+Layer z=0 Lambertian fR=0.6
 Medium
 \end{lstlisting}
 As an aside, LSQT format input is syntax-highlighted in this 
@@ -274,14 +274,14 @@ As before, create a new plain-text LSQT file \texttt{Rough.lsqt}
 with three lines.
 \begin{lstlisting}[numbers=left]
 Medium
-Layer z=0 MicrosurfaceLambertianBrdf fR=0.6 alpha=2.4
+Layer z=0 MicrosurfaceLambertian fR=0.6 alpha=2.4
 Medium
 \end{lstlisting}
 Above, \texttt{fR=0.6} specifies that the Lambertian BRDF is 60\% 
 reflective, and \texttt{alpha=2.4} sets the roughness parameter
 $\alpha$ to be 2.4---this is very rough. Note that setting 
 \texttt{alpha=0} is effectively equivalent to using 
-\namett{purple}{LambertianBsdf} with \texttt{fR=0.6} 
+\namett{purple}{Lambertian} with \texttt{fR=0.6} 
 and \texttt{fT=0}.
 
 \begin{figure}
@@ -326,27 +326,27 @@ Then create a new plain-text LSQT file \texttt{Substr.lsqt} with
 five lines as below.
 \begin{lstlisting}[numbers=left]
 Medium
-Layer z=1 MicrosurfaceDielectricBsdf alpha=0.2 use_multiple_scattering=false
+Layer z=1 MicrosurfaceDielectric alpha=0.2
 Medium eta=1.4
-Layer z=0 LambertianBsdf fR=0.6 fT=0
+Layer z=0 Lambertian fR=0.6
 Medium
 \end{lstlisting}
 This assembly has two layers, appearing on lines 2 and 4. 
 The first layer is positioned at $z$-height 1 with a 
-\namett{purple}{MicrosurfaceDielectricBsdf}---this is similar to 
-\namett{purple}{MicrosurfaceLambertianBrdf}, 
+\namett{purple}{MicrosurfaceDielectric}---this is similar to 
+\namett{purple}{MicrosurfaceLambertian}, 
 but it applies 
 the microsurface ideology to the dielectric Fresnel mirror BSDF instead of 
 the Lambertian BRDF. This layer forms the surface of our glossy dielectric 
 coating.
 The second layer is positioned at $z$-height 0 with a 
-\namett{purple}{LambertianBsdf} as in tutorial \S\ref{sec:tutorial1}.
+\namett{purple}{Lambertian} as in tutorial \S\ref{sec:tutorial1}.
 
 The medium between these layers on line 3 is attributed a
 refractive index $\eta$ (\texttt{eta}) of $1.4$. Note that 
 \emph{every} medium in an LSQT
 file has a refractive index, which defaults to 1 if left unspecfied. 
-Note also that \namett{purple}{MicrosurfaceDielectricBsdf} depends on the
+Note also that \namett{purple}{MicrosurfaceDielectric} depends on the
 refractive indices of the media above and below the layer to which it is
 assigned, as it generalizes the dielectric Fresnel mirror BSDF.
 
@@ -467,14 +467,14 @@ Next create another plain-text LSQT file \texttt{Dusty.lsqt} with three
 layers and thus seven lines.
 \begin{lstlisting}[numbers=left]
 Medium
-Layer z=2 NullBsdf
-Medium mus=0.2 HenyeyGreensteinPhase g=-0.4
-Layer z=1 MicrosurfaceDielectricBsdf alpha=0.2 use_multiple_scattering=false
+Layer z=2 Null
+Medium mus=0.2 HenyeyGreenstein g=-0.4
+Layer z=1 MicrosurfaceDielectric alpha=0.2
 Medium eta=1.4
-Layer z=0 LambertianBsdf fR=0.2 fT=0
+Layer z=0 Lambertian fR=0.2
 Medium
 \end{lstlisting}
-We attribute a \namett{purple}{NullBsdf} to the topmost layer appearing
+We attribute a \namett{purple}{Null} to the topmost layer appearing
 on line 2, such that this layer only exists to separate media, and 
 no scattering happens at the layer itself. The medium above on line 1 
 is vacuum as usual. The medium below on line 3 models our layer of dust.
@@ -500,7 +500,7 @@ cease to exist.
 
 To simulate a thin layer of back-scattering dust, 
 we attribute a scattering coefficient $\mu_s$ (\texttt{mus}) of $0.2$ and 
-a \namett{purple}{HenyeyGreensteinPhase} with shape parameter $g$ of $-0.4$
+a \namett{purple}{HenyeyGreenstein} with shape parameter $g$ of $-0.4$
 (more on this in a moment). We choose $\mu_s$ to be $0.2$ such that the mean 
 distance between scattering events is $1/\mu_s = 5$ units. This is somewhat 
 large in comparison to the thickness of the dust layer, which is 1 unit 
@@ -632,10 +632,10 @@ as $g\to0$. See d'Eon's write-up
 \cite[p.~19]{dEon:16} for more information.
 
 To specify the Henyey-Greenstein phase in LSQT format, use the name
-\namett{purple}{HenyeyGreensteinPhase} followed by the (optional) keyword 
+\namett{purple}{HenyeyGreenstein} followed by the (optional) keyword 
 argument \texttt{g} for $g$, which is zero by default. For example,
 \begin{lstlisting}
-Medium mus=1 HenyeyGreensteinPhase g=-0.22
+Medium mus=1 HenyeyGreenstein g=-0.22
 \end{lstlisting}
 specifies a moderately back-scattering medium.
 
@@ -671,10 +671,10 @@ maximized as $\rho \to -1$ and minimized as $\rho \to +1$. Note that $p$
 becomes uniformly/isotropically scattering in the limiting case $\rho = +1$.
 
 To specify the Rayleigh phase function in LSQT format, use the name 
-\namett{purple}{RayleighPhase} followed by the (optional) keyword argument
+\namett{purple}{Rayleigh} followed by the (optional) keyword argument
 \texttt{rho} for $\rho$, which is zero by default. For example,
 \begin{lstlisting}
-Medium mus=1 RayleighPhase rho=-0.5
+Medium mus=1 Rayleigh rho=-0.5
 \end{lstlisting}
 specifies a medium with an exaggerated ``Rayleigh effect'' relative to the
 common form where $\rho=0$.
@@ -741,12 +741,12 @@ XY plane be identical. We thus obtain
 with free parameters $A_{\parallel} > 0$ and $A_{\perp} > 0$.
 
 To specify the SGGX phase function in LSQT format, use the name
-\namett{purple}{SggxPhase} followed by (optional) keyword arguments
+\namett{purple}{Sggx} followed by (optional) keyword arguments
 \texttt{Apara} for $A_{\parallel}$, \texttt{Aperp} for $A_{\perp}$, and
 \texttt{type} for the micro-phase function type (either \texttt{Specular} 
 or \texttt{Diffuse}). For example,
 \begin{lstlisting}
-Medium mus=1 SggxPhase Apara=0.5 type=Diffuse
+Medium mus=1 Sggx Apara=0.5 type=Diffuse
 \end{lstlisting}
 By default, \texttt{Apara=1}, \texttt{Aperp=1}, and 
 \texttt{type=Specular}. Note that only the ratio of
@@ -766,7 +766,7 @@ layer must begin with the name \namett{blue}{Layer} followed by the (required)
 keyword argument \texttt{z}. This is followed in turn by the name of the 
 desired BSDF, followed by any keyword arguments for the BSDF. For example,
 \begin{lstlisting}
-Layer z=1 NullBsdf
+Layer z=1 Null
 \end{lstlisting}
 specifies a layer at $z$-height 1 with a null BSDF. As explained in 
 the next sub-section, a null BSDF is a special case which accepts no additional
@@ -783,16 +783,16 @@ is violated, the implementation issues an error and exits.
 At times, it is desirable to separate participating media 
 \emph{without} scattering at a layer. This is possible in
 \texttt{layered-sqt} by assigning a null BSDF with name 
-\namett{purple}{NullBsdf}, which may be interpreted as a 100\% 
+\namett{purple}{Null}, which may be interpreted as a 100\% 
 transmissive directional delta function in the direction a 
 ray is already traveling. This is useful, for example, to model a 
 layer of dust on top of a surface. To do so, we might specify the 
 following LSQT file
 \begin{lstlisting}[numbers=left]
 Medium
-Layer z=1 NullBsdf
-Medium mus=1 HenyeyGreensteinPhase g=0.2
-Layer z=0 LambertianBsdf fR=1 fT=0
+Layer z=1 Null
+Medium mus=1 HenyeyGreenstein g=0.2
+Layer z=0 Lambertian fR=1
 Medium
 \end{lstlisting}
 which describes a layer of forward-scattering ``dust'' on top 
@@ -837,18 +837,19 @@ physically plausible. In the event that $f_R + f_T = 1$, this is
 perfectly energy-conserving.
 
 To specify the Lambertian BSDF in LSQT format, use the name
-\namett{purple}{LambertianBsdf} followed by keyword arguments 
-\texttt{fR} and \texttt{fT} for $f_R$ and $f_T$ respectively. The 
-implementation requires that the values of \texttt{fR} and \texttt{fT} 
-be physically plausible, i.e., non-negative numbers whose sum does not exceed 1.
+\namett{purple}{Lambertian} followed by (optional) keyword arguments 
+\texttt{fR} and \texttt{fT} for $f_R$ and $f_T$ respectively. 
 For example,
 \begin{lstlisting}
-Layer z=2.2 LambertianBsdf fR=0.8 fT=0.1
+Layer z=2.2 Lambertian fR=0.8 fT=0.1
 \end{lstlisting}
 specifies a Lambertian surface at $z$-height 2.2 which is 80\% reflective,
-10\% transmissive, and 10\% absorptive. 
+10\% transmissive, and 10\% absorptive. By default, \texttt{fR=1} and 
+\texttt{fT=0}. %The implementation requires that the values of \texttt{fR} and 
+%\texttt{fT} be physically plausible, i.e., non-negative numbers whose sum does 
+%not exceed 1. 
 
-\subsubsection{Microsurface Lambertian BRDF}
+\subsubsection{Microsurface Lambertian BSDF}
 \label{sec:doc-layers-microsurface-lambertian}
 
 A microsurface is thought 
@@ -864,34 +865,35 @@ BSDF appears rougher. As $\alpha\to0$, the distribution of slopes collapses,
 recovering the initial, simpler BSDF in the limiting case $\alpha=0$.
 
 As given in \cite{Heitz:16},
-the microsurface Lambertian BRDF is a multiple scattering (stochastic)
-microfacet model wherein facets are assumed to be Lambertian reflectors. 
+the microsurface Lambertian BSDF is a multiple scattering (stochastic)
+microfacet model wherein facets are assumed to be Lambertian scatterers. 
 This is particularly useful for representing rough diffuse surfaces. The 
 implementation in \texttt{layered-sqt} is parameterized by
-roughness $\alpha>0$, the Lambertian BRDF coefficient 
-$f_R \in [0,1]$, and the number of local stochastic process 
+roughness $\alpha>0$, the Lambertian BSDF coefficients
+$f_R \in [0,1]$ and $f_T \in [0,1]$, and the number of 
+local stochastic process 
 iterations $n_{\text{iter}} \ge 1$. For rougher microsurfaces 
 (say, $\alpha > 0.4$), it is typically more efficient to increase 
 $n_{\text{iter}}$ rather than the global path count.
 
-To specify the microsurface Lambertian BRDF 
+To specify the microsurface Lambertian BSDF 
 in LSQT format, use the name 
-\begin{lstlisting}
-MicrosurfaceLambertianBrdf
-\end{lstlisting}
-followed by (optional) keyword arguments 
-\texttt{alpha}, \texttt{fR}, and \texttt{iter\_count} for $\alpha$,
-$f_R$, and $n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
-\texttt{fR=1}, and \texttt{iter\_count} is chosen to be 1, 2, 4, or 6 
-depending on \texttt{alpha}. For reference, $\alpha < 0.1$ is very smooth, 
+\namett{purple}{MicrosurfaceLambertian}
+followed by keyword arguments 
+\texttt{alpha}, \texttt{fR}, \texttt{fT}, and \texttt{iter\_count} for 
+$\alpha$, $f_R$, $f_T$, $n_{\text{iter}}$ respectively. By default, 
+\texttt{alpha=0.5}, \texttt{fR=1}, \texttt{fT=0}, and \texttt{iter\_count} 
+is chosen to be 1, 2, 4, or 6 depending on \texttt{alpha}. For reference, 
+$\alpha < 0.1$ is very smooth, 
 $0.1 < \alpha < 0.8$ is somewhat rough, and $0.8 < \alpha$ is very rough.
+% TODO
 Furthermore, multiple scattering may be disabled by the keyword argument
 \begin{lstlisting}
 use_multiple_scattering=false
 \end{lstlisting}
 in which case only the single scattering term is computed. It is 
 important to note that, if multiple-scattering interactions are 
-ignored, then setting \texttt{fR=1} does not guarantee that the BRDF 
+ignored, then $f_R + f_T = 1$ does \emph{not} guarantee that the BSDF 
 is perfectly energy conserving. 
 For small roughness values (say, $\alpha < 0.1$), the energy carried by 
 multiple scattering interations is insignificant, and so this may not be a
@@ -902,7 +904,7 @@ to prevent energy loss.
 \label{sec:doc-layers-microsurface-dielectric}
 
 The microsurface dielectric BSDF follows the same logical construction as 
-the microsurface Lambertian BRDF, except the constituent BSDF assigned to the
+the microsurface Lambertian BSDF, except the constituent BSDF assigned to the
 facets is the delta Fresnel mirror BSDF. The implementation in 
 \texttt{layered-sqt} is parameterized by roughness $\alpha > 0$, a scaling
 factor for the Fresnel mirror BRDF $k_R \in [0, 1]$, a scaling factor for 
@@ -911,25 +913,29 @@ process iterations $n_{\text{iter}} \ge 1$.
 
 To specify the microsurface dielectric BSDF 
 in LSQT format, use the name
-\begin{lstlisting}
-MicrosurfaceDielectricBsdf
-\end{lstlisting}
-followed by (optional) keyword arguments \texttt{alpha}, \texttt{kR},
+\namett{purple}{MicrosurfaceDielectric}
+followed by keyword arguments \texttt{alpha}, \texttt{kR},
 \texttt{kT}, and \texttt{iter\_count} for $\alpha$, $k_R$, $k_T$, and 
 $n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
 \texttt{kR=1}, \texttt{kT=1}, and \texttt{iter\_count} is chosen to 
-be 1, 2, 4, or 6 depending on \texttt{alpha}. As in the Lambertian case, 
-multiple-scattering may be disabled by the keyword argument
+be 1, 2, 4, or 6 depending on \texttt{alpha}. 
+
+
+Unlike the Lambertian case, the single-scattering term is directly 
+computable due to the delta function 
+in the dielectric Fresnel BSDF---such that disabling multiple-scattering 
+renders \texttt{iter\_count} irrelevant. This leads to noticeably faster
+simulations, so much so that multiple-scattering is disabled by 
+default. Energy loss is less noticeable than the Lambertian case
+for moderately rough surfaces,
+but is still an issue for very rough surfaces 
+(say $\alpha > 0.8$). As such, multiple-scattering may be 
+enabled at the user's discretion by the keyword argument
 \begin{lstlisting}
-use_multiple_scattering=false
+use_multiple_scattering=true
 \end{lstlisting}
-so that only the single-scattering term is computed. Unlike the
-Lambertian case however, the single-scattering term is directly 
-computable (without a stochastic process) due to the delta function 
-in the Fresnel mirror BSDF---such that disabling multiple-scattering makes
-\texttt{iter\_count} irrelevant. This leads to noticeably faster
-simulations, though still at the cost of significant
-energy loss for rough surfaces.
+to ensure proper energy conservation.
+
 
 \subsubsection{Microsurface conductive BRDF}
 \label{sec:doc-layers-microsurface-conductive}
