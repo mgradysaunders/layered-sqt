@@ -378,11 +378,11 @@ to increase \emph{resolution}, and we should think to increase the number
 of paths to reduce \emph{noise}.
 
 In the case of our simple substrate BRDF, let's increase the number 
-of directions from 80 to 200, and the number of paths from 10,000 to 
+of directions from 80 to 300, and the number of paths from 10,000 to 
 100,000. Run \texttt{layered-sqt} with the following flags:
 \begin{verbatim}
-$ ../layered-sqt -R -wi=200 \
-  -p=100000 -rp=0.2 Substr.lsqt
+$ ../layered-sqt -R -wi=300 \
+  -p=100000 -rp=0.3 Substr.lsqt
 \end{verbatim}
 This should take a minute or two to compute. Upon previewing the BRDF with
 \texttt{layered-sqt-lssview}, we see something much more sensible, as shown
@@ -411,7 +411,7 @@ this). So, \texttt{-R} is necessary to regenerate sample directions.
     \includegraphics[width=0.75\columnwidth]{tutorial3-2.png}
     \caption{Image preview of the simple substrate BRDF in tutorial
     \S\ref{sec:tutorial3}, as output from running \texttt{layered-sqt} with
-    higher settings. In particular, this uses 200 incident directions (instead
+    higher settings. In particular, this uses 300 incident directions (instead
     of the default 80) and 100,000 paths (instead of the default 10,000).
     \label{fig:tutorial3-2}}
 \end{center}
@@ -866,38 +866,35 @@ recovering the initial, simpler BSDF in the limiting case $\alpha=0$.
 
 As given in \cite{Heitz:16},
 the microsurface Lambertian BSDF is a multiple scattering (stochastic)
-microfacet model wherein facets are assumed to be Lambertian scatterers. 
-This is particularly useful for representing rough diffuse surfaces. The 
-implementation in \texttt{layered-sqt} is parameterized by
-roughness $\alpha>0$, the Lambertian BSDF coefficients
-$f_R \in [0,1]$ and $f_T \in [0,1]$, and the number of 
-local stochastic process 
-iterations $n_{\text{iter}} \ge 1$. For rougher microsurfaces 
-(say, $\alpha > 0.4$), it is typically more efficient to increase 
-$n_{\text{iter}}$ rather than the global path count.
+microfacet model wherein facets are assumed to be Lambertian scatterers.
+As one might expect, this is particularly useful for modeling rough diffuse 
+surfaces. The implementation in \texttt{layered-sqt} is parameterized by
+roughness $\alpha>0$ and Lambertian BSDF coefficients
+$f_R \in [0,1]$ and $f_T \in [0,1]$, such that $f_R + f_T \le 1$.
+For reference, $\alpha < 0.1$ is very smooth, 
+$0.1 < \alpha < 0.8$ is somewhat rough, and $0.8 < \alpha$ is very rough.
 
 To specify the microsurface Lambertian BSDF 
-in LSQT format, use the name 
-\namett{purple}{MicrosurfaceLambertian}
-followed by keyword arguments 
-\texttt{alpha}, \texttt{fR}, \texttt{fT}, and \texttt{iter\_count} for 
-$\alpha$, $f_R$, $f_T$, $n_{\text{iter}}$ respectively. By default, 
-\texttt{alpha=0.5}, \texttt{fR=1}, \texttt{fT=0}, and \texttt{iter\_count} 
-is chosen to be 1, 2, 4, or 6 depending on \texttt{alpha}. For reference, 
-$\alpha < 0.1$ is very smooth, 
-$0.1 < \alpha < 0.8$ is somewhat rough, and $0.8 < \alpha$ is very rough.
-% TODO
-Furthermore, multiple scattering may be disabled by the keyword argument
+in LSQT format, use the name \namett{purple}{MicrosurfaceLambertian}
+followed by keyword arguments \texttt{alpha} for $\alpha$,
+\texttt{fR} for $f_R$, and \texttt{fT} for $f_T$. By default, 
+\texttt{alpha=0.5}, \texttt{fR=1}, and \texttt{fT=0}. 
+Furthermore, multiple scattering interactions may be disabled by the 
+keyword argument
 \begin{lstlisting}
 use_multiple_scattering=false
 \end{lstlisting}
-in which case only the single scattering term is computed. It is 
+in which case the implementation computes single 
+scattering interactions with the microsurface only---this may be
+desirable to speed up calculations.
+
+It is 
 important to note that, if multiple-scattering interactions are 
-ignored, then $f_R + f_T = 1$ does \emph{not} guarantee that the BSDF 
+disabled, then $f_R + f_T = 1$ does \emph{not} guarantee that the BSDF 
 is perfectly energy conserving. 
-For small roughness values (say, $\alpha < 0.1$), the energy carried by 
-multiple scattering interations is insignificant, and so this may not be a
-concern. For large roughness values however, multiple scattering is important
+For small roughness values (say, $\alpha < 0.2$), the energy carried by 
+multiple scattering iterations is insignificant, so this may not be a
+concern. For greater roughness values however, multiple scattering is important
 to prevent energy loss.
 
 \subsubsection{Microsurface dielectric BSDF}
@@ -907,29 +904,24 @@ The microsurface dielectric BSDF follows the same logical construction as
 the microsurface Lambertian BSDF, except the constituent BSDF assigned to the
 facets is the delta Fresnel mirror BSDF. The implementation in 
 \texttt{layered-sqt} is parameterized by roughness $\alpha > 0$, a scaling
-factor for the Fresnel mirror BRDF $k_R \in [0, 1]$, a scaling factor for 
-the Fresnel mirror BTDF $k_T \in [0, 1]$, and the number of local stochastic 
-process iterations $n_{\text{iter}} \ge 1$.
+factor for the Fresnel mirror BRDF $k_R \in [0, 1]$, and a scaling factor for 
+the Fresnel mirror BTDF $k_T \in [0, 1]$.
 
 To specify the microsurface dielectric BSDF 
 in LSQT format, use the name
 \namett{purple}{MicrosurfaceDielectric}
-followed by keyword arguments \texttt{alpha}, \texttt{kR},
-\texttt{kT}, and \texttt{iter\_count} for $\alpha$, $k_R$, $k_T$, and 
-$n_{\text{iter}}$ respectively. By default, \texttt{alpha=0.5},
-\texttt{kR=1}, \texttt{kT=1}, and \texttt{iter\_count} is chosen to 
-be 1, 2, 4, or 6 depending on \texttt{alpha}. 
-
+followed by keyword arguments \texttt{alpha}, \texttt{kR}, and
+\texttt{kT} for $\alpha$, $k_R$, and $k_T$ respectively. By default, 
+\texttt{alpha=0.5}, \texttt{kR=1}, and \texttt{kT=1}.
 
 Unlike the Lambertian case, the single-scattering term is directly 
 computable due to the delta function 
-in the dielectric Fresnel BSDF---such that disabling multiple-scattering 
-renders \texttt{iter\_count} irrelevant. This leads to noticeably faster
+in the dielectric Fresnel BSDF. This leads to noticeably faster
 simulations, so much so that multiple-scattering is disabled by 
 default. Energy loss is less noticeable than the Lambertian case
 for moderately rough surfaces,
 but is still an issue for very rough surfaces 
-(say $\alpha > 0.8$). As such, multiple-scattering may be 
+(say $\alpha > 0.6$). As such, multiple-scattering may be 
 enabled at the user's discretion by the keyword argument
 \begin{lstlisting}
 use_multiple_scattering=true
