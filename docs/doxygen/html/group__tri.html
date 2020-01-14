@@ -64,7 +64,8 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Triangulation</div>  </div>
 </div><!--header-->
@@ -72,15 +73,108 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1Tri.html">ls::Tri</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangle.  <a href="structls_1_1Tri.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriInterpolator.html">ls::TriInterpolator</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangle interpolator.  <a href="classls_1_1TriInterpolator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1TriFileData.html">ls::TriFileData</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangulated file data.  <a href="classls_1_1TriFileData.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga94beb80f79fc49591ff7da65d0e0dbfd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__tri.html#ga94beb80f79fc49591ff7da65d0e0dbfd">ls::triangulate</a> (const std::vector&lt; <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&gt; &amp;locs, std::vector&lt; <a class="el" href="structls_1_1Tri.html">Tri</a> &gt; &amp;tris)</td></tr>
+<tr class="memdesc:ga94beb80f79fc49591ff7da65d0e0dbfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangulation helper.  <a href="group__tri.html#ga94beb80f79fc49591ff7da65d0e0dbfd">More...</a><br /></td></tr>
+<tr class="separator:ga94beb80f79fc49591ff7da65d0e0dbfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaabb5db9cdb0994599f33f913d4bd35ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__tri.html#gaabb5db9cdb0994599f33f913d4bd35ff">ls::dirToPolar</a> (const <a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;dir)</td></tr>
+<tr class="memdesc:gaabb5db9cdb0994599f33f913d4bd35ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Direction to polar location.  <a href="group__tri.html#gaabb5db9cdb0994599f33f913d4bd35ff">More...</a><br /></td></tr>
+<tr class="separator:gaabb5db9cdb0994599f33f913d4bd35ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga85b4edbefba3177a471682010cb12591"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__tri.html#ga85b4edbefba3177a471682010cb12591">ls::polarToDir</a> (const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;loc)</td></tr>
+<tr class="memdesc:ga85b4edbefba3177a471682010cb12591"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polar location to direction.  <a href="group__tri.html#ga85b4edbefba3177a471682010cb12591">More...</a><br /></td></tr>
+<tr class="separator:ga85b4edbefba3177a471682010cb12591"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p><code>&lt;layered-sqt/tri.hpp&gt;</code> </p>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ga94beb80f79fc49591ff7da65d0e0dbfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga94beb80f79fc49591ff7da65d0e0dbfd">&#9670;&nbsp;</a></span>triangulate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ls::triangulate </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>locs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structls_1_1Tri.html">Tri</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tris</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Triangulation helper. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">locs</td><td>Locations.</td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">tris</td><td>Triangles. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gaabb5db9cdb0994599f33f913d4bd35ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaabb5db9cdb0994599f33f913d4bd35ff">&#9670;&nbsp;</a></span>dirToPolar()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::dirToPolar </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>dir</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Direction to polar location. </p>
+
+</div>
+</div>
+<a id="ga85b4edbefba3177a471682010cb12591"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga85b4edbefba3177a471682010cb12591">&#9670;&nbsp;</a></span>polarToDir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__common.html#ga3924b86e4ebee59c6fcd571ab4d79fcc">Vec3</a>&lt;<a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a>&gt; ls::polarToDir </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group__common.html#gac72d197b11e290fea460557a8249032c">Vec2</a>&lt; <a class="el" href="group__common.html#gaabc8fbca11487237a93cd52161db5b6d">Float</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>loc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Polar location to direction. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- HTML footer for doxygen 1.8.13-->
 <!-- start footer part -->

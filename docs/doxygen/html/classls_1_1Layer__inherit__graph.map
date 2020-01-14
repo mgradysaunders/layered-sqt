@@ -1,8 +1,8 @@
 <map id="ls::Layer" name="ls::Layer">
-<area shape="rect" id="node2" href="$classls_1_1LambertianBsdfLayer.html" title="Lambertian BSDF layer. " alt="" coords="135,5,297,32"/>
-<area shape="rect" id="node3" href="$classls_1_1MicrosurfaceConductiveBrdfLayer.html" title="Microsurface conductive BRDF layer. " alt="" coords="125,57,307,98"/>
-<area shape="rect" id="node4" href="$classls_1_1MicrosurfaceDielectricBsdfLayer.html" title="Microsurface dielectric BSDF layer. " alt="" coords="131,122,301,163"/>
-<area shape="rect" id="node5" href="$classls_1_1MicrosurfaceLambertianBrdfLayer.html" title="Microsurface Lambertian BRDF layer. " alt="" coords="127,187,305,229"/>
-<area shape="rect" id="node6" href="$classls_1_1NullBsdfLayer.html" title="Null BSDF layer. " alt="" coords="155,253,277,280"/>
-<area shape="rect" id="node7" href="$classls_1_1OrenNayarDiffuseBrdfLayer.html" title="Oren&#45;Nayar diffuse BRDF layer. " alt="" coords="131,305,301,346"/>
+<area shape="rect" id="node2" href="$classls_1_1LambertianLayer.html" title="Lambertian layer. " alt="" coords="148,5,284,32"/>
+<area shape="rect" id="node3" href="$classls_1_1MicrosurfaceConductiveLayer.html" title="Microsurface conductive layer. " alt="" coords="125,57,307,98"/>
+<area shape="rect" id="node4" href="$classls_1_1MicrosurfaceDielectricLayer.html" title="Microsurface dielectric layer. " alt="" coords="131,122,301,163"/>
+<area shape="rect" id="node5" href="$classls_1_1MicrosurfaceLambertianLayer.html" title="Microsurface Lambertian layer. " alt="" coords="127,187,305,229"/>
+<area shape="rect" id="node6" href="$classls_1_1NullLayer.html" title="Null layer. " alt="" coords="169,253,263,280"/>
+<area shape="rect" id="node7" href="$classls_1_1OrenNayarDiffuseLayer.html" title="Oren&#45;Nayar diffuse layer. " alt="" coords="127,304,305,331"/>
 </map>
