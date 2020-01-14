@@ -73,11 +73,6 @@ public:
      */
     bool use_multiple_scattering = false;
 
-    /**
-     * @brief Number of stochastic process iterations.
-     */
-    int iter_count = 4;
-
 public:
 
     /**
@@ -90,16 +85,16 @@ public:
      *
      * Accepts arguments
      * - `fR=`(float),
+     * - `fT=`(float),
      * - `alpha=`(float),
-     * - `use_multiple_scattering=`(bool),
-     * - `iter_count=`(int).
+     * - `use_multiple_scattering=`(bool).
      *
      * @throw std::runtime_error
      * If
      * - invalid argument,
      * - `fR` is outside `[0, 1]`,
-     * - `alpha` is non-positive, or
-     * - `iter_count` is non-positive.
+     * - `fT` is outside `[0, 1]`, or
+     * - `alpha` is non-positive.
      */
     void init(const std::string& arg);
 

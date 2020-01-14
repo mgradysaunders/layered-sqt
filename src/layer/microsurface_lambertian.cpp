@@ -52,29 +52,8 @@ Float MicrosurfaceLambertianLayer::bsdf(
         Vec2<Float>{alpha, alpha}
     };
 
-    // Use multiple scattering?
-    if (use_multiple_scattering) {
-
-        // Multiple-scattering version.
-        return surf.fs(pcg, wo, wi, 0, 0, iter_count, f_pdf);
-    }
-    else {
-
-        // Single-scattering version.
-        return surf.fs(pcg, wo, wi, 0, 1, iter_count, f_pdf);
-#if 0
-        Float f = 0;
-        for (int iter = 0;
-                 iter < iter_count; iter++) {
-            f = 
-            f + (surf.fs1(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
-        }
-        if (f_pdf) {
-            *f_pdf = surf.fs1_pdf(wo, wi);
-        }
-        return f;
-#endif
-    }
+    return surf.fs(pcg, wo, wi, 0, 
+                   use_multiple_scattering ? 0 : 1, f_pdf);
 }
 
 // BSDF sample.
@@ -89,60 +68,21 @@ Vec3<Float> MicrosurfaceLambertianLayer::bsdfSample(
         Vec2<Float>{alpha, alpha}
     };
 
-    int k; 
+    unsigned k; 
     Vec3<Float> wi = surf.fs_pdf_sample(pcg, wo, k);
 
     // If not perfectly energy-conserving, then BSDF
     // is not identical to BSDF-PDF.
-    if (!(fR == 1)) {
+    if (!(fR + fT == 1)) {
 
         // Update throughput.
         Float f_pdf;
-        Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
+        Float f = surf.fs(pcg, wo, wi, 0, 
+                          use_multiple_scattering ? 0 : 1, &f_pdf);
         tau *= f / f_pdf;
     }
 
     return wi;
-
-#if 0
-    // Use multiple scattering?
-    if (use_multiple_scattering) {
-
-        // Multiple-scattering version.
-        int k; 
-        Vec3<Float> wi = surf.fs_pdf_sample(pcg, wo, k);
-
-        // If not perfectly energy-conserving, then BSDF
-        // is not identical to BSDF-PDF.
-        if (!(fR == 1)) {
-
-            // Update throughput.
-            Float f_pdf;
-            Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
-            tau *= f / f_pdf;
-        }
-
-        return wi;
-    }
-    else {
-
-        // Single-scattering version.
-        Vec3<Float> wi = 
-        surf.fs1_pdf_sample(
-                generateCanonical2(pcg), wo);
-
-        // Update throughput.
-        Float f = 0;
-        for (int iter = 0;
-                 iter < iter_count; iter++) {
-            f = 
-            f + (surf.fs1(generateCanonical2(pcg), wo, wi) - f) / (iter + 1);
-        }
-        tau *= f / surf.fs1_pdf(wo, wi);
-
-        return wi;
-    }
-#endif
 }
 
 // Is transmissive?
@@ -156,7 +96,6 @@ void MicrosurfaceLambertianLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;
-    bool iter_count_specified = false;
 
     try {
         // Read arguments.
@@ -187,11 +126,6 @@ void MicrosurfaceLambertianLayer::init(const std::string& arg)
                     throw std::exception();
                 }
             }
-            else
-            if (!str.compare(0, 11, "iter_count=", 11)) {
-                iter_count = std::stoi(str.substr(11));
-                iter_count_specified = true;
-            }
             else {
                 // Trigger catch block.
                 throw std::exception();
@@ -204,22 +138,6 @@ void MicrosurfaceLambertianLayer::init(const std::string& arg)
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
                 .append(": invalid argument '").append(str).append("'"));
-    }
-
-    // Ad hoc iter count.
-    if (!iter_count_specified) {
-        if (alpha <= 0.1) {
-            iter_count = 1;
-        }
-        else if (alpha <= 0.2) {
-            iter_count = 2;
-        }
-        else if (alpha <= 0.5) {
-            iter_count = 4;
-        }
-        else {
-            iter_count = 6;
-        }
     }
 
     // Check.
@@ -239,22 +157,11 @@ void MicrosurfaceLambertianLayer::init(const std::string& arg)
     if (!(alpha > 0)) {
         error_message = ": alpha is non-positive";
     }
-    else 
-    if (!(iter_count > 0)) {
-        error_message = ": iter_count is non-positive";
-    }
     // Error?
     if (error_message) {
         throw 
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__).append(error_message));
-    }
-
-    // Prevent outlandish computation time?
-    if (iter_count > 128) {
-        iter_count = 128;
-        std::cerr << "from " << __PRETTY_FUNCTION__ << ": ";
-        std::cerr << "Warning, clamping iter_count to maximum of 128\n";
     }
 }
 

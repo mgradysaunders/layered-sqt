@@ -30,7 +30,6 @@
 #ifndef LAYERED_SQT_TRI_HPP
 #define LAYERED_SQT_TRI_HPP
 
-#include <optional>
 #include <list>
 #include <layered-sqt/common.hpp>
 #include <layered-sqt/file_data.hpp>
@@ -45,58 +44,54 @@ namespace ls {
 /**@{*/
 
 /**
+ * @brief Triangle.
+ */
+struct Tri
+{
+    /**
+     * @brief Vertex indices.
+     */
+    std::ptrdiff_t indices[3] = {
+        -1,
+        -1,
+        -1
+    };
+
+    /**
+     * @brief Is open on first edge?
+     */
+    bool is_open = false;
+};
+
+/**
+ * @brief Triangulation helper.
+ *
+ * @param[in] locs
+ * Locations.
+ *
+ * @param[out] tris
+ * Triangles.
+ */
+void triangulate(
+            const std::vector<Vec2<Float>>& locs,
+            std::vector<Tri>& tris);
+
+/**
+ * @brief Direction to polar location.
+ */
+Vec2<Float> dirToPolar(const Vec3<Float>& dir);
+
+/**
+ * @brief Polar location to direction.
+ */
+Vec3<Float> polarToDir(const Vec2<Float>& loc);
+
+/**
  * @brief Triangle interpolator.
  */
 class TriInterpolator
 {
 public:
-
-    /**
-     * @brief Vertex.
-     */
-    class Vertex 
-    {
-    public:
-
-        /**
-         * @brief Location.
-         */
-        Vec2<Float> loc;
-
-        /**
-         * @brief Value.
-         */
-        Float val = 0;
-    };
-
-    /**
-     * @brief Triangle.
-     */
-    class Tri
-    {
-    public:
-
-        /**
-         * @brief Vertices.
-         */
-        Vertex vertices[3];
-
-        /**
-         * @brief Is open on first edge?
-         */
-        bool is_open = false;
-
-        /**
-         * @brief Interpolate value.
-         *
-         * @param[in] loc
-         * Location.
-         *
-         * @note
-         * If location is outside triangle, returns `std::nullopt`.
-         */
-        std::optional<Float> value(const Vec2<Float>& loc) const;
-    };
 
     /**
      * @brief Default constructor.
@@ -120,6 +115,9 @@ public:
      */
     void clear()
     {
+        // Clear vertices.
+        vers_.clear();
+
         // Clear triangles.
         tris_.clear();
     }
@@ -133,6 +131,29 @@ public:
     Float value(const Vec2<Float>& loc) const;
 
 private:
+
+    /**
+     * @brief Vertex.
+     */
+    class Ver
+    {
+    public:
+
+        /**
+         * @brief Location.
+         */
+        Vec2<Float> loc;
+
+        /**
+         * @brief Value.
+         */
+        Float val = 0;
+    };
+
+    /**
+     * @brief Vertices.
+     */
+    std::vector<Ver> vers_;
 
     /**
      * @brief Triangles.

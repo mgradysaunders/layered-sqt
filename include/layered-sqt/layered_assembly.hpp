@@ -100,18 +100,18 @@ public:
      * @param[in] wi_count
      * Incident direction count.
      *
-     * @param[out] f
+     * @param[out] fs
      * _Optional_. BSDFs per incident direction.
      *
-     * @param[out] f_pdf
+     * @param[out] fs_pdf
      * _Optional_. BSDF-PDFs per incident direction.
      */
     void compute(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,
-            Float* f,
-            Float* f_pdf) const;
+            Float* fs,
+            Float* fs_pdf) const;
 
     /**
      * @brief Compute BSDF/BSDF-PDF average.
@@ -134,10 +134,10 @@ public:
      * @param[in] wi_count
      * Incident direction count.
      *
-     * @param[inout] f
+     * @param[inout] fs
      * _Optional_. BSDFs per incident direction.
      *
-     * @param[inout] f_pdf
+     * @param[inout] fs_pdf
      * _Optional_. BSDF-PDFs per incident direction.
      */
     void computeAverage(
@@ -146,8 +146,8 @@ public:
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,
-            Float* f,
-            Float* f_pdf) const;
+            Float* fs,
+            Float* fs_pdf) const;
 
     /**
      * @brief Random scatter direction.

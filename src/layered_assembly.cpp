@@ -325,11 +325,11 @@ void LayeredAssembly::compute(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,
-            Float* f,
-            Float* f_pdf) const 
+            Float* fs,
+            Float* fs_pdf) const 
 {
     assert(wi_count > 0);
-    assert(wi && (f || f_pdf));
+    assert(wi && (fs || fs_pdf));
 
     // Initial layer.
     const Layer* layer;
@@ -353,26 +353,30 @@ void LayeredAssembly::compute(
     }
 
     // BSDF?
-    if (f) {
+    if (fs) {
         // Zero initialize.
         for (int j = 0; j < wi_count; j++) {
-            f[j] = 0;
+            fs[j] = 0;
         }
     }
 
     // BSDF-PDF?
-    if (f_pdf) {
+    if (fs_pdf) {
         // Zero initialize.
         for (int j = 0; j < wi_count; j++) {
-            f_pdf[j] = 0;
+            fs_pdf[j] = 0;
         }
     }
 
     Float tau = 1;
     for (int bounce = 0;
-             bounce < 128; bounce++) {
+             bounce < 256; bounce++) {
 
-        Vec3<Float> wk = -ray.dir;
+        // Re-center since homogeneous.
+        ray.pos[0] = 0;
+        ray.pos[1] = 0;
+
+        Vec3<Float> wk = -pr::normalize_fast(ray.dir);
 
         // Determine neighboring layers.
         const Layer* layer_above;
@@ -428,7 +432,9 @@ void LayeredAssembly::compute(
                     if (pr::signbit(wi[j][2]) == 0) {
 
                         // Phase.
-                        Float ph = ray.medium->phase(pcg, wk, wi[j]);
+                        Float ps = ray.medium->phase(pcg, wk, wi[j]);
+                        Float tmp__fs = ps;
+                        Float tmp__fs_pdf = ps;
 
                         // Transmittance.
                         Float tr = 1;
@@ -444,13 +450,15 @@ void LayeredAssembly::compute(
                         }
 
                         // BSDF?
-                        if (f) {
-                            f[j] += tau * tr * ph;
+                        tmp__fs *= tau * tr;
+                        if (fs && pr::isfinite(tmp__fs)) {
+                            fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
-                        if (f_pdf) {
-                            f_pdf[j] += tr * ph;
+                        tmp__fs_pdf *= tr;
+                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                            fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
                 }
@@ -465,7 +473,9 @@ void LayeredAssembly::compute(
                     if (pr::signbit(wi[j][2]) == 1) {
 
                         // Phase.
-                        Float ph = ray.medium->phase(pcg, wk, wi[j]);
+                        Float ps = ray.medium->phase(pcg, wk, wi[j]);
+                        Float tmp__fs = ps;
+                        Float tmp__fs_pdf = ps;
 
                         // Transmittance.
                         Float tr = 1;
@@ -481,13 +491,15 @@ void LayeredAssembly::compute(
                         }
 
                         // BSDF?
-                        if (f) {
-                            f[j] += tau * tr * ph;
+                        tmp__fs *= tau * tr;
+                        if (fs && pr::isfinite(tmp__fs)) {
+                            fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
-                        if (f_pdf) {
-                            f_pdf[j] += tr * ph;
+                        tmp__fs_pdf *= tr;
+                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                            fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
                 }
@@ -507,8 +519,9 @@ void LayeredAssembly::compute(
                     if (pr::signbit(wi[j][2]) == 0) {
 
                         // BSDF/BSDF-PDF.
-                        Float tmp_f_pdf;
-                        Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
+                        Float tmp__fs_pdf = 0;
+                        Float tmp__fs = 
+                                layer->bsdf(pcg, wk, wi[j], &tmp__fs_pdf);
 
                         // Transmittance.
                         Float tr = 1;
@@ -524,13 +537,15 @@ void LayeredAssembly::compute(
                         }
 
                         // BSDF?
-                        if (f) {
-                            f[j] += tau * tr * tmp_f;
+                        tmp__fs *= tau * tr;
+                        if (fs && pr::isfinite(tmp__fs)) {
+                            fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
-                        if (f_pdf) {
-                            f_pdf[j] += tr * tmp_f_pdf;
+                        tmp__fs_pdf *= tr;
+                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                            fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
                 }
@@ -544,8 +559,9 @@ void LayeredAssembly::compute(
                     if (pr::signbit(wi[j][2]) == 1) {
 
                         // BSDF/BSDF-PDF.
-                        Float tmp_f_pdf;
-                        Float tmp_f = layer->bsdf(pcg, wk, wi[j], &tmp_f_pdf);
+                        Float tmp__fs_pdf = 0;
+                        Float tmp__fs = 
+                                layer->bsdf(pcg, wk, wi[j], &tmp__fs_pdf);
 
                         // Transmittance.
                         Float tr = 1;
@@ -561,13 +577,15 @@ void LayeredAssembly::compute(
                         }
 
                         // BSDF?
-                        if (f) {
-                            f[j] += tau * tr * tmp_f;
+                        tmp__fs *= tau * tr;
+                        if (fs && pr::isfinite(tmp__fs)) {
+                            fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
-                        if (f_pdf) {
-                            f_pdf[j] += tr * tmp_f_pdf;
+                        tmp__fs_pdf *= tr;
+                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                            fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
                 }
@@ -599,46 +617,48 @@ void LayeredAssembly::computeAverage(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>* wi, int wi_count,
-            Float* f,
-            Float* f_pdf) const
+            Float* fs,
+            Float* fs_pdf) const
 {
     assert(path_count > 
            path_count_before);
 
     assert(wi_count > 0);
-    assert(wi && (f || f_pdf));
+    assert(wi && (fs || fs_pdf));
 
     // Temporaries.
     Float* tmp = new Float[4 * wi_count];
 
     // Temporary BSDFs.
-    Float* tmp1_f = f ? tmp + 0 * wi_count : nullptr;
-    Float* tmp2_f = f ? tmp + 1 * wi_count : nullptr;
+    Float* tmp1__fs = fs ? tmp + 0 * wi_count : nullptr;
+    Float* tmp2__fs = fs ? tmp + 1 * wi_count : nullptr;
 
     // Temporary BSDF-PDFs.
-    Float* tmp1_f_pdf = f_pdf ? tmp + 2 * wi_count : nullptr;
-    Float* tmp2_f_pdf = f_pdf ? tmp + 3 * wi_count : nullptr;
+    Float* tmp1__fs_pdf = fs_pdf ? tmp + 2 * wi_count : nullptr;
+    Float* tmp2__fs_pdf = fs_pdf ? tmp + 3 * wi_count : nullptr;
 
     for (int path = 0;
              path < path_count - path_count_before; path++) {
 
-        compute(pcg, wo, wi, wi_count, tmp1_f, tmp1_f_pdf);
+        compute(pcg, wo, wi, wi_count, tmp1__fs, tmp1__fs_pdf);
 
         // BSDF?
-        if (f) {
+        if (fs) {
             // Update.
             for (int j = 0; j < wi_count; j++) {
-                tmp2_f[j] = 
-                tmp2_f[j] + (tmp1_f[j] - tmp2_f[j]) / (path + 1);
+                tmp2__fs[j] = 
+                tmp2__fs[j] + 
+                    (tmp1__fs[j] - tmp2__fs[j]) / (path + 1);
             }
         }
 
         // BSDF-PDF?
-        if (f_pdf) {
+        if (fs_pdf) {
             // Update.
             for (int j = 0; j < wi_count; j++) {
-                tmp2_f_pdf[j] = 
-                tmp2_f_pdf[j] + (tmp1_f_pdf[j] - tmp2_f_pdf[j]) / (path + 1);
+                tmp2__fs_pdf[j] = 
+                tmp2__fs_pdf[j] + 
+                    (tmp1__fs_pdf[j] - tmp2__fs_pdf[j]) / (path + 1);
             }
         }
     }
@@ -649,35 +669,35 @@ void LayeredAssembly::computeAverage(
         Float(path_count);
 
     // BSDF?
-    if (f) {
+    if (fs) {
         if (path_count_before == 0) {
             // Initialize.
             for (int j = 0; j < wi_count; j++) {
-                f[j] = tmp2_f[j];
+                fs[j] = tmp2__fs[j];
             }
         }
         else {
             // Update.
             for (int j = 0; j < wi_count; j++) {
-                f[j] = 
-                f[j] * fac + tmp2_f[j] * (1 - fac);
+                fs[j] = 
+                fs[j] * fac + tmp2__fs[j] * (1 - fac);
             }
         }
     }
 
     // BSDF-PDF?
-    if (f_pdf) {
+    if (fs_pdf) {
         if (path_count_before == 0) {
             // Initialize.
             for (int j = 0; j < wi_count; j++) {
-                f_pdf[j] = tmp2_f_pdf[j];
+                fs_pdf[j] = tmp2__fs_pdf[j];
             }
         }
         else {
             // Update.
             for (int j = 0; j < wi_count; j++) {
-                f_pdf[j] = 
-                f_pdf[j] * fac + tmp2_f_pdf[j] * (1 - fac);
+                fs_pdf[j] = 
+                fs_pdf[j] * fac + tmp2__fs_pdf[j] * (1 - fac);
             }
         }
     }
@@ -719,7 +739,7 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
         for (int bounce = 0;
                  bounce < 128; bounce++) {
 
-            Vec3<Float> wk = -ray.dir;
+            Vec3<Float> wk = -pr::normalize_fast(ray.dir);
 
             // Determine neighboring layers.
             const Layer* layer_above;

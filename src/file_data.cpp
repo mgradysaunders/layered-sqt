@@ -29,6 +29,7 @@
 #include <random>
 #include <preform/byte_order.hpp>
 #include <layered-sqt/rrss.hpp>
+#include <layered-sqt/tri.hpp>
 #include <layered-sqt/file_data.hpp>
 
 namespace ls {
@@ -240,6 +241,64 @@ void FileData::Slice::writeLss(std::ostream& ostr) const
     ostr_le << path_pcg.inc_;
 }
 
+// Smooth directions (presumably in upper hemisphere).
+static 
+void smoothDirs(std::vector<Vec3<Float>>& dirs)
+{
+    if (dirs.empty()) {
+        return;
+    }
+    std::vector<Vec2<Float>> locs;
+    locs.reserve(dirs.size());
+
+    // Initialize.
+    for (const Vec3<Float>& dir : dirs) {
+        locs.push_back(dirToPolar(dir));
+    }
+
+    // Uniformly-spaced polar locations around edge of disk.
+    for (int j = 0; j < 64; j++) {
+        Float phi = j * pr::numeric_constants<Float>::M_pi() / 32;
+        Float cos_phi = pr::cos(phi);
+        Float sin_phi = pr::sin(phi);
+        Vec2<Float> loc = {
+            pr::numeric_constants<Float>::M_pi_2() * cos_phi,
+            pr::numeric_constants<Float>::M_pi_2() * sin_phi
+        };
+        locs.push_back(loc);
+    }
+
+    std::vector<std::pair<Vec2<Float>, int>> smooth_locs(locs.size());
+    for (auto& smooth_loc : smooth_locs) {
+        smooth_loc.second = 0;
+    }
+    {
+        // Triangulate.
+        std::vector<Tri> tris;
+        triangulate(locs, tris);
+
+        // Compute unnormalized smooth locations.
+        for (Tri tri : tris) {
+            for (int k = 0; k < 3; k++) {
+                int k0 = tri.indices[k];
+                int k1 = tri.indices[(k + 1) % 3];
+                int k2 = tri.indices[(k + 2) % 3];
+                smooth_locs[k0].first += locs[k1] + locs[k2];
+                smooth_locs[k0].second += 2;
+            }
+        }
+    }
+
+    // Overwrite directions.
+    dirs.clear();
+    for (auto& smooth_loc : smooth_locs) {
+        if (smooth_loc.second > 0) {
+            smooth_loc.first /= smooth_loc.second; // Normalize.
+            dirs.push_back(polarToDir(smooth_loc.first));
+        }
+    }
+}
+
 // Compute incident directions.
 void FileData::Slice::computeIncidentDirs(
                 LayeredAssembly& layered_assembly,
@@ -248,7 +307,7 @@ void FileData::Slice::computeIncidentDirs(
                 int rrss_path_count, 
                 int rrss_path_count_per_iter)
 {
-    assert(rrss_oversampling >= 1 &&
+    assert(rrss_oversampling > 1 &&
            rrss_path_count >= 1 &&
            rrss_path_count_per_iter >= 1);
     if (incident_dirs.empty()) {
@@ -263,21 +322,57 @@ void FileData::Slice::computeIncidentDirs(
         rrss_oversampling * wi_count;
 
     // RRSS incident directions.
-    Vec3<Float>* rrss_wi = new Vec3<Float>[rrss_wi_count];
-    for (int rrss_wi_index = 0;
-             rrss_wi_index < rrss_wi_count; 
-             rrss_wi_index++) {
+    Vec3<Float>* rrss_wi = nullptr;
+    {
+        // Incident directions.
+        std::vector<Vec3<Float>> wi_upper;
+        std::vector<Vec3<Float>> wi_lower;
+        wi_upper.reserve(rrss_wi_count / 2);
+        wi_lower.reserve(rrss_wi_count / 2);
+        for (int rrss_wi_index = 0;
+                 rrss_wi_index < rrss_wi_count; rrss_wi_index++) {
 
-        // Initialize.
-        rrss_wi[rrss_wi_index] = 
-        layered_assembly.randomScatterDirection(path_pcg, outgoing_dir); 
+            // Sample incident direction.
+            Vec3<Float> wi =
+            layered_assembly.randomScatterDirection(path_pcg, outgoing_dir); 
+
+            // Push.
+            if (wi[2] > 0) {
+                wi_upper.push_back(wi);
+            }
+            else {
+                wi_lower.push_back(wi);
+            }
+        }
+
+        // Smooth in each hemisphere.
+        smoothDirs(wi_upper);
+        smoothDirs(wi_lower);
+        for (Vec3<Float>& wi : wi_lower) {
+            wi[2] = -wi[2]; // Flip back to lower hemisphere.
+        }
+
+        // Overwrite RRSS incident direction count.
+        rrss_wi_count = 
+                wi_upper.size() + 
+                wi_lower.size();
+
+        // RRSS incident directions.
+        rrss_wi = new Vec3<Float>[rrss_wi_count];
+        int rrss_wi_index = 0;
+        for (const Vec3<Float>& wi : wi_upper) {
+            rrss_wi[rrss_wi_index] = wi, rrss_wi_index++;
+        }
+        for (const Vec3<Float>& wi : wi_lower) {
+            rrss_wi[rrss_wi_index] = wi, rrss_wi_index++;
+        }
     }
 
     // RRSS BSDFs.
-    Float* rrss_f = new Float[rrss_wi_count];
+    Float* rrss_fs = new Float[rrss_wi_count];
 
     // RRSS BSDF-PDFs.
-    Float* rrss_f_pdf = new Float[rrss_wi_count];
+    Float* rrss_fs_pdf = new Float[rrss_wi_count];
 
     for (int curr_path_count = 0;
              curr_path_count < rrss_path_count;
@@ -295,7 +390,7 @@ void FileData::Slice::computeIncidentDirs(
                 path_pcg, outgoing_dir,
                 rrss_wi,
                 rrss_wi_count,
-                rrss_f, rrss_f_pdf);
+                rrss_fs, rrss_fs_pdf);
 
         // Update progress bar.
         progress_bar.add(
@@ -304,25 +399,25 @@ void FileData::Slice::computeIncidentDirs(
     }
 
     // RRSS BSDF integral.
-    Float rrss_f_int = 0;
+    Float rrss_fs_int = 0;
 
     for (int rrss_wi_index = 0;
              rrss_wi_index < rrss_wi_count; 
              rrss_wi_index++) {
 
         // BSDF integral term.
-        Float f_int = 
-            rrss_f[rrss_wi_index] / 
-            rrss_f_pdf[rrss_wi_index] /
+        Float fs_int = 
+            rrss_fs[rrss_wi_index] / 
+            rrss_fs_pdf[rrss_wi_index] /
             pr::fabs(rrss_wi[rrss_wi_index][2]); // Non-cosine-weighted
 
         // BSDF integral term okay?
-        if (pr::isfinite(f_int)) {
+        if (pr::isfinite(fs_int)) {
 
             // Update BSDF integral estimate.
-            rrss_f_int =
-            rrss_f_int + (f_int - rrss_f_int) / 
-                                 (rrss_wi_index + 1);
+            rrss_fs_int =
+            rrss_fs_int + (fs_int - rrss_fs_int) / 
+                                   (rrss_wi_index + 1);
         }
     }
 
@@ -331,8 +426,8 @@ void FileData::Slice::computeIncidentDirs(
     rrss_samples.reserve(rrss_wi_count);
 
     // BSDF integral okay?
-    if (rrss_f_int > 0 &&
-        pr::isfinite(rrss_f_int)) {
+    if (rrss_fs_int > 0 &&
+        pr::isfinite(rrss_fs_int)) {
 
         for (int rrss_wi_index = 0;
                  rrss_wi_index < rrss_wi_count;
@@ -341,9 +436,9 @@ void FileData::Slice::computeIncidentDirs(
             // Set target PDF to normalized non-cosine-weighted BSDF.
             Rrss::Sample rrss_sample;
             rrss_sample.dir = rrss_wi[rrss_wi_index];
-            rrss_sample.val = rrss_f [rrss_wi_index];
-            rrss_sample.pdf = rrss_f [rrss_wi_index] / rrss_f_int /
-                pr::fabs(rrss_wi[rrss_wi_index][2]);
+            rrss_sample.val = rrss_fs[rrss_wi_index];
+            rrss_sample.pdf = rrss_fs[rrss_wi_index] /
+                     pr::fabs(rrss_wi[rrss_wi_index][2]) / rrss_fs_int;
 
             // Push sample.
             rrss_samples.push_back(rrss_sample);
@@ -358,8 +453,8 @@ void FileData::Slice::computeIncidentDirs(
             // Set target PDF to BSDF-PDF by default.
             Rrss::Sample rrss_sample;
             rrss_sample.dir = rrss_wi[rrss_wi_index];
-            rrss_sample.val = rrss_f [rrss_wi_index];
-            rrss_sample.pdf = rrss_f_pdf[rrss_wi_index];
+            rrss_sample.val = rrss_fs[rrss_wi_index];
+            rrss_sample.pdf = rrss_fs_pdf[rrss_wi_index];
 
             // Push sample.
             rrss_samples.push_back(rrss_sample);
@@ -367,10 +462,10 @@ void FileData::Slice::computeIncidentDirs(
     }
 
     // Delete RRSS BSDF-PDFs.
-    delete[] rrss_f_pdf;
+    delete[] rrss_fs_pdf;
 
     // Delete RRSS BSDFs.
-    delete[] rrss_f;
+    delete[] rrss_fs;
 
     // Delete RRSS incident directions.
     delete[] rrss_wi;

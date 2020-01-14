@@ -32,14 +32,15 @@ namespace ls {
 
 // Constructor.
 Rrss::Rrss(const std::vector<Sample>& samples) : 
-        samples_(samples),
-        samples_remaining_(samples.size())
+            samples_(samples),
+            samples_remaining_(samples.size())
 {
     for (Sample& sample : samples_) {
         sample.redundancy = 1;
         sample.is_enabled = true;
     }
 
+    // TODO Preprocessing to smooth PDF?
     if (samples_.size() > 0) {
         sample_tree_.init(
         samples_.begin(), 

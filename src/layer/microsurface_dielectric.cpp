@@ -58,7 +58,7 @@ Float MicrosurfaceDielectricLayer::bsdf(
     if (use_multiple_scattering) {
 
         // Multiple-scattering version.
-        return surf.fs(pcg, wo, wi, 0, 0, iter_count, f_pdf);
+        return surf.fs(pcg, wo, wi, 0, 0, f_pdf);
     }
     else {
 
@@ -88,7 +88,7 @@ Vec3<Float> MicrosurfaceDielectricLayer::bsdfSample(
     if (use_multiple_scattering) {
 
         // Multiple-scattering version.
-        int k; 
+        unsigned k; 
         Vec3<Float> wi = 
         surf.fs_pdf_sample(pcg, wo, k);
 
@@ -99,7 +99,7 @@ Vec3<Float> MicrosurfaceDielectricLayer::bsdfSample(
 
             // Update throughput.
             Float f_pdf;
-            Float f = surf.fs(pcg, wo, wi, 0, 0, 1, &f_pdf);
+            Float f = surf.fs(pcg, wo, wi, 0, 0, &f_pdf);
             tau *= f / f_pdf;
         }
 
@@ -133,7 +133,6 @@ void MicrosurfaceDielectricLayer::init(const std::string& arg)
 {
     std::istringstream iss(arg);
     std::string str;
-    bool iter_count_specified = false;
 
     try {
         // Read arguments.
@@ -164,11 +163,6 @@ void MicrosurfaceDielectricLayer::init(const std::string& arg)
                     throw std::exception();
                 }
             }
-            else
-            if (!str.compare(0, 11, "iter_count=", 11)) {
-                iter_count = std::stoi(str.substr(11));
-                iter_count_specified = true;
-            }
             else {
                 // Trigger catch block.
                 throw std::exception();
@@ -181,22 +175,6 @@ void MicrosurfaceDielectricLayer::init(const std::string& arg)
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
                 .append(": invalid argument '").append(str).append("'"));
-    }
-
-    // Ad hoc iter count.
-    if (!iter_count_specified) {
-        if (alpha <= 0.1) {
-            iter_count = 1;
-        }
-        else if (alpha <= 0.2) {
-            iter_count = 2;
-        }
-        else if (alpha <= 0.5) {
-            iter_count = 4;
-        }
-        else {
-            iter_count = 6;
-        }
     }
 
     // Check.
@@ -212,22 +190,11 @@ void MicrosurfaceDielectricLayer::init(const std::string& arg)
     if (!(alpha > 0)) {
         error_message = ": alpha is non-positive";
     }
-    else 
-    if (!(iter_count > 0)) {
-        error_message = ": iter_count is non-positive";
-    }
     // Error?
     if (error_message) {
         throw 
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__).append(error_message));
-    }
-
-    // Prevent outlandish computation time?
-    if (iter_count > 128) {
-        iter_count = 128;
-        std::cerr << "from " << __PRETTY_FUNCTION__ << ": ";
-        std::cerr << "Warning, clamping iter_count to maximum of 128\n";
     }
 }
 

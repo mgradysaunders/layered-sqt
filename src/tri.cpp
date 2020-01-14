@@ -34,8 +34,75 @@
 
 namespace ls {
 
-// Delaunay triangulation helper.
-typedef pr::delaunay_triangulation<Float> DelaunayTriangulation;
+// Triangulation helper.
+void triangulate(
+            const std::vector<Vec2<Float>>& locs,
+            std::vector<Tri>& tris)
+{
+    typedef pr::delaunay_triangulation<Float> DelaunayTriangulation;
+
+    // Delaunay triangulation.
+    DelaunayTriangulation delaunay;
+    delaunay.init(locs.begin(), locs.end());
+
+    // Add triangles.
+    tris.clear();
+    tris.reserve(delaunay.triangles().size());
+    for (const auto& triangle : delaunay.triangles()) {
+        Tri tri;
+        tri.indices[0] = triangle[0];
+        tri.indices[1] = triangle[1];
+        tri.indices[2] = triangle[2];
+        tris.push_back(tri);
+    }
+
+    // Set open triangles.
+    for (const auto& edge : delaunay.boundary_edges()) {
+        tris[delaunay.boundary_edge_to_triangle(edge)].is_open = true;
+    }
+}
+
+// Direction to polar location.
+Vec2<Float> dirToPolar(const Vec3<Float>& dir)
+{
+    Float cos_theta = pr::abs(dir[2]);
+    Float sin_theta = pr::hypot(dir[0], dir[1]);
+    cos_theta = pr::fmin(cos_theta, Float(1));
+    sin_theta = pr::fmin(sin_theta, Float(1));
+    Float theta = 
+        cos_theta < sin_theta
+            ? pr::acos(cos_theta)
+            : pr::asin(sin_theta);
+    Float cos_phi = dir[0] / sin_theta;
+    Float sin_phi = dir[1] / sin_theta;
+    if (!pr::isfinite(cos_phi) ||
+        !pr::isfinite(sin_phi)) {
+        cos_phi = 1;
+        sin_phi = 0;
+    }
+    return {
+        theta * cos_phi,
+        theta * sin_phi
+    };
+}
+
+// Polar location to direction.
+Vec3<Float> polarToDir(const Vec2<Float>& loc)
+{
+    Float theta = pr::length(loc);
+    if (theta > 0) {
+        Float sin_theta = pr::sin(theta);
+        Float cos_theta = pr::cos(theta);
+        return {
+            sin_theta * (loc[0] / theta),
+            sin_theta * (loc[1] / theta),
+            cos_theta
+        };
+    }
+    else {
+        return {0, 0, 1};
+    }
+}
 
 // Initialize.
 void TriInterpolator::init(
@@ -53,90 +120,79 @@ void TriInterpolator::init(
         }
     }
 
-    // Delaunay triangulation.
-    DelaunayTriangulation delaunay;
-    delaunay.init(locs.begin(), locs.end());
-
-    // Add triangles.
-    tris_.reserve(delaunay.triangles().size());
-    for (const auto& index_tri : delaunay.triangles()) {
-        Tri tri;
-        for (int k = 0; k < 3; k++) {
-            tri.vertices[k].loc = locs[index_tri[k]];
-            tri.vertices[k].val = vals[index_tri[k]];
-        }
-        tris_.push_back(tri);
+    // Initialize vertices.
+    vers_.reserve(locs.size());
+    auto loc_itr = locs.begin();
+    auto val_itr = vals.begin();
+    for (; val_itr < vals.end();) {
+        vers_.emplace_back(Ver{
+            *loc_itr++,
+            *val_itr++
+        });
     }
 
-    // Set open triangles.
-    for (const auto& edge : delaunay.boundary_edges()) {
-        tris_[delaunay.boundary_edge_to_triangle(edge)].is_open = true;
-    }
-}
-
-// Value.
-std::optional<Float> TriInterpolator::Tri::value(const Vec2<Float>& loc) const
-{
-    // Barycentric coordinates.
-    Vec2<float> h0 = vertices[0].loc - loc;
-    Vec2<float> h1 = vertices[1].loc - loc;
-    Vec2<float> h2 = vertices[2].loc - loc;
-    float b0 = h1[0] * h2[1] - h1[1] * h2[0];
-    float b1 = h2[0] * h0[1] - h2[1] * h0[0];
-    float b2 = h0[0] * h1[1] - h0[1] * h1[0];
-    if (b0 == 0.f ||
-        b1 == 0.f ||
-        b2 == 0.f) {
-        b0 = double(h1[0]) * double(h2[1]) - double(h1[1]) * double(h2[0]);
-        b1 = double(h2[0]) * double(h0[1]) - double(h2[1]) * double(h0[0]);
-        b2 = double(h0[0]) * double(h1[1]) - double(h0[1]) * double(h1[0]);
-    }
-    if (b0 < 0.f || b1 < 0.f || (!is_open && b2 < 0.f)) {
-        return std::nullopt;
-    }
-
-    // Normalize.
-    float q = b0 + b1 + b2;
-    if (q == 0.f) {
-        return std::nullopt;
-    }
-    b0 /= q;
-    b1 /= q;
-    b2 /= q;
-
-    // Is inside triangle?
-    if (b2 > 0.f) {
-        Float val = 
-            Float(b0) * vertices[0].val + 
-            Float(b1) * vertices[1].val + 
-            Float(b2) * vertices[2].val;
-       return std::make_optional(val);
-    }
-    else {
-        // Segment locations.
-        const Vec2<Float>& seg_loc0 = vertices[0].loc;
-        const Vec2<Float>& seg_loc1 = vertices[1].loc;
-        Vec2<Float> seg_vec = seg_loc1 - seg_loc0;
-
-        // Find nearest location on segment.
-        Float u =
-            pr::dot(seg_vec, loc - seg_loc0) / 
-            pr::dot(seg_vec, seg_vec);
-        u = pr::fmin(u, Float(1));
-        u = pr::fmax(u, Float(0));
-        Float val = (1 - u) * vertices[0].val + u * vertices[1].val; 
-        return std::make_optional(val);
-    }
+    // Initialize triangles.
+    triangulate(locs, tris_);
 }
 
 // Value.
 Float TriInterpolator::value(const Vec2<Float>& loc) const
 {
     // Interpolate.
-    for (Tri tri : tris_) {
-        std::optional<Float> val = std::nullopt;
-        if ((val = tri.value(loc)).has_value()) {
-            return val.value();
+    for (const Tri& tri : tris_) {
+        const Ver& ver0 = vers_[tri.indices[0]];
+        const Ver& ver1 = vers_[tri.indices[1]];
+        const Ver& ver2 = vers_[tri.indices[2]];
+
+        // Barycentric coordinates.
+        Vec2<float> h0 = ver0.loc - loc;
+        Vec2<float> h1 = ver1.loc - loc;
+        Vec2<float> h2 = ver2.loc - loc;
+        float b0 = h1[0] * h2[1] - h1[1] * h2[0];
+        float b1 = h2[0] * h0[1] - h2[1] * h0[0];
+        float b2 = h0[0] * h1[1] - h0[1] * h1[0];
+        if (b0 == 0.f ||
+            b1 == 0.f ||
+            b2 == 0.f) {
+            b0 = double(h1[0]) * double(h2[1]) - double(h1[1]) * double(h2[0]);
+            b1 = double(h2[0]) * double(h0[1]) - double(h2[1]) * double(h0[0]);
+            b2 = double(h0[0]) * double(h1[1]) - double(h0[1]) * double(h1[0]);
+        }
+        if (b0 < 0.f || b1 < 0.f || (!tri.is_open && b2 < 0.f)) {
+            continue;
+        }
+
+        // Normalize.
+        float q = b0 + b1 + b2;
+        if (q == 0.f) {
+            continue;
+        }
+        b0 /= q;
+        b1 /= q;
+        b2 /= q;
+
+        // Is inside triangle?
+        if (b2 > 0.f) {
+            Float val = 
+                Float(b0) * ver0.val + 
+                Float(b1) * ver1.val + 
+                Float(b2) * ver2.val;
+           return val;
+        }
+        else {
+            // Segment locations.
+            const Vec2<Float>& seg_loc0 = ver0.loc;
+            const Vec2<Float>& seg_loc1 = ver1.loc;
+            Vec2<Float> seg_vec = seg_loc1 - seg_loc0;
+
+            // Find nearest location on segment.
+            Float u =
+                pr::dot(seg_vec, loc - seg_loc0) / 
+                pr::dot(seg_vec, seg_vec);
+            u = pr::fmin(u, Float(1));
+            u = pr::fmax(u, Float(0));
+            Float val = (1 - u) * ver0.val + u * ver1.val; 
+            return val;
         }
     }
 
@@ -161,38 +217,17 @@ void TriFileData::init(const FileData& file_data)
         });
 }
 
-// Polar warping.
-static Vec2<Float> polarLoc(const Vec3<Float>& wi)
-{
-    Float cos_thetai = pr::fabs(wi[2]);
-    Float sin_thetai = pr::hypot(wi[0], wi[1]);
-    cos_thetai = pr::fmin(cos_thetai, Float(1));
-    sin_thetai = pr::fmin(sin_thetai, Float(1));
-    Float thetai;
-    if (cos_thetai < sin_thetai) {
-        thetai = pr::acos(cos_thetai);
-    }
-    else {
-        thetai = pr::asin(sin_thetai);
-    }
-    Float cos_phii = wi[0] / sin_thetai;
-    Float sin_phii = wi[1] / sin_thetai;
-    if (!pr::isfinite(cos_phii) ||
-        !pr::isfinite(sin_phii)) {
-        cos_phii = 1;
-        sin_phii = 0;
-    }
-    return {
-        thetai * cos_phii,
-        thetai * sin_phii
-    };
-}
-
 // Value.
 Float TriFileData::value(
-                const Vec3<Float>& wo, 
-                const Vec3<Float>& wi_world) const
+                const Vec3<Float>& tmp_wo, 
+                const Vec3<Float>& tmp_wi_world) const
 {
+    Vec3<Float> wo = tmp_wo;
+    Vec3<Float> wi_world = tmp_wi_world;
+    if (wo[2] < 0) {
+        wo[2] = -wo[2];
+        wi_world[2] = -wi_world[2];
+    }
     Float cos_thetao = wo[2];
     cos_thetao = pr::fmin(cos_thetao, Float(+1));
     cos_thetao = pr::fmax(cos_thetao, Float(-1));
@@ -216,7 +251,7 @@ Float TriFileData::value(
     };
 
     // Apply warping.
-    Vec2<Float> wi_loc = polarLoc(wi);
+    Vec2<Float> wi_loc = dirToPolar(wi);
 
     auto slice_itr = 
     std::lower_bound(
@@ -269,7 +304,7 @@ void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
         }
 
         // Warping.
-        Vec2<Float> wi_loc = polarLoc(wi);
+        Vec2<Float> wi_loc = dirToPolar(wi);
 
         // In upper hemisphere?
         if (!pr::signbit(wi[2])) {
