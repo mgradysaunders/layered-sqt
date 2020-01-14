@@ -441,7 +441,10 @@ void FileData::Slice::computeIncidentDirs(
                      pr::fabs(rrss_wi[rrss_wi_index][2]) / rrss_fs_int;
 
             // Push sample.
-            rrss_samples.push_back(rrss_sample);
+            if (pr::isfinite(rrss_sample.val) &&
+                pr::isfinite(rrss_sample.pdf)) {
+                rrss_samples.push_back(rrss_sample);
+            }
         }
     }
     else {
@@ -457,7 +460,10 @@ void FileData::Slice::computeIncidentDirs(
             rrss_sample.pdf = rrss_fs_pdf[rrss_wi_index];
 
             // Push sample.
-            rrss_samples.push_back(rrss_sample);
+            if (pr::isfinite(rrss_sample.val) &&
+                pr::isfinite(rrss_sample.pdf)) {
+                rrss_samples.push_back(rrss_sample);
+            }
         }
     }
 
