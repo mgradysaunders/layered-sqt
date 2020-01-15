@@ -957,13 +957,14 @@ recovering the initial, simpler BSDF in the limiting case $\alpha=0$.
 
 As given in \cite{Heitz:16},
 the microsurface Lambertian BSDF is a multiple scattering (stochastic)
-microfacet model wherein facets are assumed to be Lambertian scatterers.
+microfacet model wherein the facets are assumed to be Lambertian scatterers.
 As one might expect, this is particularly useful for modeling rough diffuse 
 surfaces. The implementation in \texttt{layered-sqt} is parameterized by
 roughness $\alpha>0$ and Lambertian BSDF coefficients
-$f_R \in [0,1]$ and $f_T \in [0,1]$, such that $f_R + f_T \le 1$.
-For reference, $\alpha < 0.1$ is very smooth, 
-$0.1 < \alpha < 0.8$ is somewhat rough, and $0.8 < \alpha$ is very rough.
+$f_R \in [0,1]$ and $f_T \in [0,1]$, equivalent to those in section
+\S\ref{sec:doc-layers-lambertian}.
+For reference, $\alpha < 0.1$ is very smooth and
+$\alpha > 0.8$ is very rough.
 
 To specify the microsurface Lambertian BSDF 
 in LSQT format, use the name \namett{purple}{MicrosurfaceLambertian}
@@ -977,12 +978,10 @@ use_multiple_scattering=false
 \end{lstlisting}
 in which case the implementation computes single 
 scattering interactions with the microsurface only---this may be
-desirable to speed up calculations.
-
-It is 
-important to note that, if multiple-scattering interactions are 
-disabled, then $f_R + f_T = 1$ does \emph{not} guarantee that the BSDF 
-is perfectly energy conserving. 
+desirable to speed up calculations. It is however important to note that
+$f_R + f_T = 1$ does \emph{not} properly guarantee that the BSDF is 
+non-absorbing
+if multiple-scattering interactions are disabled. 
 For small roughness values (say, $\alpha < 0.2$), the energy carried by 
 multiple scattering iterations is insignificant, so this may not be a
 concern. For greater roughness values however, multiple scattering is important
