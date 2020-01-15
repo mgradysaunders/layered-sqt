@@ -113,7 +113,7 @@ int main(int argc, char** argv)
         try {
             wo_count = std::stoi(argv[0]); // This may throw.
             if (!(wo_count >= 4 &&
-                  wo_count <= 1024)) {
+                  wo_count <= 32)) {
                 // Trigger catch block manually.
                 throw std::exception();
             }
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
         catch (const std::exception&) {
             throw
                 std::runtime_error(
-                std::string("-wo/--wo-count expects 1 integer in [4, 1024] ")
+                std::string("-wo/--wo-count expects 1 integer in [4, 32] ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
@@ -129,7 +129,8 @@ int main(int argc, char** argv)
     << "Specify outgoing direction count. By default, 12.\n"
        "This is the number of outgoing directions in the upper hemisphere,\n"
        "uniformly distributed in zenith. As the emergent BRDF/BSDF must be\n"
-       "isotropic, the implementation does not sample in azimuth.\n";
+       "isotropic, the implementation does not sample in azimuth.\n"
+       "**It is rarely necessary to use this option**\n";
 
     // -wi/--wi-count
     opt_parser.on_option("-wi", "--wi-count", 1,
@@ -178,7 +179,8 @@ int main(int argc, char** argv)
     << "Specify RRSS oversampling multiplier. By default, 4.\n"
        "This is the multiplier on number of incident directions to use\n"
        "when forming the Redundancy-Reduced Sample Set (RRSS) of incident\n"
-       "directions for each outgoing direction.\n";
+       "directions for each outgoing direction.\n"
+       "**It is rarely necessary to use this option**\n";
 
     // -rp/--rrss-path-frac
     opt_parser.on_option("-rp", "--rrss-path-frac", 1,
