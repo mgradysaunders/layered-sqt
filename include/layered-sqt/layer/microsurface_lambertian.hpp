@@ -71,7 +71,7 @@ public:
     /**
      * @brief Use multiple scattering?
      */
-    bool use_multiple_scattering = false;
+    bool use_multiple_scattering = true;
 
 public:
 
