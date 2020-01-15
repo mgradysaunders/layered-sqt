@@ -44,7 +44,7 @@ Float MicrosurfaceDielectricLayer::bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
-            Float* f_pdf) const
+            Float* fs_pdf) const
 {
     // Surface.
     MicrosurfaceDielectricBsdf surf = {
@@ -58,12 +58,12 @@ Float MicrosurfaceDielectricLayer::bsdf(
     if (use_multiple_scattering) {
 
         // Multiple-scattering version.
-        return surf.fs(pcg, wo, wi, 0, 0, f_pdf);
+        return surf.fs(pcg, wo, wi, 0, 0, fs_pdf);
     }
     else {
 
-        if (f_pdf) {
-            *f_pdf = surf.fs1_pdf(wo, wi);
+        if (fs_pdf) {
+            *fs_pdf = surf.fs1_pdf(wo, wi);
         }
 
         // Single-scattering version.
@@ -98,9 +98,9 @@ Vec3<Float> MicrosurfaceDielectricLayer::bsdfSample(
               kT == 1)) {
 
             // Update throughput.
-            Float f_pdf;
-            Float f = surf.fs(pcg, wo, wi, 0, 0, &f_pdf);
-            tau *= f / f_pdf;
+            Float fs_pdf;
+            Float fs = surf.fs(pcg, wo, wi, 0, 0, &fs_pdf);
+            tau *= fs / fs_pdf;
         }
 
         return wi;
@@ -201,12 +201,23 @@ void MicrosurfaceDielectricLayer::init(const std::string& arg)
 // Validate.
 void MicrosurfaceDielectricLayer::validate() const
 {
+    // Check.
+    const char* error_message = nullptr;
     if (this->medium_above->eta == 
         this->medium_below->eta) {
+        error_message = ": eta does not change across boundary";
+    }
+    else
+    if (this->medium_above->eta < 1 ||
+        this->medium_below->eta < 1) {
+        error_message = ": detected dielectric medium with eta < 1";
+    }
+    // Error?
+    if (error_message) {
         throw 
             std::runtime_error(
             std::string(__PRETTY_FUNCTION__)
-                .append(": no change in eta across boundary"));
+                .append(error_message));
     }
 }
 

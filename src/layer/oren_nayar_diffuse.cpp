@@ -39,19 +39,19 @@ Float OrenNayarDiffuseLayer::bsdf(
             Pcg32&,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
-            Float* f_pdf) const
+            Float* fs_pdf) const
 {
     if (pr::signbit(wo[2]) != 
         pr::signbit(wi[2])) {
-        if (f_pdf) {
-            *f_pdf = 0;
+        if (fs_pdf) {
+            *fs_pdf = 0;
         }
         return 0;
     }
     else {
         OrenNayarDiffuseBrdf surf = {sigma};
-        if (f_pdf) {
-            *f_pdf = 
+        if (fs_pdf) {
+            *fs_pdf = 
             surf.fs_pdf(wo, wi); 
         }
         return fR * surf.fs(wo, wi);

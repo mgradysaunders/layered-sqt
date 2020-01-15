@@ -92,7 +92,7 @@ public:
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
-            Float* f_pdf = nullptr) const;
+            Float* fs_pdf = nullptr) const;
 
     /**
      * @copydoc Layer::bsdfSample()

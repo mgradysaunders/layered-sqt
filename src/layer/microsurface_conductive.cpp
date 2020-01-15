@@ -44,7 +44,7 @@ Float MicrosurfaceConductiveLayer::bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
-            Float* f_pdf) const
+            Float* fs_pdf) const
 {
     (void) pcg;
     // Surface.
@@ -68,12 +68,12 @@ Float MicrosurfaceConductiveLayer::bsdf(
     if (use_multiple_scattering) {
 
         // Multiple-scattering version.
-        return surf.fs(pcg, wo, wi, 0, 0, f_pdf);
+        return surf.fs(pcg, wo, wi, 0, 0, fs_pdf);
     }
     else {
 
-        if (f_pdf) {
-            *f_pdf = surf.fs1_pdf(wo, wi);
+        if (fs_pdf) {
+            *fs_pdf = surf.fs1_pdf(wo, wi);
         }
 
         // Single-scattering version.
@@ -116,9 +116,9 @@ Vec3<Float> MicrosurfaceConductiveLayer::bsdfSample(
         if (true) {
 
             // Update throughput.
-            Float f_pdf;
-            Float f = surf.fs(pcg, wo, wi, 0, 0, &f_pdf);
-            tau *= f / f_pdf;
+            Float fs_pdf;
+            Float fs = surf.fs(pcg, wo, wi, 0, 0, &fs_pdf);
+            tau *= fs / fs_pdf;
         }
 
         return wi;

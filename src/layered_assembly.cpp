@@ -260,6 +260,12 @@ void LayeredAssembly::init(std::istream& is)
     if (layers_.empty()) {
         error_message = ": no layers";
     }
+    else
+    // Boundary medium has non-zero extinction?
+    if (mediums_.front()->mu > 0 ||
+        (mediums_.back()->mu > 0 && isTransmissive())) {
+        error_message = ": boundary medium has non-zero extinction";
+    }
 
     // Error?
     if (error_message) {
@@ -270,17 +276,11 @@ void LayeredAssembly::init(std::istream& is)
     }
 
     // Link pointers.
-    for (std::size_t pos = 0;
-                     pos < layers_.size(); pos++) {
+    for (std::size_t pos = 0; pos < layers_.size(); pos++) {
         mediums_[pos + 0]->layer_below = layers_[pos];
         mediums_[pos + 1]->layer_above = layers_[pos];
         layers_[pos]->medium_above = mediums_[pos + 0];
         layers_[pos]->medium_below = mediums_[pos + 1];
-    }
-
-    // Validate layers.
-    for (const Layer* layer : layers_) {
-        layer->validate();
     }
 
     // Find non-null BSDF layer at top.
@@ -299,6 +299,11 @@ void LayeredAssembly::init(std::istream& is)
             layers_bottom_ = *itr;
             break;
         }
+    }
+
+    // Validate layers.
+    for (const Layer* layer : layers_) {
+        layer->validate(); // May throw.
     }
 }
 

@@ -44,7 +44,7 @@ Float MicrosurfaceLambertianLayer::bsdf(
             Pcg32& pcg,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
-            Float* f_pdf) const
+            Float* fs_pdf) const
 {
     // Surface.
     MicrosurfaceLambertianBsdf surf = {
@@ -53,7 +53,7 @@ Float MicrosurfaceLambertianLayer::bsdf(
     };
 
     return surf.fs(pcg, wo, wi, 0, 
-                   use_multiple_scattering ? 0 : 1, f_pdf);
+                   use_multiple_scattering ? 0 : 1, fs_pdf);
 }
 
 // BSDF sample.
@@ -76,10 +76,10 @@ Vec3<Float> MicrosurfaceLambertianLayer::bsdfSample(
     if (!(fR + fT == 1)) {
 
         // Update throughput.
-        Float f_pdf;
-        Float f = surf.fs(pcg, wo, wi, 0, 
-                          use_multiple_scattering ? 0 : 1, &f_pdf);
-        tau *= f / f_pdf;
+        Float fs_pdf;
+        Float fs = surf.fs(pcg, wo, wi, 0, 
+                           use_multiple_scattering ? 0 : 1, &fs_pdf);
+        tau *= fs / fs_pdf;
     }
 
     return wi;

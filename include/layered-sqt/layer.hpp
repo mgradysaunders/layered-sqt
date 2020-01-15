@@ -107,7 +107,7 @@ public:
      * @param[in] wi
      * Incident direction.
      *
-     * @param[out] f_pdf
+     * @param[out] fs_pdf
      * _Optional_. BSDF-PDF.
      */
     virtual 
@@ -115,7 +115,7 @@ public:
             Pcg32& pcg,
             const Vec3<Float>& wo, 
             const Vec3<Float>& wi,
-            Float* f_pdf = nullptr) const = 0;
+            Float* fs_pdf = nullptr) const = 0;
 
     /**
      * @brief BSDF sample.

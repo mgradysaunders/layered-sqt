@@ -36,21 +36,21 @@ Float LambertianLayer::bsdf(
             Pcg32&,
             const Vec3<Float>& wo,
             const Vec3<Float>& wi,
-            Float* f_pdf) const
+            Float* fs_pdf) const
 {
-    Float f = pr::numeric_constants<Float>::M_1_pi() * pr::abs(wi[2]) * 
-             (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT);
+    Float fs = pr::numeric_constants<Float>::M_1_pi() * pr::abs(wi[2]) * 
+              (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT);
 
-    if (f_pdf) {
-        if (f > 0) {
-            *f_pdf = f / (fR + fT);
+    if (fs_pdf) {
+        if (fs > 0) {
+            *fs_pdf = fs / (fR + fT);
         }
         else {
-            *f_pdf = 0;
+            *fs_pdf = 0;
         }
     }
     
-    return f;
+    return fs;
 }
 
 // BSDF sample.
