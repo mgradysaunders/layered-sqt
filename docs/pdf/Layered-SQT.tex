@@ -462,7 +462,6 @@ subdirectory \texttt{tutorial4}.
 $ cd ..
 $ mkdir tutorial4 && cd tutorial4
 \end{verbatim}
-
 Next create another plain-text LSQT file \texttt{Dusty.lsqt} with three 
 layers and thus seven lines.
 \begin{lstlisting}[numbers=left]
@@ -474,6 +473,7 @@ Medium eta=1.4
 Layer z=0 Lambertian fR=0.2
 Medium
 \end{lstlisting}
+
 We attribute a \namett{purple}{Null} to the topmost layer appearing
 on line 2, such that this layer only exists to separate media, and 
 no scattering happens at the layer itself. The medium above on line 1 
@@ -536,6 +536,97 @@ figure \ref{fig:tutorial4}.
     dust in tutorial \S\ref{sec:tutorial4}, where the bottom Lambertian BRDF 
     layer is reduced to 20\% reflectance to exaggerate the dust effect.
     \label{fig:tutorial4}}
+\end{center}
+\end{figure}
+
+\subsection{Conductors}
+\label{sec:tutorial5}
+So far we have considered only dielectric, or electrically-insulating, 
+materials. In the context of simulation, a dielectric material is 
+thought to have a real-valued refractive index $\eta$, such that 
+absorption is modeled by a simple multiplier
+(at a surface) or a Beer's Law coefficient $\mu_a$ (in a volume). 
+On the other hand, a conductive material is thought to have a complex-valued
+index of refraction $\eta + i\kappa$.
+
+At a boundary between between a dielectric material with refractive 
+index $\eta_1$ and a conductive material with refractive index 
+$\eta_2 + i \kappa$, the relative refractive index is thus a 
+complex number
+\begin{equation*}
+    \eta_{\text{rel}} = \frac{\eta_1}{\eta_2 + i \kappa}.
+\end{equation*}
+Analogously to the dielectric case, we may apply Fresnel's 
+equations with such a complex refractive index. Contrary to the
+dielectric case however, the transmitted wave is now \emph{evanescent},
+and diminishes quickly to zero. The coefficient $\kappa$ is thus
+termed the \emph{absorption coefficient} of the conductive material. 
+Note that this is a different ``theory'' of absorption
+than the dielectric case. Regardless, the idea of $\kappa$ as a 
+material property is spiritually equivalent to $\mu_a$.
+For this reason, \texttt{layered-sqt} interprets $\mu_a$ as $\kappa$
+when the \namett{purple}{MicrosurfaceConductive} BRDF is used. 
+
+Once again, return to the \texttt{lsqt-tutorial} directory and create
+and enter a new subdirectory \texttt{tutorial5}.
+\begin{verbatim}
+$ cd ..
+$ mkdir tutorial5 && cd tutorial5
+\end{verbatim}
+Next create a new plain-text LSQT file \texttt{Silver.lsqt} with
+three lines.
+\begin{lstlisting}[numbers=left]
+Medium
+Layer z=0 MicrosurfaceConductive alpha=0.2
+Medium eta=0.051585 mua=3.9046
+\end{lstlisting}
+
+The top medium on line 1 is vacuum with $\eta = 1$ by default as 
+usual. The layer on line 2 uses a \namett{purple}{MicrosurfaceConductive} 
+BRDF with relatively smooth roughness $\alpha = 0.2$. The bottom medium on 
+line 3 models silver (Ag) at $\SI{0.5876}{\micro\meter}$, with refractive index
+\begin{equation*}
+    \eta + i\kappa = 0.051585 + i3.9046,
+\end{equation*}
+obtained from \href{https://refractiveindex.info}{RefractiveIndex.INFO}.
+Note that this configuration would not make proper sense if 
+\namett{purple}{MicrosurfaceDielectric} were used, in
+which case $\eta=0.051585$ would be interpreted as the real refractive 
+index of a dielectric, which should not be less than 1, and $\mu_a$ would be 
+interpreted as a Beer's Law coefficient of an infinite medium. 
+Fortunately, \texttt{layered-sqt} ought to catch invalid configurations such
+as this, and report an error accordingly.
+
+This BRDF has a reasonably sharp specular feature, so we want 
+more incident directions than usual. Run \texttt{layered-sqt} as follows.
+\begin{verbatim}
+$ ../layered-sqt -wi=600 -p=1 Silver.lsqt
+\end{verbatim}
+This may seem odd---600 directions, but only 1 path? By default, the 
+\namett{purple}{MicrosurfaceConductive} BRDF is deterministic (i.e., multiple 
+scattering is disabled, see sections 
+\S\ref{sec:doc-layers-microsurface-lambertian}--%
+\S\ref{sec:doc-layers-microsurface-conductive}), such that it 
+is resolvable with 1 path. Note that this is a very specific use
+case, being 1 layer with a deterministic BRDF, designed to illustrate
+why \texttt{layered-sqt} allows the path count to be 1 (99.9\% of the
+time, it is unwise to do this).
+
+Run \texttt{layered-sqt-lssview} on \texttt{Silver.lsqt.lss} to obtain
+\texttt{Silver.lsqt.lss.png}, as in figure \ref{fig:tutorial5}. Consider
+re-running \texttt{layered-sqt} (don't forget \texttt{-R}) with fewer
+incident directions to see how artifacts manifest in the image
+preview. Such artifacts may be less noticeable once converted into 
+SQT, which implements a smoother interpolation method than that used 
+in \texttt{layered-sqt-lssview}.
+
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=0.75\columnwidth]{tutorial5.png}
+    \caption{Image preview of the conductive BRDF in tutorial 
+    \S\ref{sec:tutorial5}.
+    \label{fig:tutorial5}}
 \end{center}
 \end{figure}
 
