@@ -24,6 +24,7 @@
     classoffset=2,
     morekeywords={
         HenyeyGreenstein, 
+        HenyeyGreenstein2,
         Rayleigh,
         Sggx,
         Null,
@@ -729,6 +730,34 @@ argument \texttt{g} for $g$, which is zero by default. For example,
 Medium mus=1 HenyeyGreenstein g=-0.22
 \end{lstlisting}
 specifies a moderately back-scattering medium.
+
+\subsubsection{Henyey-Greenstein 2-lobe phase}
+\label{sec:doc-media-henyey-greenstein2}
+
+For convenience, \texttt{layered-sqt} provides a 2-lobe variant
+of the Henyey-Greenstein phase as described in 
+\S\ref{sec:doc-media-henyey-greenstein}. This is expressed as
+\begin{equation*}
+    p(\omega_o\to\omega_i) = 
+    (1 - b) p_0(\omega_o\to\omega_i) +
+         b  p_1(\omega_o\to\omega_i)
+\end{equation*}
+where $b \in [0, 1]$ is the ``blend factor'' which interpolates between
+Henyey-Greenstein phase functions $p_0$ and $p_1$, which have shape
+parameters $g_0$ and $g_1$ respectively. This is useful to characterize
+asymmetric scattering.
+
+To specify the Henyey-Greenstein 2-lobe phase in LSQT 
+format, use the name 
+\namett{purple}{HenyeyGreenstein2} followed by keyword arguments 
+\texttt{g0} for $g_0$, \texttt{g1} for $g_1$, and \texttt{b} for
+$b$. By default, \texttt{g0=0}, \texttt{g1=0}, and \texttt{b=0}.
+For example,
+\begin{lstlisting}
+Medium mus=1 HenyeyGreenstein2 g0=0.7 g1=0 b=0.65
+\end{lstlisting}
+specifies a medium with a sharply forward-scattering component, which
+is otherwise mostly (65\%) isotropic.
 
 \subsubsection{Rayleigh phase}
 \label{sec:doc-media-rayleigh}
