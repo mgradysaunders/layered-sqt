@@ -37,7 +37,7 @@ namespace ls {
 /**
  * @addtogroup mediums Mediums
  *
- * `<layered-sqt/medium/henyey_greenstein.hpp>`
+ * `<layered-sqt/medium/henyey_greenstein2.hpp>`
  */
 /**@{*/
 
