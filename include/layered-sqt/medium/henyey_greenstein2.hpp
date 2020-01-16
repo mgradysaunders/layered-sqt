@@ -66,7 +66,7 @@ public:
     /**
      * @brief Blend weight @f$ w \in [0, 1] @f$.
      */
-    Float b = 1;
+    Float b = 0;
 
 public:
 
