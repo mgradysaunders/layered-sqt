@@ -42,7 +42,7 @@ Float HenyeyGreenstein2Medium::phase(
 {
     (void) pcg;
     Vec2<Float> g = {g0, g1};
-    Vec2<Float> w = {b, 1 - b};
+    Vec2<Float> w = {1 - b, b};
     return HenyeyGreenstein2Phase(g, w).ps(wo, wi);
 }
 
@@ -54,7 +54,7 @@ Vec3<Float> HenyeyGreenstein2Medium::phaseSample(
 {
     (void) tau; // tau *= 1
     Vec2<Float> g = {g0, g1};
-    Vec2<Float> w = {b, 1 - b};
+    Vec2<Float> w = {1 - b, b};
     return HenyeyGreenstein2Phase(g, w).ps_sample(generateCanonical2(pcg), wo);
 }
 
