@@ -35,6 +35,7 @@
 #include <layered-sqt/layer/microsurface_conductive.hpp>
 #include <layered-sqt/layer/oren_nayar_diffuse.hpp>
 #include <layered-sqt/medium/henyey_greenstein.hpp>
+#include <layered-sqt/medium/henyey_greenstein2.hpp>
 #include <layered-sqt/medium/rayleigh.hpp>
 #include <layered-sqt/medium/sggx.hpp>
 
@@ -83,6 +84,7 @@ void LayeredAssembly::init(std::istream& is)
                         }
                         else {
                             if (str == "HenyeyGreenstein" ||
+                                str == "HenyeyGreenstein2" ||
                                 str == "Rayleigh" ||
                                 str == "Sggx") {
                                 medium_phase = str;
@@ -132,6 +134,10 @@ void LayeredAssembly::init(std::istream& is)
                 else 
                 if (medium_phase == "HenyeyGreenstein") {
                     mediums_.push_back(new HenyeyGreensteinMedium());
+                }
+                else 
+                if (medium_phase == "HenyeyGreenstein2") {
+                    mediums_.push_back(new HenyeyGreenstein2Medium());
                 }
                 else
                 if (medium_phase == "Rayleigh") {
@@ -609,7 +615,7 @@ void LayeredAssembly::compute(
         // This test passes if throughput is zero, in which case
         // path is absorbed, but also if throughput is NaN. This shouldn't
         // happen, but we want to terminate if it does.
-        if (!(tau > 0)) {
+        if (!(tau > 0) || ray.dir[2] == 0) {
             break;
         }
     }
@@ -811,7 +817,7 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
             // This test passes if throughput is zero, in which case
             // path is absorbed, but also if throughput is NaN. This shouldn't
             // happen, but we want to terminate if it does.
-            if (!(tau > 0)) {
+            if (!(tau > 0) || ray.dir[2] == 0) {
                 // Terminate.
                 break;
             }
