@@ -11,6 +11,7 @@
             style=numeric-comp]{biblatex}
 \renewcommand*\bibfont{\small}
 \addbibresource{References.bib}
+\usepackage{dirtree}
 \usepackage{listings}
 \usepackage{xcolor}
 \definecolor{codeforeground}{rgb}{0.22,0.22,0.25}
@@ -641,8 +642,58 @@ in \texttt{layered-sqt-lssview}.
 \end{center}
 \end{figure}
 
-\subsection{Setting up a DIRSIG scene}
+\subsection{Using SQT in a DIRSIG scene}
 \label{sec:tutorial6}
+
+We have now spent some time running basic simulations 
+in \texttt{layered-sqt}. So, let's take a brief hiatus to review how 
+to actually use an SQT file in a DIRSIG scene. Presenting a step-by-step
+guide to setting up a DIRSIG scene in general is out of the scope of this
+document---we'll instead describe the relevant parts of a pre-made
+scene, which is available at \texttt{/cis/phd/mgs8033/lsqt-scene}. 
+The top-level directory structure is as follows.
+
+\vspace{1em}
+\dirtree{%
+.1 lsqt-scene/.
+.2 geometry/.
+.2 materials/.
+.2 shots/.
+.2 lsqt-scene.scene.
+}
+\vspace{1em}
+
+The \texttt{geometry} subdirectory contains a few GList (XML) files that 
+describe the geometry in the scene. In this example scene, there is only a 
+ground plane and a row of 3 spheres positioned on top of it. Importantly,
+the GList description of an object specifies its material ID number (inside
+the \texttt{<matid>} tag). Here, the ground plane is assigned material 
+ID 1, and the spheres are assigned material IDs 2, 3, and 4.
+
+The \texttt{materials} subdirectory contains \texttt{materials.mat},
+the main material description file for the scene, as well as 
+the SQT files corresponding to \texttt{Substr.lsqt}, \texttt{Dusty.lsqt}, 
+and \texttt{Silver.lsqt}. Each entry in \texttt{materials.mat} defines a
+material, assigns it a name and ID number, and associates relevant 
+data files with it. To illustrate, the relevant portion of the
+substrate material entry is shown below.
+\begin{verbatim}
+MATERIAL_ENTRY {
+  ID = 2
+  NAME = Dusty
+  ...
+  SURFACE_PROPERTIES {
+    REFLECTANCE_PROP_NAME = SphericalDataBRDF
+    REFLECTANCE_PROP {
+      DATA_FILENAME = Substr.lsqt.sqt
+    }
+  }
+}
+\end{verbatim}
+This defines a material with ID 2 and name ``Substr'' which uses an SQT 
+BRDF. Specifically, the property name \texttt{SphericalDataBRDF} indicates
+to DIRSIG that we want to use an SQT file to describe the BRDF 
+of the material, which is then specified as \texttt{Substr.lsqt.sqt}.
 
 TODO
 
