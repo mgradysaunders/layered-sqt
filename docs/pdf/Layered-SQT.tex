@@ -310,6 +310,16 @@ $ ../layered-sqt-lssview Rough.lsqt.lss
 Notice that the microsurface roughness causes increased reflectance at 
 grazing angles, and decreased reflectance elsewhere.
 
+To produce the final SQT file suitable for use in a DIRSIG scene,
+run \texttt{raw2sqt} as in the first tutorial.
+\begin{verbatim}
+$ ../raw2sqt Rough.lsqt.raw
+\end{verbatim}
+We'll omit this step in the next few tutorial sections, as it is
+always the same. We'll return to this in tutorial \S\ref{sec:tutorial6} 
+however, which details the process for linking up an SQT file in a 
+DIRSIG scene.
+
 \subsection{A simple substrate}
 \label{sec:tutorial3}
 
@@ -542,6 +552,7 @@ figure \ref{fig:tutorial4}.
 
 \subsection{Conductors}
 \label{sec:tutorial5}
+
 So far we have considered only dielectric, or electrically-insulating, 
 materials. In the context of simulation, a dielectric material is 
 thought to have a real-valued refractive index $\eta$, such that 
@@ -621,7 +632,6 @@ preview. Such artifacts may be less noticeable once converted into
 SQT, which implements a smoother interpolation method than that used 
 in \texttt{layered-sqt-lssview}.
 
-
 \begin{figure}
 \begin{center}
     \includegraphics[width=0.75\columnwidth]{tutorial5.png}
@@ -630,6 +640,11 @@ in \texttt{layered-sqt-lssview}.
     \label{fig:tutorial5}}
 \end{center}
 \end{figure}
+
+\subsection{Setting up a DIRSIG scene}
+\label{sec:tutorial6}
+
+TODO
 
 \section{Documentation}
 \label{sec:doc}
@@ -702,10 +717,6 @@ So,
 Medium
 \end{lstlisting}
 specifies vacuum. 
-% TODO No longer required?
-% Note---the implementation requires that top and 
-% bottom media be non-absorbing and non-scattering, such that $\mu_a=\mu_s=0$,
-% and issues an error if this requirement is not met.
 
 \subsubsection{Henyey-Greenstein phase}
 \label{sec:doc-media-henyey-greenstein}
@@ -959,15 +970,13 @@ perfectly energy-conserving.
 To specify the Lambertian BSDF in LSQT format, use the name
 \namett{purple}{Lambertian} followed by (optional) keyword arguments 
 \texttt{fR} and \texttt{fT} for $f_R$ and $f_T$ respectively. 
+By default, \texttt{fR=1} and \texttt{fT=0}.
 For example,
 \begin{lstlisting}
 Layer z=2.2 Lambertian fR=0.8 fT=0.1
 \end{lstlisting}
 specifies a Lambertian surface at $z$-height 2.2 which is 80\% reflective,
-10\% transmissive, and 10\% absorptive. By default, \texttt{fR=1} and 
-\texttt{fT=0}. %The implementation requires that the values of \texttt{fR} and 
-%\texttt{fT} be physically plausible, i.e., non-negative numbers whose sum does 
-%not exceed 1. 
+10\% transmissive, and 10\% absorptive. 
 
 \subsubsection{Microsurface Lambertian BSDF}
 \label{sec:doc-layers-microsurface-lambertian}
@@ -1047,7 +1056,6 @@ use_multiple_scattering=true
 \end{lstlisting}
 to ensure proper energy conservation.
 
-
 \subsubsection{Microsurface conductive BRDF}
 \label{sec:doc-layers-microsurface-conductive}
 
@@ -1056,10 +1064,57 @@ TODO
 \subsubsection{Oren-Nayar diffuse BRDF}
 \label{sec:doc-layers-oren-nayar-diffuse}
 
-TODO
+As given in \cite{Oren:94}, the Oren-Nayar BRDF is a closed-form 
+generalization of the Lambertian BRDF based on principles of microsurface 
+theory. The original paper deals with quite a bit of geometry and includes
+defined angles of interest in the resulting expression. Some
+manipulation leads to a simpler expression,
+\begin{equation*}
+    f_s(\omega_o \to \omega_i) = f_R
+    \frac{\verts{\cos{\theta_i}}}{\pi}
+    \bracks{A + B\frac{\max\parens{\omega_o'\cdot\omega_i', 0}}
+                      {\max\parens{\verts{\cos{\theta_o}},
+                                   \verts{\cos{\theta_i}}}}}
+\end{equation*}
+where the primed vectors $\omega_o'$, $\omega_i'$ denote the 
+tangential components of $\omega_o$, $\omega_i$ with respect to 
+the normal, such that
+\begin{align*}
+    \omega_o'\cdot\omega_i' &= 
+    %\omega_o \cdot\omega_i - \cos{(\theta_o)}\cos{(\theta_i)},\\
+    \omega_{o_x}\omega_{i_x} + 
+    \omega_{o_y}\omega_{i_y} \\
+    &=
+    \sin{(\theta_o)}
+    \sin{(\theta_i)}
+    \cos{(\phi_o - \phi_i)}
+\end{align*}
+and constants $A$ and $B$ are given by
+\begin{align*}
+    A &= 1 - 0.5\frac{\sigma^2}{\sigma^2 + 0.33},&
+    B &= 0.45\frac{\sigma^2}{\sigma^2 + 0.09},
+\end{align*}
+where $\sigma \in [0, 0.8]$ denotes the standard deviation of the
+microfacet angle in radians, which is a parameter alongside the reflection 
+coefficient $f_R \in [0, 1]$. In the limit $\sigma = 0$, $f_s$ is identically 
+the Lambertian BRDF. As $\sigma$ increases, $f_s$ appears rougher. We place an
+arbitrary upper bound of $\SI{0.8}{\radian}$ on $\sigma$, as this is 
+sufficiently ``rough'', and the accuracy of the model diminishes as 
+$\sigma \to \infty$.
+
+The Oren-Nayar BRDF is essentially an approximation of the
+rigorous stochastic microsurface Lambertian BRDF given 20 years 
+later in \cite{Heitz:16}.  This model is still convenient to have 
+around however, since it is characteristically similar for 
+reasonably small roughnesses, and is evaluable in closed form.
+
+To specify the Oren-Nayar BRDF in LSQT format, use the name
+\namett{purple}{OrenNayarDiffuse} followed by (optional) keyword 
+arguments \texttt{fR} for $f_R$ and \texttt{sigma} for $\sigma$.
+By default, \texttt{fR=1} and \texttt{sigma=0.1}.
 
 {
-\nocite{*}
+\nocite{Goodenough:17}
 \raggedright
 \printbibliography
 }
