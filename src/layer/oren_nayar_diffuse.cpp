@@ -115,7 +115,7 @@ void OrenNayarDiffuseLayer::init(const std::string& arg)
     }
     else 
     if (!(sigma >= 0 && sigma <= 0.8)) {
-        error_message = ": alpha is non-positive";
+        error_message = ": sigma is outside [0, 0.8]";
     }
     // Error?
     if (error_message) {
