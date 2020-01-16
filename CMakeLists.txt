@@ -55,6 +55,7 @@ set(CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/layered_assembly.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/henyey_greenstein.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/henyey_greenstein2.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/rayleigh.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/medium/sggx.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/progress_bar.cpp"
