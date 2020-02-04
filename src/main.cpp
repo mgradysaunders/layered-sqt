@@ -79,7 +79,7 @@ int main(int argc, char** argv)
         catch (const std::exception&) {
             throw 
                 std::runtime_error(
-                std::string("-s/--seed expects 1 integer")
+                std::string("-s/--seed expects 1 integer ")
                     .append("(can't parse ").append(argv[0])
                     .append(")"));
         }
