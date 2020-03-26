@@ -123,13 +123,15 @@ void FileData::writeLss(std::ostream& ostr) const
 }
 
 // Write SQT RAW plain-text format.
-void FileData::writeSqtRaw(std::ostream& ostr) const
+void FileData::writeRaw(std::ostream& ostr, RawMode raw_mode) const
 {
     bool is_bsdf = false;
-    for (const Slice& slice : slices) {
-        if (slice.anyTransmitted()) {
-            is_bsdf = true;
-            break;
+    if (raw_mode == RAW_MODE_DEFAULT) {
+        for (const Slice& slice : slices) {
+            if (slice.anyTransmitted()) {
+                is_bsdf = true;
+                break;
+            }
         }
     }
     ostr << "RAWB" << (is_bsdf ? 'S' : 'H');
@@ -152,13 +154,38 @@ void FileData::writeSqtRaw(std::ostream& ostr) const
 
             // SQT expects non-cosine-weighted BSDF.
             bsdf_average /= pr::fabs(incident_dir[2]);
-            if (pr::isfinite(bsdf_average)) {
-                ostr << wo_index << ' ';
-                ostr << incident_dir[0] << ' ';
-                ostr << incident_dir[1] << ' ';
-                ostr << incident_dir[2] << ' ';
-                ostr << bsdf_average << '\n';
+            if (!pr::isfinite(bsdf_average)) {
+                continue;
             }
+
+            // If BRDF only, ignore directions in lower hemisphere.
+            // If BTDF only, ignore directions in upper hemisphere.
+            if ((raw_mode == RAW_MODE_ONLY_BRDF && incident_dir[2] < 0.0f) ||
+                (raw_mode == RAW_MODE_ONLY_BTDF_AS_BRDF &&
+                 incident_dir[2] > 0.0f)) {
+                continue;
+            }
+            // If BTDF only, flip to upper hemisphere.
+            if (raw_mode == RAW_MODE_ONLY_BTDF_AS_BRDF) {
+                incident_dir[2] = -incident_dir[2];
+            }
+
+            // Write sample.
+            ostr << wo_index << ' ';
+            ostr << +incident_dir[0] << ' ';
+            ostr << +incident_dir[1] << ' ';
+            ostr << +incident_dir[2] << ' ';
+            ostr << bsdf_average << '\n';
+
+            // Write Y-reflected sample. This assumes/enforces that the BSDF
+            // is bilaterally symmetric. This should always be true given the
+            // requirement that everything is homogeneous and isotropic. If
+            // this is ever relaxed, this following code should be removed!
+            ostr << wo_index << ' ';
+            ostr << +incident_dir[0] << ' ';
+            ostr << -incident_dir[1] << ' ';
+            ostr << +incident_dir[2] << ' ';
+            ostr << bsdf_average << '\n';
         }
         wo_index++;
     }
@@ -241,19 +268,19 @@ void FileData::Slice::writeLss(std::ostream& ostr) const
     ostr_le << path_pcg.inc_;
 }
 
-// Smooth directions (presumably in upper hemisphere).
+// Smooth incident directions (presumably in upper hemisphere).
 static 
-void smoothDirs(std::vector<Vec3<Float>>& dirs)
+void smoothIncidentDirs(std::vector<Vec3<Float>>& incident_dirs)
 {
-    if (dirs.empty()) {
+    if (incident_dirs.empty()) {
         return;
     }
     std::vector<Vec2<Float>> locs;
-    locs.reserve(dirs.size());
+    locs.reserve(incident_dirs.size());
 
     // Initialize.
-    for (const Vec3<Float>& dir : dirs) {
-        locs.push_back(dirToPolar(dir));
+    for (const Vec3<Float>& incident_dir : incident_dirs) {
+        locs.push_back(dirToPolar(incident_dir));
     }
 
     // Uniformly-spaced polar locations around edge of disk.
@@ -290,11 +317,11 @@ void smoothDirs(std::vector<Vec3<Float>>& dirs)
     }
 
     // Overwrite directions.
-    dirs.clear();
+    incident_dirs.clear();
     for (auto& smooth_loc : smooth_locs) {
         if (smooth_loc.second > 0) {
             smooth_loc.first /= smooth_loc.second; // Normalize.
-            dirs.push_back(polarToDir(smooth_loc.first));
+            incident_dirs.push_back(polarToDir(smooth_loc.first));
         }
     }
 }
@@ -346,8 +373,8 @@ void FileData::Slice::computeIncidentDirs(
         }
 
         // Smooth in each hemisphere.
-        smoothDirs(wi_upper);
-        smoothDirs(wi_lower);
+        smoothIncidentDirs(wi_upper);
+        smoothIncidentDirs(wi_lower);
         for (Vec3<Float>& wi : wi_lower) {
             wi[2] = -wi[2]; // Flip back to lower hemisphere.
         }

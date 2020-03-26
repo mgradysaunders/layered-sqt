@@ -238,12 +238,48 @@ public:
     void writeLss(std::ostream& ostr) const;
 
     /**
-     * @brief Write SQT RAW plain-text format.
+     * @brief RAW plain-text mode.
+     */
+    enum RawMode
+    {
+        /**
+         * @brief Default.
+         *
+         * Write default. If no direction is in
+         * the lower hemisphere, write as hemispherical `RAWBH10A`. 
+         * Otherwise, write as spherical `RAWBS10A`.
+         */
+        RAW_MODE_DEFAULT = 0,
+
+        /**
+         * @brief Only BRDF.
+         *
+         * Write only BRDF directions in the upper hemisphere as 
+         * hemispherical `RAWBH10A`.
+         */
+        RAW_MODE_ONLY_BRDF,
+
+        /**
+         * @brief Only BTDF, flipped as BRDF.
+         *
+         * Write only BTDF directions in the lower hemisphere, flipped to the 
+         * upper hemisphere, as hemispherical `RAWBH10A`.
+         */
+        RAW_MODE_ONLY_BTDF_AS_BRDF
+    };
+
+    /**
+     * @brief Write RAW plain-text format.
      *
      * @param[inout] ostr
      * Output stream.
+     *
+     * @param[in] raw_mode
+     * Raw mode.
      */
-    void writeSqtRaw(std::ostream& ostr) const;
+    void writeRaw(
+            std::ostream& ostr,
+            RawMode raw_mode = RAW_MODE_DEFAULT) const;
 
 public:
 

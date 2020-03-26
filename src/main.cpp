@@ -26,9 +26,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*+-+*/
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <filesystem>
+//#include <sys/types.h>
+//#include <sys/stat.h>
+//#include <unistd.h>
 #include <fstream>
 #include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
@@ -39,6 +40,7 @@
 #include <layered-sqt/progress_bar.hpp>
 #include <layered-sqt/file_data.hpp>
 
+#if 0
 static std::int64_t getFileModificationTime(const std::string& filename)
 {
     struct stat statbuf;
@@ -52,6 +54,7 @@ static std::int64_t getFileModificationTime(const std::string& filename)
         return -1;
     }
 }
+#endif
 
 int main(int argc, char** argv)
 {
@@ -66,6 +69,7 @@ int main(int argc, char** argv)
     int rrss_path_count = 0; // Not an option, determined by path fraction.
     double rrss_path_frac = 0.8;
     bool restart = false;
+    bool only_hemispherical = false;
     int thread_count = 0;
     std::string ifs_filename;
     std::string ofs_filename;
@@ -213,6 +217,12 @@ int main(int argc, char** argv)
     })
     << "Ignore LSS file if it exists, effectively restarting simulation.\n";
 
+    opt_parser.on_option(nullptr, "--only-hemispherical", 0,
+    [&](char**) {
+        only_hemispherical = true;
+    })
+    << "Only hemispherical output?\n";
+
     // -t/--thread-count
     opt_parser.on_option("-t", "--thread-count", 1,
     [&](char** argv) {
@@ -239,9 +249,9 @@ int main(int argc, char** argv)
     [&](char** argv) {
         ofs_filename = argv[0];
     })
-    << "Specify output filename. By default, formed by adding \".raw\"\n"
-       "to input filename. If input filename is \"-\" to indicate standard\n"
-       "input, then is \"Layered.raw\" by default.\n";
+    << "Specify output filename. By default, formed by replacing input\n"
+       "extension with \".raw\". If input filename is \"-\" to indicate\n"
+       "standard input, then is \"Layered.raw\" by default.\n";
 
     // -h/--help
     opt_parser.on_option("-h", "--help", 0,
@@ -272,6 +282,9 @@ int main(int argc, char** argv)
         std::exit(EXIT_FAILURE);
     }
 
+    std::filesystem::path ifs_path;
+    std::filesystem::path ofs_path;
+
     // No input filename?
     if (ifs_filename.empty()) {
         std::cout << opt_parser << std::endl;
@@ -279,10 +292,12 @@ int main(int argc, char** argv)
     }
     else if (ofs_filename.empty()) {
         if (ifs_filename == "-") {
-            ofs_filename = "Layered.raw";
+            ofs_path = "Layered.raw";
         }
         else {
-            ofs_filename = ifs_filename + ".raw";
+            ifs_path = ifs_filename;
+            ofs_path = ifs_filename;
+            ofs_path.replace_extension(".raw");
         }
     }
 
@@ -327,11 +342,11 @@ int main(int argc, char** argv)
             std::cout.flush();
         }
         else {
-            std::cout << "Initializing from " << ifs_filename << "...\n";
+            std::cout << "Initializing from " << ifs_path << "...\n";
             std::cout.flush();
 
             // Open filestream.
-            std::ifstream ifs(ifs_filename);
+            std::ifstream ifs(ifs_path);
             if (!ifs.is_open()) {
                 throw std::runtime_error("can't open file");
             }
@@ -352,33 +367,34 @@ int main(int argc, char** argv)
     // File data.
     ls::FileData file_data;
 
-    std::string lss_filename;
+    std::filesystem::path lss_path;
     if (ifs_filename != "-") {
-        lss_filename = ifs_filename + ".lss";
+        lss_path = ifs_filename + ".lss";
     }
 
     // Read in-progress simulation if available.
     bool has_lss = false;
-    if (!lss_filename.empty() && !restart) {
+    if (!lss_path.empty() && !restart &&
+        std::filesystem::is_regular_file(lss_path)) {
 
         // Verify file modification times.
-        std::int64_t ifs_mod_time = getFileModificationTime(ifs_filename);
-        std::int64_t lss_mod_time = getFileModificationTime(lss_filename);
-        if (!(lss_mod_time > ifs_mod_time) && lss_mod_time != -1) {
+        auto ifs_time = std::filesystem::last_write_time(ifs_path);
+        auto lss_time = std::filesystem::last_write_time(lss_path);
+        if (!(lss_time > ifs_time)) {
             std::cerr << "Warning: ";
-            std::cerr << ifs_filename << " is newer than ";
-            std::cerr << lss_filename << ", did you mean to restart the ";
+            std::cerr << ifs_path << " is newer than ";
+            std::cerr << lss_path << ", did you mean to restart the ";
             std::cerr << "simulation with -R/--restart?\n\n";
             std::cerr.flush();
         }
 
         std::ifstream ifs(
-                lss_filename,
+                lss_path,
                 std::ios_base::in |
                 std::ios_base::binary);
         if (ifs.good()) {
             has_lss = true;
-            std::cout << "Reading in-progress simulation " << lss_filename;
+            std::cout << "Reading in-progress simulation " << lss_path;
             std::cout << "...\n";
             std::cout.flush();
 
@@ -482,17 +498,17 @@ int main(int argc, char** argv)
         progress_bar.finish();
     }
 
-    if (!lss_filename.empty()) {
-        std::cout << "Writing " << lss_filename << "...\n";
+    if (!lss_path.empty()) {
+        std::cout << "Writing " << lss_path << "...\n";
         std::cout.flush();
 
         // Output filestream.
         std::ofstream ofs(
-                lss_filename, 
+                lss_path, 
                 std::ios_base::out |
                 std::ios_base::binary);
         if (!ofs.is_open()) {
-            std::cerr << "Error opening " << lss_filename << "...\n\n";
+            std::cerr << "Error opening " << lss_path << "...\n\n";
 
             // No renaming.
         }
@@ -507,32 +523,89 @@ int main(int argc, char** argv)
             catch (const std::exception& exception) {
                 std::cerr << "Unhandled exception!\n";
                 std::cerr << "exception.what(): " << exception.what() << "\n";
-                std::cout << "Error writing " << lss_filename << "...\n\n";
+                std::cout << "Error writing " << lss_path << "...\n\n";
                 std::cout.flush();
             }
         }
     }
 
-    {
-        std::cout << "Writing " << ofs_filename << "...\n";
+    std::ofstream ofs;
+    if (!only_hemispherical) {
+
+        std::cout << "Writing " << ofs_path << "...\n";
         std::cout.flush();
 
-        // Output filestream.
-        std::ofstream ofs(ofs_filename);
+        ofs.open(ofs_path);
         while (!ofs.is_open()) {
-            std::cerr << "Error opening " << ofs_filename << "...\n";
+            std::cerr << "Error opening " << ofs_path << "...\n";
             if (ifs_filename == "-") {
                 std::exit(EXIT_FAILURE);
             }
             else {
                 std::cerr << "Enter alternative filename: ";
-                std::cin >> ofs_filename;
-                ofs.open(ofs_filename);
+                std::cin >> ofs_path;
+                ofs.open(ofs_path);
             }
         }
 
         // Output SQT RAW.
-        file_data.writeSqtRaw(ofs);
+        file_data.writeRaw(ofs);
+        ofs.close();
+
+        std::cout << "Done.\n\n";
+        std::cout.flush();
+    }
+    else {
+
+        std::filesystem::path ofs_brdf_path = ofs_path;
+        ofs_brdf_path.replace_extension(".R.raw");
+
+        std::cout << "Writing " << ofs_brdf_path << "...\n";
+        std::cout.flush();
+
+        ofs.open(ofs_brdf_path);
+        while (!ofs.is_open()) {
+            std::cerr << "Error opening " << ofs_brdf_path << "...\n";
+            if (ifs_filename == "-") {
+                std::exit(EXIT_FAILURE);
+            }
+            else {
+                std::cerr << "Enter alternative filename: ";
+                std::cin >> ofs_brdf_path;
+                ofs.open(ofs_brdf_path);
+            }
+        }
+
+        // Output SQT RAW.
+        file_data.writeRaw(ofs, ls::FileData::RAW_MODE_ONLY_BRDF);
+        ofs.close();
+
+        std::cout << "Done.\n\n";
+        std::cout.flush();
+
+        std::filesystem::path ofs_btdf_path = ofs_path;
+        ofs_btdf_path.replace_extension(".T.raw");
+
+        std::cout << "Writing " << ofs_btdf_path << "...\n";
+        std::cout.flush();
+
+        // Output filestream.
+        ofs.open(ofs_btdf_path);
+        while (!ofs.is_open()) {
+            std::cerr << "Error opening " << ofs_btdf_path << "...\n";
+            if (ifs_filename == "-") {
+                std::exit(EXIT_FAILURE);
+            }
+            else {
+                std::cerr << "Enter alternative filename: ";
+                std::cin >> ofs_btdf_path;
+                ofs.open(ofs_btdf_path);
+            }
+        }
+
+        // Output SQT RAW.
+        file_data.writeRaw(ofs, ls::FileData::RAW_MODE_ONLY_BTDF_AS_BRDF);
+        ofs.close();
 
         std::cout << "Done.\n\n";
         std::cout.flush();
