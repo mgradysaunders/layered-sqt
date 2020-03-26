@@ -69,6 +69,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="classls_1_1FileData-members.html">List of all members</a>  </div>
@@ -85,6 +86,19 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structls_1_1FileData_1_1Slice.html">Slice</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Slice.  <a href="structls_1_1FileData_1_1Slice.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:af702a072c291d0b714b1cc1c4ddf5564"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564">RawMode</a> { <br />
+&#160;&#160;<a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564afd545c027005d74203d3d671d4b11578">RAW_MODE_DEFAULT</a> = 0, 
+<br />
+&#160;&#160;<a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564a5f727e257aeca40588bbb652940e97a8">RAW_MODE_ONLY_BRDF</a>, 
+<br />
+&#160;&#160;<a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564a0d2924b13547bfc065c9871296ed2d79">RAW_MODE_ONLY_BTDF_AS_BRDF</a>
+<br />
+ }<tr class="memdesc:af702a072c291d0b714b1cc1c4ddf5564"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAW plain-text mode.  <a href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:af702a072c291d0b714b1cc1c4ddf5564"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -103,9 +117,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a60c97cb0de127e5be0f5491f209882ea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1FileData.html#a60c97cb0de127e5be0f5491f209882ea">writeLss</a> (std::ostream &amp;ostr) const</td></tr>
 <tr class="memdesc:a60c97cb0de127e5be0f5491f209882ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write LSQT-slice binary format.  <a href="#a60c97cb0de127e5be0f5491f209882ea">More...</a><br /></td></tr>
 <tr class="separator:a60c97cb0de127e5be0f5491f209882ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7c5b4f407f08903b1f43b88e778958b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1FileData.html#aa7c5b4f407f08903b1f43b88e778958b">writeSqtRaw</a> (std::ostream &amp;ostr) const</td></tr>
-<tr class="memdesc:aa7c5b4f407f08903b1f43b88e778958b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write SQT RAW plain-text format.  <a href="#aa7c5b4f407f08903b1f43b88e778958b">More...</a><br /></td></tr>
-<tr class="separator:aa7c5b4f407f08903b1f43b88e778958b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f4334491aa15882ac642ad5e09aea78"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classls_1_1FileData.html#a5f4334491aa15882ac642ad5e09aea78">writeRaw</a> (std::ostream &amp;ostr, <a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564">RawMode</a> raw_mode=<a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564afd545c027005d74203d3d671d4b11578">RAW_MODE_DEFAULT</a>) const</td></tr>
+<tr class="memdesc:a5f4334491aa15882ac642ad5e09aea78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write RAW plain-text format.  <a href="#a5f4334491aa15882ac642ad5e09aea78">More...</a><br /></td></tr>
+<tr class="separator:a5f4334491aa15882ac642ad5e09aea78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -115,7 +129,35 @@ Public Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>File data. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="af702a072c291d0b714b1cc1c4ddf5564"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af702a072c291d0b714b1cc1c4ddf5564">&#9670;&nbsp;</a></span>RawMode</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564">ls::FileData::RawMode</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>RAW plain-text mode. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af702a072c291d0b714b1cc1c4ddf5564afd545c027005d74203d3d671d4b11578"></a>RAW_MODE_DEFAULT&#160;</td><td class="fielddoc"><p>Default. </p>
+<p>Write default. If no direction is in the lower hemisphere, write as hemispherical <code>RAWBH10A</code>. Otherwise, write as spherical <code>RAWBS10A</code>. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af702a072c291d0b714b1cc1c4ddf5564a5f727e257aeca40588bbb652940e97a8"></a>RAW_MODE_ONLY_BRDF&#160;</td><td class="fielddoc"><p>Only BRDF. </p>
+<p>Write only BRDF directions in the upper hemisphere as hemispherical <code>RAWBH10A</code>. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="af702a072c291d0b714b1cc1c4ddf5564a0d2924b13547bfc065c9871296ed2d79"></a>RAW_MODE_ONLY_BTDF_AS_BRDF&#160;</td><td class="fielddoc"><p>Only BTDF, flipped as BRDF. </p>
+<p>Write only BTDF directions in the lower hemisphere, flipped to the upper hemisphere, as hemispherical <code>RAWBH10A</code>. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a73176cbc3f64a78098e5aacf9b687cb2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a73176cbc3f64a78098e5aacf9b687cb2">&#9670;&nbsp;</a></span>FileData()</h2>
 
@@ -259,26 +301,37 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aa7c5b4f407f08903b1f43b88e778958b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7c5b4f407f08903b1f43b88e778958b">&#9670;&nbsp;</a></span>writeSqtRaw()</h2>
+<a id="a5f4334491aa15882ac642ad5e09aea78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f4334491aa15882ac642ad5e09aea78">&#9670;&nbsp;</a></span>writeRaw()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void ls::FileData::writeSqtRaw </td>
+          <td class="memname">void ls::FileData::writeRaw </td>
           <td>(</td>
           <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>ostr</em></td><td>)</td>
-          <td> const</td>
+          <td class="paramname"><em>ostr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564">RawMode</a>&#160;</td>
+          <td class="paramname"><em>raw_mode</em> = <code><a class="el" href="classls_1_1FileData.html#af702a072c291d0b714b1cc1c4ddf5564afd545c027005d74203d3d671d4b11578">RAW_MODE_DEFAULT</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Write SQT RAW plain-text format. </p>
+<p>Write RAW plain-text format. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">ostr</td><td>Output stream. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">ostr</td><td>Output stream.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">raw_mode</td><td>Raw mode. </td></tr>
   </table>
   </dd>
 </dl>
