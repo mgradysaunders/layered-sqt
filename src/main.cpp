@@ -27,9 +27,6 @@
  */
 /*+-+*/
 #include <filesystem>
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//#include <unistd.h>
 #include <fstream>
 #include <preform/thread_pool.hpp>
 #include <preform/option_parser.hpp>
@@ -39,22 +36,6 @@
 #include <layered-sqt/layered_assembly.hpp>
 #include <layered-sqt/progress_bar.hpp>
 #include <layered-sqt/file_data.hpp>
-
-#if 0
-static std::int64_t getFileModificationTime(const std::string& filename)
-{
-    struct stat statbuf;
-    int err = stat(filename.c_str(), &statbuf);
-    if (err == 0) {
-        return
-            std::int64_t(statbuf.st_mtim.tv_sec) * 1000000000LL +
-            std::int64_t(statbuf.st_mtim.tv_nsec);
-    }
-    else {
-        return -1;
-    }
-}
-#endif
 
 int main(int argc, char** argv)
 {
@@ -217,12 +198,6 @@ int main(int argc, char** argv)
     })
     << "Ignore LSS file if it exists, effectively restarting simulation.\n";
 
-    opt_parser.on_option(nullptr, "--only-hemispherical", 0,
-    [&](char**) {
-        only_hemispherical = true;
-    })
-    << "Only hemispherical output?\n";
-
     // -t/--thread-count
     opt_parser.on_option("-t", "--thread-count", 1,
     [&](char** argv) {
@@ -252,6 +227,16 @@ int main(int argc, char** argv)
     << "Specify output filename. By default, formed by replacing input\n"
        "extension with \".raw\". If input filename is \"-\" to indicate\n"
        "standard input, then is \"Layered.raw\" by default.\n";
+
+    // -H/--only-hemispherical
+    opt_parser.on_option("-H", "--only-hemispherical", 0,
+    [&](char**) {
+        only_hemispherical = true;
+    })
+    << "Only hemispherical output? If enabled, this separates the BSDF\n"
+       "into two hemispherical RAW files. This is currently necessary to\n"
+       "simulate SQT BTDFs in DIRSIG5, as full SQT BSDFs are not yet\n"
+       "supported.\n";
 
     // -h/--help
     opt_parser.on_option("-h", "--help", 0,
