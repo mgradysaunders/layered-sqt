@@ -42,7 +42,7 @@ void ProgressBar::add(int path_count)
 
     // Update terminal progress bar.
     std::cout << '\r';
-    std::cout << pr::terminal_progress_bar{
+    std::cout << pre::terminal_progress_bar{
         double(path_count_) / 
         double(path_count_total_)};
 

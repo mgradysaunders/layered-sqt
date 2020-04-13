@@ -52,13 +52,13 @@ void FileData::basicInit(int wo_count, int wi_count, int seed)
         // Outgoing angle.
         Float thetao = 
             wo_index / Float(wo_count) * 
-            pr::numeric_constants<Float>::M_pi_2() * Float(0.99);
+            pre::numeric_constants<Float>::M_pi_2() * Float(0.99);
 
         // Initialize outgoing direction.
         slice.outgoing_angle = thetao;
         slice.outgoing_dir = {
-            pr::sin(thetao), Float(0),
-            pr::cos(thetao)
+            pre::sin(thetao), Float(0),
+            pre::cos(thetao)
         };
 
         // Initialize incident directions.
@@ -79,8 +79,8 @@ void FileData::readLss(std::istream& istr)
     clear();
 
     // Wrap.
-    pr::byte_stream_wrapper<std::istream> istr_le = 
-    pr::byte_stream(istr, pr::byte_order::little);
+    pre::byte_stream_wrapper<std::istream> istr_le = 
+    pre::byte_stream(istr, pre::byte_order::little);
 
     // Read magic word.
     std::uint32_t magic = 0;
@@ -107,8 +107,8 @@ void FileData::readLss(std::istream& istr)
 void FileData::writeLss(std::ostream& ostr) const
 {
     // Wrap.
-    pr::byte_stream_wrapper<std::ostream> ostr_le = 
-    pr::byte_stream(ostr, pr::byte_order::little);
+    pre::byte_stream_wrapper<std::ostream> ostr_le = 
+    pre::byte_stream(ostr, pre::byte_order::little);
 
     // Write magic word.
     ostr_le << std::uint32_t(0x4c535154UL);
@@ -153,8 +153,8 @@ void FileData::writeRaw(std::ostream& ostr, RawMode raw_mode) const
             auto bsdf_average = slice.bsdf_averages[wi_index];
 
             // SQT expects non-cosine-weighted BSDF.
-            bsdf_average /= pr::fabs(incident_dir[2]);
-            if (!pr::isfinite(bsdf_average)) {
+            bsdf_average /= pre::fabs(incident_dir[2]);
+            if (!pre::isfinite(bsdf_average)) {
                 continue;
             }
 
@@ -197,16 +197,16 @@ void FileData::Slice::readLss(std::istream& istr)
     clear();
 
     // Wrap.
-    pr::byte_stream_wrapper<std::istream> istr_le = 
-    pr::byte_stream(istr, pr::byte_order::little);
+    pre::byte_stream_wrapper<std::istream> istr_le = 
+    pre::byte_stream(istr, pre::byte_order::little);
 
     // Read outgoing angle.
     istr_le >> outgoing_angle;
 
     // Initialize outgoing direction.
     outgoing_dir = {
-        pr::sin(outgoing_angle), Float(0),
-        pr::cos(outgoing_angle)
+        pre::sin(outgoing_angle), Float(0),
+        pre::cos(outgoing_angle)
     };
 
     // Read incident direction count.
@@ -239,8 +239,8 @@ void FileData::Slice::readLss(std::istream& istr)
 void FileData::Slice::writeLss(std::ostream& ostr) const
 {
     // Wrap.
-    pr::byte_stream_wrapper<std::ostream> ostr_le = 
-    pr::byte_stream(ostr, pr::byte_order::little);
+    pre::byte_stream_wrapper<std::ostream> ostr_le = 
+    pre::byte_stream(ostr, pre::byte_order::little);
     
     // Write outgoing angle.
     ostr_le << outgoing_angle;
@@ -285,12 +285,12 @@ void smoothIncidentDirs(std::vector<Vec3<Float>>& incident_dirs)
 
     // Uniformly-spaced polar locations around edge of disk.
     for (int j = 0; j < 64; j++) {
-        Float phi = j * pr::numeric_constants<Float>::M_pi() / 32;
-        Float cos_phi = pr::cos(phi);
-        Float sin_phi = pr::sin(phi);
+        Float phi = j * pre::numeric_constants<Float>::M_pi() / 32;
+        Float cos_phi = pre::cos(phi);
+        Float sin_phi = pre::sin(phi);
         Vec2<Float> loc = {
-            pr::numeric_constants<Float>::M_pi_2() * cos_phi,
-            pr::numeric_constants<Float>::M_pi_2() * sin_phi
+            pre::numeric_constants<Float>::M_pi_2() * cos_phi,
+            pre::numeric_constants<Float>::M_pi_2() * sin_phi
         };
         locs.push_back(loc);
     }
@@ -436,10 +436,10 @@ void FileData::Slice::computeIncidentDirs(
         Float fs_int = 
             rrss_fs[rrss_wi_index] / 
             rrss_fs_pdf[rrss_wi_index] /
-            pr::fabs(rrss_wi[rrss_wi_index][2]); // Non-cosine-weighted
+            pre::fabs(rrss_wi[rrss_wi_index][2]); // Non-cosine-weighted
 
         // BSDF integral term okay?
-        if (pr::isfinite(fs_int)) {
+        if (pre::isfinite(fs_int)) {
 
             // Update BSDF integral estimate.
             rrss_fs_int =
@@ -454,7 +454,7 @@ void FileData::Slice::computeIncidentDirs(
 
     // BSDF integral okay?
     if (rrss_fs_int > 0 &&
-        pr::isfinite(rrss_fs_int)) {
+        pre::isfinite(rrss_fs_int)) {
 
         for (int rrss_wi_index = 0;
                  rrss_wi_index < rrss_wi_count;
@@ -465,11 +465,11 @@ void FileData::Slice::computeIncidentDirs(
             rrss_sample.dir = rrss_wi[rrss_wi_index];
             rrss_sample.val = rrss_fs[rrss_wi_index];
             rrss_sample.pdf = rrss_fs[rrss_wi_index] /
-                     pr::fabs(rrss_wi[rrss_wi_index][2]) / rrss_fs_int;
+                     pre::fabs(rrss_wi[rrss_wi_index][2]) / rrss_fs_int;
 
             // Push sample.
-            if (pr::isfinite(rrss_sample.val) &&
-                pr::isfinite(rrss_sample.pdf)) {
+            if (pre::isfinite(rrss_sample.val) &&
+                pre::isfinite(rrss_sample.pdf)) {
                 rrss_samples.push_back(rrss_sample);
             }
         }
@@ -487,8 +487,8 @@ void FileData::Slice::computeIncidentDirs(
             rrss_sample.pdf = rrss_fs_pdf[rrss_wi_index];
 
             // Push sample.
-            if (pr::isfinite(rrss_sample.val) &&
-                pr::isfinite(rrss_sample.pdf)) {
+            if (pre::isfinite(rrss_sample.val) &&
+                pre::isfinite(rrss_sample.pdf)) {
                 rrss_samples.push_back(rrss_sample);
             }
         }

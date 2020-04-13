@@ -38,8 +38,8 @@ Float LambertianLayer::bsdf(
             const Vec3<Float>& wi,
             Float* fs_pdf) const
 {
-    Float fs = pr::numeric_constants<Float>::M_1_pi() * pr::abs(wi[2]) * 
-              (pr::signbit(wo[2]) == pr::signbit(wi[2]) ? fR : fT);
+    Float fs = pre::numeric_constants<Float>::M_1_pi() * pre::abs(wi[2]) * 
+              (pre::signbit(wo[2]) == pre::signbit(wi[2]) ? fR : fT);
 
     if (fs_pdf) {
         if (fs > 0) {
@@ -62,10 +62,10 @@ Vec3<Float> LambertianLayer::bsdfSample(
     Vec3<Float> wi = 
     Vec3<Float>::cosine_hemisphere_pdf_sample(generateCanonical2(pcg));
     if (generateCanonical(pcg) < fR / (fR + fT)) {
-        wi[2] = pr::copysign(wi[2], +wo[2]);
+        wi[2] = pre::copysign(wi[2], +wo[2]);
     }
     else {
-        wi[2] = pr::copysign(wi[2], -wo[2]);
+        wi[2] = pre::copysign(wi[2], -wo[2]);
     }
 
     // Update throughput.

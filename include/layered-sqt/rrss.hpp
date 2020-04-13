@@ -214,7 +214,7 @@ private:
     /**
      * @brief Sample tree.
      */
-    pr::kdtree<Float, 3, const Sample*> sample_tree_;
+    pre::kdtree<Float, 3, const Sample*> sample_tree_;
 };
 
 /**@}*/

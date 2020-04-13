@@ -33,11 +33,11 @@
 namespace ls {
 
 // Microvolume SGGX specular phase.
-typedef pr::microvolume_sggx_specular_phase<Float> 
+typedef pre::microvolume_sggx_specular_phase<Float> 
         SggxSpecularPhase;
 
 // Microvolume SGGX diffuse phase.
-typedef pr::microvolume_sggx_diffuse_phase<Float> 
+typedef pre::microvolume_sggx_diffuse_phase<Float> 
         SggxDiffusePhase;
 
 Float SggxMedium::phase(
@@ -181,8 +181,8 @@ void SggxMedium::init(const std::string& arg)
     }
 
     // Clamp to be safe?
-    Apara = pr::fmax(Apara, 1e-2);
-    Aperp = pr::fmax(Aperp, 1e-2);
+    Apara = pre::fmax(Apara, 1e-2);
+    Aperp = pre::fmax(Aperp, 1e-2);
 }
 
 } // namespace ls

@@ -39,7 +39,7 @@ void triangulate(
             const std::vector<Vec2<Float>>& locs,
             std::vector<Tri>& tris)
 {
-    typedef pr::delaunay_triangulation<Float> DelaunayTriangulation;
+    typedef pre::delaunay_triangulation<Float> DelaunayTriangulation;
 
     // Delaunay triangulation.
     DelaunayTriangulation delaunay;
@@ -65,18 +65,18 @@ void triangulate(
 // Direction to polar location.
 Vec2<Float> dirToPolar(const Vec3<Float>& dir)
 {
-    Float cos_theta = pr::abs(dir[2]);
-    Float sin_theta = pr::hypot(dir[0], dir[1]);
-    cos_theta = pr::fmin(cos_theta, Float(1));
-    sin_theta = pr::fmin(sin_theta, Float(1));
+    Float cos_theta = pre::abs(dir[2]);
+    Float sin_theta = pre::hypot(dir[0], dir[1]);
+    cos_theta = pre::fmin(cos_theta, Float(1));
+    sin_theta = pre::fmin(sin_theta, Float(1));
     Float theta = 
         cos_theta < sin_theta
-            ? pr::acos(cos_theta)
-            : pr::asin(sin_theta);
+            ? pre::acos(cos_theta)
+            : pre::asin(sin_theta);
     Float cos_phi = dir[0] / sin_theta;
     Float sin_phi = dir[1] / sin_theta;
-    if (!pr::isfinite(cos_phi) ||
-        !pr::isfinite(sin_phi)) {
+    if (!pre::isfinite(cos_phi) ||
+        !pre::isfinite(sin_phi)) {
         cos_phi = 1;
         sin_phi = 0;
     }
@@ -89,10 +89,10 @@ Vec2<Float> dirToPolar(const Vec3<Float>& dir)
 // Polar location to direction.
 Vec3<Float> polarToDir(const Vec2<Float>& loc)
 {
-    Float theta = pr::length(loc);
+    Float theta = pre::length(loc);
     if (theta > 0) {
-        Float sin_theta = pr::sin(theta);
-        Float cos_theta = pr::cos(theta);
+        Float sin_theta = pre::sin(theta);
+        Float cos_theta = pre::cos(theta);
         return {
             sin_theta * (loc[0] / theta),
             sin_theta * (loc[1] / theta),
@@ -187,10 +187,10 @@ Float TriInterpolator::value(const Vec2<Float>& loc) const
 
             // Find nearest location on segment.
             Float u =
-                pr::dot(seg_vec, loc - seg_loc0) / 
-                pr::dot(seg_vec, seg_vec);
-            u = pr::fmin(u, Float(1));
-            u = pr::fmax(u, Float(0));
+                pre::dot(seg_vec, loc - seg_loc0) / 
+                pre::dot(seg_vec, seg_vec);
+            u = pre::fmin(u, Float(1));
+            u = pre::fmax(u, Float(0));
             Float val = (1 - u) * ver0.val + u * ver1.val; 
             return val;
         }
@@ -229,9 +229,9 @@ Float TriFileData::value(
         wi_world[2] = -wi_world[2];
     }
     Float cos_thetao = wo[2];
-    cos_thetao = pr::fmin(cos_thetao, Float(+1));
-    cos_thetao = pr::fmax(cos_thetao, Float(-1));
-    Float sin_thetao = pr::hypot(wo[0], wo[1]);
+    cos_thetao = pre::fmin(cos_thetao, Float(+1));
+    cos_thetao = pre::fmax(cos_thetao, Float(-1));
+    Float sin_thetao = pre::hypot(wo[0], wo[1]);
     Float cos_phio = wo[0] / sin_thetao;
     Float sin_phio = wo[1] / sin_thetao;
     if (sin_thetao < 0.000001) {
@@ -239,9 +239,9 @@ Float TriFileData::value(
         sin_phio = 0;
     }
     Float thetao = 
-        pr::fabs(cos_thetao) < sin_thetao ?
-        pr::acos(cos_thetao) :
-        pr::asin(sin_thetao);
+        pre::fabs(cos_thetao) < sin_thetao ?
+        pre::acos(cos_thetao) :
+        pre::asin(sin_thetao);
 
     // Local direction.
     Vec3<Float> wi = {
@@ -298,8 +298,8 @@ void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
     for (; bsdf_average < file_data_slice.bsdf_averages.end();) {
 
         Vec3<Float> wi = *incident_dir++;
-        Float wi_val = *bsdf_average++ / pr::fabs(wi[2]);
-        if (!pr::isfinite(wi_val)) {
+        Float wi_val = *bsdf_average++ / pre::fabs(wi[2]);
+        if (!pre::isfinite(wi_val)) {
             continue;
         }
 
@@ -307,7 +307,7 @@ void TriFileData::Slice::init(const FileData::Slice& file_data_slice)
         Vec2<Float> wi_loc = dirToPolar(wi);
 
         // In upper hemisphere?
-        if (!pr::signbit(wi[2])) {
+        if (!pre::signbit(wi[2])) {
             // Add to upper hemisphere.
             locs_upper.push_back(wi_loc);
             vals_upper.push_back(wi_val);
@@ -329,16 +329,16 @@ static
 bool intersectUnitSphere(Ray ray, Hit& hit)
 {
     // Float interval.
-    typedef pr::float_interval<Float> FloatInterval;
+    typedef pre::float_interval<Float> FloatInterval;
     FloatInterval t0;
     FloatInterval t1;
     FloatInterval::solve_poly2(
-            pr::dot(ray.pos, ray.pos) - 1,
-            pr::dot(ray.dir, ray.pos) * 2,
-            pr::dot(ray.dir, ray.dir),
+            pre::dot(ray.pos, ray.pos) - 1,
+            pre::dot(ray.dir, ray.pos) * 2,
+            pre::dot(ray.dir, ray.dir),
             t0, t1);
     constexpr Float tmin = 0;
-    constexpr Float tmax = pr::numeric_limits<Float>::infinity();
+    constexpr Float tmax = pre::numeric_limits<Float>::infinity();
     if (!(t0.upper_bound() < tmax &&
           t1.lower_bound() > tmin)) {
         return false;
@@ -356,7 +356,7 @@ bool intersectUnitSphere(Ray ray, Hit& hit)
     }
 
     // Initialize hit.
-    hit.pos = pr::normalize_fast(ray.pos + ray.dir * t.value());
+    hit.pos = pre::normalize_fast(ray.pos + ray.dir * t.value());
     return true;
 }
 
@@ -369,10 +369,10 @@ void TriFileData::renderSphereExample(int image_dim, float* image_pixels) const
     }
 
     // 2-dimensional image with 1 channel.
-    typedef pr::image2<Float, float, 1> Image;
+    typedef pre::image2<Float, float, 1> Image;
 
     // 2-dimensional Mitchell filter.
-    typedef pr::mitchell_filter2<Float> ImageFilter;
+    typedef pre::mitchell_filter2<Float> ImageFilter;
 
     // Initialize image.
     Image image;
@@ -383,9 +383,9 @@ void TriFileData::renderSphereExample(int image_dim, float* image_pixels) const
     Vec2<Float> image_filter_rad = {1, 1};
 
     // Initialize light directions.
-    Vec3<Float> l0 = pr::normalize(Vec3<Float>{-5, +2, -4});
-    Vec3<Float> l1 = pr::normalize(Vec3<Float>{+1, +2, +2});
-    Vec3<Float> l2 = pr::normalize(Vec3<Float>{+2, -3, 0});
+    Vec3<Float> l0 = pre::normalize(Vec3<Float>{-5, +2, -4});
+    Vec3<Float> l1 = pre::normalize(Vec3<Float>{+1, +2, +2});
+    Vec3<Float> l2 = pre::normalize(Vec3<Float>{+2, -3, 0});
 
     // Iterate pixels.
     for (int i = 0; i < image_dim; i++)
@@ -410,7 +410,7 @@ void TriFileData::renderSphereExample(int image_dim, float* image_pixels) const
             };
             Ray ray;
             ray.pos = pos0;
-            ray.dir = pr::normalize(pos1 - pos0);
+            ray.dir = pre::normalize(pos1 - pos0);
 
             // Intersect unit sphere.
             Hit hit;
@@ -419,10 +419,10 @@ void TriFileData::renderSphereExample(int image_dim, float* image_pixels) const
                 // Reconstruct image.
                 Mat3<Float> tbn = 
                 Mat3<Float>::build_onb(hit.pos);
-                Vec3<Float> wo = pr::dot(pr::transpose(tbn), -ray.dir);
-                Vec3<Float> wi0 = pr::dot(pr::transpose(tbn), l0);
-                Vec3<Float> wi1 = pr::dot(pr::transpose(tbn), l1);
-                Vec3<Float> wi2 = pr::dot(pr::transpose(tbn), l2);
+                Vec3<Float> wo = pre::dot(pre::transpose(tbn), -ray.dir);
+                Vec3<Float> wi0 = pre::dot(pre::transpose(tbn), l0);
+                Vec3<Float> wi1 = pre::dot(pre::transpose(tbn), l1);
+                Vec3<Float> wi2 = pre::dot(pre::transpose(tbn), l2);
                 Float f0 = value(wo, wi0) * 2;
                 Float f1 = value(wo, wi1);
                 Float f2 = value(wo, wi2) * Float(0.08);

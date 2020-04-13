@@ -34,10 +34,10 @@ namespace ls {
 
 // Microsurface from dielectric BSDF.
 typedef 
-    pr::microsurface_dielectric_bsdf<
+    pre::microsurface_dielectric_bsdf<
         Float,
-        pr::microsurface_trowbridge_reitz_slope,
-        pr::microsurface_uniform_height> MicrosurfaceDielectricBsdf;
+        pre::microsurface_trowbridge_reitz_slope,
+        pre::microsurface_uniform_height> MicrosurfaceDielectricBsdf;
 
 // BSDF.
 Float MicrosurfaceDielectricLayer::bsdf(

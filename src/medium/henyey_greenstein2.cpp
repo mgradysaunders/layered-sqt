@@ -32,7 +32,7 @@
 namespace ls {
 
 // Henyey-Greenstein phase.
-typedef pr::hg_phase_stack<Float, 2> HenyeyGreenstein2Phase;
+typedef pre::hg_phase_stack<Float, 2> HenyeyGreenstein2Phase;
 
 // Phase function.
 Float HenyeyGreenstein2Medium::phase(

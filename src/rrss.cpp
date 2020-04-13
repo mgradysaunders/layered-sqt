@@ -62,12 +62,12 @@ bool Rrss::disable(std::size_t num)
             if (sample.is_enabled) {
 
                 Float rad = 
-                pr::sqrt(
-                pr::numeric_constants<Float>::M_1_pi() /
+                pre::sqrt(
+                pre::numeric_constants<Float>::M_1_pi() /
                 (sample.pdf * samples_remaining_));
 
                 if (!(rad > 0) || 
-                    !pr::isfinite(rad)) {
+                    !pre::isfinite(rad)) {
                     sample.redundancy = 1;
                     // TODO Warn
                 }
@@ -95,7 +95,7 @@ bool Rrss::disable(std::size_t num)
                         nearby_enabled * 
                         nearby * (sample.pdf / nearby_pdf_sum);
 
-                    if (pr::isnan(sample.redundancy)) {
+                    if (pre::isnan(sample.redundancy)) {
                         sample.redundancy = 1;
                         // TODO Warn
                     }

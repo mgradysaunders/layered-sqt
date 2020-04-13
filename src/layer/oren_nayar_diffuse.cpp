@@ -32,7 +32,7 @@
 
 namespace ls {
 
-typedef pr::oren_nayar_diffuse_brdf<Float> OrenNayarDiffuseBrdf;
+typedef pre::oren_nayar_diffuse_brdf<Float> OrenNayarDiffuseBrdf;
 
 // BSDF.
 Float OrenNayarDiffuseLayer::bsdf(
@@ -41,8 +41,8 @@ Float OrenNayarDiffuseLayer::bsdf(
             const Vec3<Float>& wi,
             Float* fs_pdf) const
 {
-    if (pr::signbit(wo[2]) != 
-        pr::signbit(wi[2])) {
+    if (pre::signbit(wo[2]) != 
+        pre::signbit(wi[2])) {
         if (fs_pdf) {
             *fs_pdf = 0;
         }

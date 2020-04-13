@@ -34,10 +34,10 @@ namespace ls {
 
 // Microsurface from conductive BRDF.
 typedef 
-    pr::microsurface_conductive_brdf<
+    pre::microsurface_conductive_brdf<
         Float,
-        pr::microsurface_trowbridge_reitz_slope,
-        pr::microsurface_uniform_height> MicrosurfaceConductiveBrdf;
+        pre::microsurface_trowbridge_reitz_slope,
+        pre::microsurface_uniform_height> MicrosurfaceConductiveBrdf;
 
 // BSDF.
 Float MicrosurfaceConductiveLayer::bsdf(

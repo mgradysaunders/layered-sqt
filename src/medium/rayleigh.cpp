@@ -32,7 +32,7 @@
 namespace ls {
 
 // Rayleigh phase.
-typedef pr::rayleigh_phase<Float> RayleighPhase;
+typedef pre::rayleigh_phase<Float> RayleighPhase;
 
 // Phase function.
 Float RayleighMedium::phase(

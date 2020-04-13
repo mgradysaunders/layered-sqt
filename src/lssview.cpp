@@ -161,7 +161,7 @@ void stbiWriteImage(
 
 int main(int argc, char** argv)
 {
-    pr::option_parser opt_parser("[OPTIONS] filename");
+    pre::option_parser opt_parser("[OPTIONS] filename");
 
     int image_dim = 512;
     float image_mul = 1.0f;
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
         try {
             image_mul = std::stof(argv[0]);
             if (!(image_mul > 0 && 
-                  pr::isfinite(image_mul))) {
+                  pre::isfinite(image_mul))) {
                 throw std::exception();
             }
         }
@@ -319,8 +319,8 @@ int main(int argc, char** argv)
         for (int i = 0; i < image_dim; i++)
         for (int j = 0; j < image_dim; j++) {
             image_pixu8[i * image_dim + j] = 
-                    pr::pack_uint8(
-                    pr::srgbenc_hejl_burgess(
+                    pre::pack_uint8(
+                    pre::srgbenc_hejl_burgess(
                         image_mul * 
                         image_pix[i * image_dim + j]));
         }

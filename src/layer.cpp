@@ -41,7 +41,7 @@ bool Layer::intersect(const Ray& ray, Hit& hit) const
 {
     Float t = (zheight - ray.pos[2]) / ray.dir[2];
     if (!(t > 0 &&
-          t < pr::numeric_limits<Float>::infinity())) {
+          t < pre::numeric_limits<Float>::infinity())) {
         return false;
     }
 

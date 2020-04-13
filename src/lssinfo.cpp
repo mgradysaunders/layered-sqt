@@ -33,7 +33,7 @@
 
 int main(int argc, char** argv)
 {
-    pr::option_parser opt_parser("[OPTIONS] filename");
+    pre::option_parser opt_parser("[OPTIONS] filename");
 
     // Input filename.
     std::string ifs_filename;

@@ -218,7 +218,7 @@ public:
             return (dirz > 0 ?
                     bsdf_upper_.value(Vec2<Float>(loc)) :
                     bsdf_lower_.value(Vec2<Float>(loc))) * 
-                    pr::fabs(dirz);
+                    pre::fabs(dirz);
         }
 
     private:

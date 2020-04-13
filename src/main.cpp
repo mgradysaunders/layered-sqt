@@ -39,7 +39,7 @@
 
 int main(int argc, char** argv)
 {
-    pr::option_parser opt_parser("[OPTIONS] filename");
+    pre::option_parser opt_parser("[OPTIONS] filename");
 
     // Options.
     int seed = 0;
@@ -425,7 +425,7 @@ int main(int argc, char** argv)
 
     {
         // Thread pool.
-        pr::thread_pool pool(thread_count);
+        pre::thread_pool pool(thread_count);
 
         // Progress bar.
         ls::ProgressBar progress_bar(path_count * wo_count);

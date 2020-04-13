@@ -39,8 +39,8 @@ Float Medium::transmittance(Float d) const
         return 1;
     }
     else {
-        return pr::exp(-mu * 
-               pr::min(d, pr::numeric_limits<Float>::max()));
+        return pre::exp(-mu * 
+               pre::min(d, pre::numeric_limits<Float>::max()));
     }
 }
 
@@ -54,7 +54,7 @@ Float Medium::transmittanceSample(
 
         // Sample distance.
         Float u = generateCanonical(pcg);
-        Float d = (u < Float(0.5) ? -pr::log1p(-u) : -pr::log(1 - u)) / mu;
+        Float d = (u < Float(0.5) ? -pre::log1p(-u) : -pre::log(1 - u)) / mu;
 
         // Scattering event occurred?
         if (d < dmax) {

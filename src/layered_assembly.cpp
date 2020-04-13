@@ -387,7 +387,7 @@ void LayeredAssembly::compute(
         ray.pos[0] = 0;
         ray.pos[1] = 0;
 
-        Vec3<Float> wk = -pr::normalize_fast(ray.dir);
+        Vec3<Float> wk = -pre::normalize_fast(ray.dir);
 
         // Determine neighboring layers.
         const Layer* layer_above;
@@ -418,7 +418,7 @@ void LayeredAssembly::compute(
         }
 
         // Sample medium.
-        Float dmax = pr::length(hit.pos - ray.pos);
+        Float dmax = pre::length(hit.pos - ray.pos);
         Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
         if (!(d == dmax)) {
 
@@ -440,7 +440,7 @@ void LayeredAssembly::compute(
                 for (int j = 0; j < wi_count; j++) {
 
                     // Incident direction in upper hemisphere?
-                    if (pr::signbit(wi[j][2]) == 0) {
+                    if (pre::signbit(wi[j][2]) == 0) {
 
                         // Phase.
                         Float ps = ray.medium->phase(pcg, wk, wi[j]);
@@ -462,13 +462,13 @@ void LayeredAssembly::compute(
 
                         // BSDF?
                         tmp__fs *= tau * tr;
-                        if (fs && pr::isfinite(tmp__fs)) {
+                        if (fs && pre::isfinite(tmp__fs)) {
                             fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
                         tmp__fs_pdf *= tr;
-                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                        if (fs_pdf && pre::isfinite(tmp__fs_pdf)) {
                             fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
@@ -481,7 +481,7 @@ void LayeredAssembly::compute(
                 for (int j = 0; j < wi_count; j++) {
 
                     // Incident direction in lower hemisphere?
-                    if (pr::signbit(wi[j][2]) == 1) {
+                    if (pre::signbit(wi[j][2]) == 1) {
 
                         // Phase.
                         Float ps = ray.medium->phase(pcg, wk, wi[j]);
@@ -503,13 +503,13 @@ void LayeredAssembly::compute(
 
                         // BSDF?
                         tmp__fs *= tau * tr;
-                        if (fs && pr::isfinite(tmp__fs)) {
+                        if (fs && pre::isfinite(tmp__fs)) {
                             fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
                         tmp__fs_pdf *= tr;
-                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                        if (fs_pdf && pre::isfinite(tmp__fs_pdf)) {
                             fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
@@ -527,7 +527,7 @@ void LayeredAssembly::compute(
                 for (int j = 0; j < wi_count; j++) {
 
                     // Incident direction in upper hemisphere?
-                    if (pr::signbit(wi[j][2]) == 0) {
+                    if (pre::signbit(wi[j][2]) == 0) {
 
                         // BSDF/BSDF-PDF.
                         Float tmp__fs_pdf = 0;
@@ -549,13 +549,13 @@ void LayeredAssembly::compute(
 
                         // BSDF?
                         tmp__fs *= tau * tr;
-                        if (fs && pr::isfinite(tmp__fs)) {
+                        if (fs && pre::isfinite(tmp__fs)) {
                             fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
                         tmp__fs_pdf *= tr;
-                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                        if (fs_pdf && pre::isfinite(tmp__fs_pdf)) {
                             fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
@@ -567,7 +567,7 @@ void LayeredAssembly::compute(
                 for (int j = 0; j < wi_count; j++) {
 
                     // Incident direction in lower hemisphere?
-                    if (pr::signbit(wi[j][2]) == 1) {
+                    if (pre::signbit(wi[j][2]) == 1) {
 
                         // BSDF/BSDF-PDF.
                         Float tmp__fs_pdf = 0;
@@ -589,13 +589,13 @@ void LayeredAssembly::compute(
 
                         // BSDF?
                         tmp__fs *= tau * tr;
-                        if (fs && pr::isfinite(tmp__fs)) {
+                        if (fs && pre::isfinite(tmp__fs)) {
                             fs[j] += tmp__fs;
                         }
 
                         // BSDF-PDF?
                         tmp__fs_pdf *= tr;
-                        if (fs_pdf && pr::isfinite(tmp__fs_pdf)) {
+                        if (fs_pdf && pre::isfinite(tmp__fs_pdf)) {
                             fs_pdf[j] += tmp__fs_pdf;
                         }
                     }
@@ -750,7 +750,7 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
         for (int bounce = 0;
                  bounce < 128; bounce++) {
 
-            Vec3<Float> wk = -pr::normalize_fast(ray.dir);
+            Vec3<Float> wk = -pre::normalize_fast(ray.dir);
 
             // Determine neighboring layers.
             const Layer* layer_above;
@@ -775,7 +775,7 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
             if (!layer_next) {
 
                 // Reject nearly parallel rays.
-                if (!(pr::fabs(ray.dir[2]) > Float(1e-3))) {
+                if (!(pre::fabs(ray.dir[2]) > Float(1e-3))) {
                     break;
                 }
                 // Exit.
@@ -788,7 +788,7 @@ Vec3<Float> LayeredAssembly::randomScatterDirection(
             layer = layer_next;
 
             // Sample medium.
-            Float dmax = pr::length(hit.pos - ray.pos);
+            Float dmax = pre::length(hit.pos - ray.pos);
             Float d = ray.medium->transmittanceSample(pcg, tau, dmax);
             if (!(d == dmax)) {
 

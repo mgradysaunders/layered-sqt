@@ -34,10 +34,10 @@ namespace ls {
 
 // Microsurface from Lambertian BSDF.
 typedef 
-    pr::microsurface_lambertian_bsdf<
+    pre::microsurface_lambertian_bsdf<
         Float,
-        pr::microsurface_trowbridge_reitz_slope,
-        pr::microsurface_uniform_height> MicrosurfaceLambertianBsdf;
+        pre::microsurface_trowbridge_reitz_slope,
+        pre::microsurface_uniform_height> MicrosurfaceLambertianBsdf;
 
 // BSDF.
 Float MicrosurfaceLambertianLayer::bsdf(
