@@ -1,0 +1,235 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.9 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{dEon:16}{book}{}
+      \name{author}{1}{}{%
+        {{hash=3b0b819074feac576833214462546a31}{%
+           family={d'Eon},
+           familyi={d\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{3b0b819074feac576833214462546a31}
+      \strng{fullhash}{3b0b819074feac576833214462546a31}
+      \strng{bibnamehash}{3b0b819074feac576833214462546a31}
+      \strng{authorbibnamehash}{3b0b819074feac576833214462546a31}
+      \strng{authornamehash}{3b0b819074feac576833214462546a31}
+      \strng{authorfullhash}{3b0b819074feac576833214462546a31}
+      \field{sortinit}{d}
+      \field{sortinithash}{2ef1bd9a78cc71eb74d7231c635177b8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{subtitle}{An Incomplete Collection of Mostly Steady-State Monoenergetic Neutral-Particle Problem Solutions}
+      \field{title}{A Hitchhiker's Guide to Multiple Scattering}
+      \field{year}{2016}
+      \verb{urlraw}
+      \verb http://www.eugenedeon.com/project/a-hitchhikers-guide-to-multiple-scattering/
+      \endverb
+      \verb{url}
+      \verb http://www.eugenedeon.com/project/a-hitchhikers-guide-to-multiple-scattering/
+      \endverb
+    \endentry
+    \entry{Goodenough:17}{article}{}
+      \name{author}{2}{}{%
+        {{hash=99f63b6cc240a2053c04f5db3c968276}{%
+           family={Goodenough},
+           familyi={G\bibinitperiod},
+           given={A.\bibnamedelimi A.},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=5baa1e52904d4499e1bd78669c904da9}{%
+           family={Brown},
+           familyi={B\bibinitperiod},
+           given={S.\bibnamedelimi D.},
+           giveni={S\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{cf8c47c98fd547891ddba1597adefd62}
+      \strng{fullhash}{cf8c47c98fd547891ddba1597adefd62}
+      \strng{bibnamehash}{cf8c47c98fd547891ddba1597adefd62}
+      \strng{authorbibnamehash}{cf8c47c98fd547891ddba1597adefd62}
+      \strng{authornamehash}{cf8c47c98fd547891ddba1597adefd62}
+      \strng{authorfullhash}{cf8c47c98fd547891ddba1597adefd62}
+      \field{sortinit}{G}
+      \field{sortinithash}{5e8d2bf9d38de41b1528bd307546008f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2151-1535}
+      \field{journaltitle}{IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}
+      \field{month}{11}
+      \field{number}{11}
+      \field{title}{DIRSIG5: Next-Generation Remote Sensing Data and Image Simulation Framework}
+      \field{volume}{10}
+      \field{year}{2017}
+      \field{pages}{4818\bibrangedash 4833}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1109/JSTARS.2017.2758964
+      \endverb
+    \endentry
+    \entry{Heitz:16}{article}{}
+      \name{author}{4}{}{%
+        {{hash=738936cadf0a911e4a0e63e164dcdba1}{%
+           family={Heitz},
+           familyi={H\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+        {{hash=fa792e2b253e2d8d30c7fcaa6f2e20af}{%
+           family={Hanika},
+           familyi={H\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=3b0b819074feac576833214462546a31}{%
+           family={d'Eon},
+           familyi={d\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+        {{hash=e0dcc826261cedb112e5fdb555cc9440}{%
+           family={Dachsbacher},
+           familyi={D\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{fullhash}{fbaa209cb95bf53116ea81eeb8475bf2}
+      \strng{bibnamehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{authorbibnamehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{authornamehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{authorfullhash}{fbaa209cb95bf53116ea81eeb8475bf2}
+      \field{sortinit}{H}
+      \field{sortinithash}{5f15a7bc777ad49ff15aa4d2831b1681}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0730-0301}
+      \field{journaltitle}{ACM Transactions on Graphics}
+      \field{month}{7}
+      \field{number}{4}
+      \field{title}{Multiple-scattering microfacet BSDFs with the Smith model}
+      \field{volume}{35}
+      \field{year}{2016}
+      \field{pages}{1\bibrangedash 58}
+      \range{pages}{58}
+      \verb{doi}
+      \verb 10.1145/2897824.2925943
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/2897824.2925943
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/2897824.2925943
+      \endverb
+    \endentry
+    \entry{Heitz:15}{article}{}
+      \name{author}{4}{}{%
+        {{hash=738936cadf0a911e4a0e63e164dcdba1}{%
+           family={Heitz},
+           familyi={H\bibinitperiod},
+           given={E.},
+           giveni={E\bibinitperiod}}}%
+        {{hash=7a50d1ce2f871854792de73a75de40f6}{%
+           family={Dupuy},
+           familyi={D\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=8e565117f6c9f3a4a34389fd84f90573}{%
+           family={Crassin},
+           familyi={C\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+        {{hash=e0dcc826261cedb112e5fdb555cc9440}{%
+           family={Dachsbacher},
+           familyi={D\bibinitperiod},
+           given={C.},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{fullhash}{ed47a2ea88292b6ba1ba1b5dddfc1019}
+      \strng{bibnamehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{authorbibnamehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{authornamehash}{8330f5c51ce2d63a478433fc6fce61ad}
+      \strng{authorfullhash}{ed47a2ea88292b6ba1ba1b5dddfc1019}
+      \field{sortinit}{H}
+      \field{sortinithash}{5f15a7bc777ad49ff15aa4d2831b1681}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{0730-0301}
+      \field{journaltitle}{ACM Trans. Graph.}
+      \field{month}{7}
+      \field{number}{4}
+      \field{title}{The SGGX Microflake Distribution}
+      \field{volume}{34}
+      \field{year}{2015}
+      \verb{doi}
+      \verb 10.1145/2766988
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/2766988
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/2766988
+      \endverb
+    \endentry
+    \entry{Oren:94}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=7e39e03fa28bffa9a454066770e669f3}{%
+           family={Oren},
+           familyi={O\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=dbf6c514d3de0b1722f721b6c36059d4}{%
+           family={Nayar},
+           familyi={N\bibinitperiod},
+           given={S.\bibnamedelimi K.},
+           giveni={S\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{ee9d1c6dd67849b49a23e987bd266048}
+      \strng{fullhash}{ee9d1c6dd67849b49a23e987bd266048}
+      \strng{bibnamehash}{ee9d1c6dd67849b49a23e987bd266048}
+      \strng{authorbibnamehash}{ee9d1c6dd67849b49a23e987bd266048}
+      \strng{authornamehash}{ee9d1c6dd67849b49a23e987bd266048}
+      \strng{authorfullhash}{ee9d1c6dd67849b49a23e987bd266048}
+      \field{sortinit}{O}
+      \field{sortinithash}{dad3efd0836470093a7b4a7bb756eb8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 21st Annual Conference on Computer Graphics and Interactive Techniques}
+      \field{isbn}{0-89791-667-0}
+      \field{series}{SIGGRAPH'94}
+      \field{title}{Generalization of Lambert's reflectance model}
+      \field{venue}{New York, NY, USA}
+      \field{year}{1994}
+      \field{pages}{239\bibrangedash 246}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1145/192161.192213
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
