@@ -1,6 +1,7 @@
 <map id="ls::Medium" name="ls::Medium">
-<area shape="rect" id="node2" href="$classls_1_1HenyeyGreenstein2Medium.html" title="Henyey&#45;Greenstein 2&#45;lobe medium. " alt="" coords="140,5,341,32"/>
-<area shape="rect" id="node3" href="$classls_1_1HenyeyGreensteinMedium.html" title="Henyey&#45;Greenstein medium. " alt="" coords="143,56,338,83"/>
-<area shape="rect" id="node4" href="$classls_1_1RayleighMedium.html" title="Rayleigh medium. " alt="" coords="172,107,309,133"/>
-<area shape="rect" id="node5" href="$classls_1_1SggxMedium.html" title="SGGX medium. " alt="" coords="183,157,299,184"/>
+<area shape="rect" id="node1" title="Medium interface." alt="" coords="5,81,100,108"/>
+<area shape="rect" id="node2" href="$classls_1_1HenyeyGreenstein2Medium.html" title="Henyey&#45;Greenstein 2&#45;lobe medium." alt="" coords="148,5,371,32"/>
+<area shape="rect" id="node3" href="$classls_1_1HenyeyGreensteinMedium.html" title="Henyey&#45;Greenstein medium." alt="" coords="152,56,367,83"/>
+<area shape="rect" id="node4" href="$classls_1_1RayleighMedium.html" title="Rayleigh medium." alt="" coords="184,107,335,133"/>
+<area shape="rect" id="node5" href="$classls_1_1SggxMedium.html" title="SGGX medium." alt="" coords="196,157,323,184"/>
 </map>

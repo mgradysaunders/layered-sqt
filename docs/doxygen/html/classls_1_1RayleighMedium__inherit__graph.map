@@ -1,3 +1,4 @@
 <map id="ls::RayleighMedium" name="ls::RayleighMedium">
-<area shape="rect" id="node2" href="$classls_1_1Medium.html" title="Medium interface. " alt="" coords="31,5,117,32"/>
+<area shape="rect" id="node1" title="Rayleigh medium." alt="" coords="5,80,156,107"/>
+<area shape="rect" id="node2" href="$classls_1_1Medium.html" title="Medium interface." alt="" coords="33,5,128,32"/>
 </map>
