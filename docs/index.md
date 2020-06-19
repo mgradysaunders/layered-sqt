@@ -1,6 +1,5 @@
 ---
-layout: page
+layout: home
 title: Layered-SQT
-subtitle: Microfacet layers to SQT-format BSDF
 ---
 

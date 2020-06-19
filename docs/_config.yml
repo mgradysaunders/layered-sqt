@@ -1,12 +1,14 @@
 author: M. Grady Saunders
 source: .
+title: Layered-SQT
+description: Layered assembly to SQT-format BSDF
 destination: ./_site
-plugins_dir: ./_plugins
-layouts_dir: ./_layouts
-includes_dir: ./_includes
 encoding: "utf-8"
 markdown: kramdown
 markdown_ext: "markdown,md"
+remote_theme: "mmistakes/minimal-mistakes@4.19.3"
+plugins:
+  - jekyll-include-cache
+  - jekyll-seo-tag
 liquid:
-    error_mode: strict
-
+  error_mode: strict
